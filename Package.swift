@@ -18,13 +18,15 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/gnorium/web-builders", from: "1.0.0")
+        .package(url: "https://github.com/gnorium/web-builders", from: "1.0.0"),
+        .package(url: "https://github.com/gnorium/web-formats", from: "1.0.0")
     ],
     targets: [
         .target(
             name: "DesignTokens",
             dependencies: [
-                .product(name: "WebBuilders", package: "web-builders")
+                .product(name: "CSSBuilder", package: "web-builders"),
+                .product(name: "JSONFormat", package: "web-formats")
             ],
             swiftSettings: [
                 .enableUpcomingFeature("BareSlashRegexLiterals"),
@@ -32,8 +34,7 @@ let package = Package(
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("ForwardTrailingClosures"),
                 .enableUpcomingFeature("ImplicitOpenExistentials"),
-                .enableUpcomingFeature("StrictConcurrency"),
-                .unsafeFlags(["-warn-concurrency"], .when(configuration: .debug)),
+                .enableUpcomingFeature("StrictConcurrency")
             ]
         ),
         .testTarget(
