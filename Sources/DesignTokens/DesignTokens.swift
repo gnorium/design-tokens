@@ -893,6 +893,8 @@ public func WikimediaMetaWikiBrandColorsCSS() -> [CSS] {
 
 #endif
 
+import WebTypes
+
 // MARK: - Design Token Constants (Swift references to CSS variables)
 // Apple HIG System Colors - Light (Less Vibrant)
 public let redLightLess: CSSColor = "var(--red-light-less)"
