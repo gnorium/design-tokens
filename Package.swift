@@ -19,14 +19,14 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/gnorium/web-builders", branch: "main"),
-        .package(url: "https://github.com/gnorium/web-formats", branch: "main")
+        .package(url: "https://github.com/gnorium/web-types", branch: "main")
     ],
     targets: [
         .target(
             name: "DesignTokens",
             dependencies: [
                 .product(name: "CSSBuilder", package: "web-builders"),
-                .product(name: "JSONFormat", package: "web-formats")
+                .product(name: "WebTypes", package: "web-types")
             ],
             swiftSettings: [
                 .enableUpcomingFeature("BareSlashRegexLiterals"),
