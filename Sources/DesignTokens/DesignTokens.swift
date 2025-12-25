@@ -891,6 +891,8 @@ public func WikimediaCodexStyleGuideColorsCSS() -> [CSS] {
 public func WikimediaMetaWikiBrandColorsCSS() -> [CSS] {
 }
 
+#endif
+
 // MARK: - Design Token Constants (Swift references to CSS variables)
 // Apple HIG System Colors - Light (Less Vibrant)
 public let redLightLess: CSSColor = "var(--red-light-less)"
@@ -1420,5 +1422,3 @@ public let widthToggleSwitch: Length = "var(--width-toggle-switch)"
 public let heightToggleSwitch: Length = "var(--height-toggle-switch)"
 public let spacingStartTypeaheadSearchIcon: Length = "var(--spacing-start-typeahead-search-icon)"
 public let spacingTypeaheadSearchFocusAddition: Length = "var(--spacing-typeahead-search-focus-addition)"
-
-#endif
