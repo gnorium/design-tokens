@@ -93,7 +93,7 @@ Comprehensive design system tokens including:
 
 ## Requirements
 
-- Swift 6.0+
+- Swift 6.2+
 - Depends on web-builders for CSS generation
 
 ## License
@@ -109,5 +109,6 @@ Contributions welcome! Please open an issue or submit a pull request.
 - [embedded-swift-utilities](https://github.com/gnorium/embedded-swift-utilities) - Utilities for Embedded Swift
 - [web-apis](https://github.com/gnorium/web-apis) - Web API implementations for Swift WebAssembly
 - [web-builders](https://github.com/gnorium/web-builders) - HTML, CSS, JS, and SVG DSL builders
+- [web-components](https://github.com/gnorium/web-components) - Reusable UI components based on Wikimedia Codex
 - [web-formats](https://github.com/gnorium/web-formats) - Structured data format builders
 - [web-types](https://github.com/gnorium/web-types) - Shared web types and design tokens
