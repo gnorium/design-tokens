@@ -14,6 +14,8 @@ public let typographyFontMono: CSSFontFamily = "var(--typography-font-mono)"
 public let extreme: CSSColor = "var(--extreme)"
 public let extremeInverted: CSSColor = "var(--extreme-inverted)"
 
+// MARK: Layer 1 - Primitive Colors (static, mode-specific base colors)
+// These are the raw color values - they don't adapt, they're used to build semantic tokens
 // Apple HIG System Colors - Light (Less Vibrant)
 public let redLightLess: CSSColor = "var(--red-light-less)"
 public let orangeLightLess: CSSColor = "var(--orange-light-less)"
@@ -98,55 +100,27 @@ public let gray4DarkMore: CSSColor = "var(--gray3-dark-more)"
 public let gray5DarkMore: CSSColor = "var(--gray4-dark-more)"
 public let gray6DarkMore: CSSColor = "var(--gray5-dark-more)"
 
-// Polymorphic Foreground Colors (vibrant/pure colors for text, icons, and solid fills)
+// MARK: Layer 2 - Dynamic Backgrounds (semantic, mode-adaptive)
+public let background: CSSColor = "var(--background)"
+public let secondaryBackground: CSSColor = "var(--secondary-background)"
+public let tertiaryBackground: CSSColor = "var(--tertiary-background)"
+public let groupedBackground: CSSColor = "var(--grouped-background)"
+public let secondaryGroupedBackground: CSSColor = "var(--secondary-grouped-background)"
+public let tertiaryGroupedBackground: CSSColor = "var(--tertiary-grouped-background)"
+
+// MARK: Layer 3 - Dynamic Foregrounds (semantic, mode-adaptive)
+public let label: CSSColor = "var(--label)"
+public let secondaryLabel: CSSColor = "var(--secondary-label)"
+public let tertiaryLabel: CSSColor = "var(--tertiary-label)"
+public let quaternaryLabel: CSSColor = "var(--quaternary-label)"
+public let placeholderText: CSSColor = "var(--placeholder-text)"
+public let separator: CSSColor = "var(--separator)"
+public let opaqueSeparator: CSSColor = "var(--opaque-separator)"
+public let link: CSSColor = "var(--link)"
+
+// Polymorphic System Colors (for text, icons, and UI elements)
 // Automatically adapt to light/dark mode and contrast preferences
-public let redFg: CSSColor = "var(--red-fg)"
-public let orangeFg: CSSColor = "var(--orange-fg)"
-public let yellowFg: CSSColor = "var(--yellow-fg)"
-public let greenFg: CSSColor = "var(--green-fg)"
-public let mintFg: CSSColor = "var(--mint-fg)"
-public let tealFg: CSSColor = "var(--teal-fg)"
-public let cyanFg: CSSColor = "var(--cyan-fg)"
-public let blueFg: CSSColor = "var(--blue-fg)"
-public let indigoFg: CSSColor = "var(--indigo-fg)"
-public let purpleFg: CSSColor = "var(--purple-fg)"
-public let pinkFg: CSSColor = "var(--pink-fg)"
-public let brownFg: CSSColor = "var(--brown-fg)"
-
-// Polymorphic Background Colors (subtle/washed out colors for tinted backgrounds)
-// Automatically adapt to light/dark mode and contrast preferences (INVERTED contrast behavior)
-public let redBg: CSSColor = "var(--red-bg)"
-public let orangeBg: CSSColor = "var(--orange-bg)"
-public let yellowBg: CSSColor = "var(--yellow-bg)"
-public let greenBg: CSSColor = "var(--green-bg)"
-public let mintBg: CSSColor = "var(--mint-bg)"
-public let tealBg: CSSColor = "var(--teal-bg)"
-public let cyanBg: CSSColor = "var(--cyan-bg)"
-public let blueBg: CSSColor = "var(--blue-bg)"
-public let indigoBg: CSSColor = "var(--indigo-bg)"
-public let purpleBg: CSSColor = "var(--purple-bg)"
-public let pinkBg: CSSColor = "var(--pink-bg)"
-public let brownBg: CSSColor = "var(--brown-bg)"
-
-// Polymorphic Gray Foreground Colors (for text, icons, and UI elements)
-// Automatically adapt to light/dark mode and contrast preferences
-public let grayFg: CSSColor = "var(--gray-fg)"
-public let gray2Fg: CSSColor = "var(--gray2-fg)"
-public let gray3Fg: CSSColor = "var(--gray3-fg)"
-public let gray4Fg: CSSColor = "var(--gray4-fg)"
-public let gray5Fg: CSSColor = "var(--gray5-fg)"
-public let gray6Fg: CSSColor = "var(--gray6-fg)"
-
-// Polymorphic Gray Background Colors (for subtle backgrounds and surfaces)
-// Automatically adapt to light/dark mode and contrast preferences (INVERTED contrast behavior)
-public let grayBg: CSSColor = "var(--gray-bg)"
-public let gray2Bg: CSSColor = "var(--gray2-bg)"
-public let gray3Bg: CSSColor = "var(--gray3-bg)"
-public let gray4Bg: CSSColor = "var(--gray4-bg)"
-public let gray5Bg: CSSColor = "var(--gray5-bg)"
-public let gray6Bg: CSSColor = "var(--gray6-bg)"
-
-// Apple HIG System Colors (adaptive to light/dark/contrast modes)
+// Note: These reference --* variables (renamed from --*-fg)
 public let red: CSSColor = "var(--red)"
 public let orange: CSSColor = "var(--orange)"
 public let yellow: CSSColor = "var(--yellow)"
@@ -160,13 +134,84 @@ public let purple: CSSColor = "var(--purple)"
 public let pink: CSSColor = "var(--pink)"
 public let brown: CSSColor = "var(--brown)"
 
-// Apple HIG System Gray Scale (adaptive to light/dark/contrast modes)
+// Polymorphic Gray System Colors (for text, icons, and UI elements)
+// Automatically adapt to light/dark mode and contrast preferences
+// Note: These reference --gray* variables
 public let gray: CSSColor = "var(--gray)"
-public let gray2: CSSColor = "var(--gray1)"
-public let gray3: CSSColor = "var(--gray2)"
-public let gray4: CSSColor = "var(--gray3)"
-public let gray5: CSSColor = "var(--gray4)"
-public let gray6: CSSColor = "var(--gray5)"
+public let gray2: CSSColor = "var(--gray2)"
+public let gray3: CSSColor = "var(--gray3)"
+public let gray4: CSSColor = "var(--gray4)"
+public let gray5: CSSColor = "var(--gray5)"
+public let gray6: CSSColor = "var(--gray6)"
+
+// Polymorphic Subtle Background Colors (subtle/washed out colors for tinted backgrounds)
+// Automatically adapt to light/dark mode and contrast preferences (INVERTED contrast behavior)
+// Note: These reference --*-subtle variables (renamed from --*-bg)
+public let redSubtle: CSSColor = "var(--red-subtle)"
+public let orangeSubtle: CSSColor = "var(--orange-subtle)"
+public let yellowSubtle: CSSColor = "var(--yellow-subtle)"
+public let greenSubtle: CSSColor = "var(--green-subtle)"
+public let mintSubtle: CSSColor = "var(--mint-subtle)"
+public let tealSubtle: CSSColor = "var(--teal-subtle)"
+public let cyanSubtle: CSSColor = "var(--cyan-subtle)"
+public let blueSubtle: CSSColor = "var(--blue-subtle)"
+public let indigoSubtle: CSSColor = "var(--indigo-subtle)"
+public let purpleSubtle: CSSColor = "var(--purple-subtle)"
+public let pinkSubtle: CSSColor = "var(--pink-subtle)"
+public let brownSubtle: CSSColor = "var(--brown-subtle)"
+
+// Polymorphic Filled Colors (for solid buttons and badges)
+// Automatically adapt to light/dark mode and contrast preferences
+// ALWAYS darken on hover (mix with black) in all modes
+public let redFilled: CSSColor = "var(--red-filled)"
+public let redFilledHover: CSSColor = "var(--red-filled--hover)"
+public let redFilledActive: CSSColor = "var(--red-filled--active)"
+public let orangeFilled: CSSColor = "var(--orange-filled)"
+public let orangeFilledHover: CSSColor = "var(--orange-filled--hover)"
+public let orangeFilledActive: CSSColor = "var(--orange-filled--active)"
+public let yellowFilled: CSSColor = "var(--yellow-filled)"
+public let yellowFilledHover: CSSColor = "var(--yellow-filled--hover)"
+public let yellowFilledActive: CSSColor = "var(--yellow-filled--active)"
+public let greenFilled: CSSColor = "var(--green-filled)"
+public let greenFilledHover: CSSColor = "var(--green-filled--hover)"
+public let greenFilledActive: CSSColor = "var(--green-filled--active)"
+public let mintFilled: CSSColor = "var(--mint-filled)"
+public let mintFilledHover: CSSColor = "var(--mint-filled--hover)"
+public let mintFilledActive: CSSColor = "var(--mint-filled--active)"
+public let tealFilled: CSSColor = "var(--teal-filled)"
+public let tealFilledHover: CSSColor = "var(--teal-filled--hover)"
+public let tealFilledActive: CSSColor = "var(--teal-filled--active)"
+public let cyanFilled: CSSColor = "var(--cyan-filled)"
+public let cyanFilledHover: CSSColor = "var(--cyan-filled--hover)"
+public let cyanFilledActive: CSSColor = "var(--cyan-filled--active)"
+public let blueFilled: CSSColor = "var(--blue-filled)"
+public let blueFilledHover: CSSColor = "var(--blue-filled--hover)"
+public let blueFilledActive: CSSColor = "var(--blue-filled--active)"
+public let indigoFilled: CSSColor = "var(--indigo-filled)"
+public let indigoFilledHover: CSSColor = "var(--indigo-filled--hover)"
+public let indigoFilledActive: CSSColor = "var(--indigo-filled--active)"
+public let purpleFilled: CSSColor = "var(--purple-filled)"
+public let purpleFilledHover: CSSColor = "var(--purple-filled--hover)"
+public let purpleFilledActive: CSSColor = "var(--purple-filled--active)"
+public let pinkFilled: CSSColor = "var(--pink-filled)"
+public let pinkFilledHover: CSSColor = "var(--pink-filled--hover)"
+public let pinkFilledActive: CSSColor = "var(--pink-filled--active)"
+public let brownFilled: CSSColor = "var(--brown-filled)"
+public let brownFilledHover: CSSColor = "var(--brown-filled--hover)"
+public let brownFilledActive: CSSColor = "var(--brown-filled--active)"
+public let grayFilled: CSSColor = "var(--gray-filled)"
+public let grayFilledHover: CSSColor = "var(--gray-filled--hover)"
+public let grayFilledActive: CSSColor = "var(--gray-filled--active)"
+
+// Polymorphic Gray Subtle Background Colors (for subtle backgrounds and surfaces)
+// Automatically adapt to light/dark mode and contrast preferences (INVERTED contrast behavior)
+// Note: These reference --gray*-subtle variables
+public let graySubtle: CSSColor = "var(--gray-subtle)"
+public let gray2Subtle: CSSColor = "var(--gray2-subtle)"
+public let gray3Subtle: CSSColor = "var(--gray3-subtle)"
+public let gray4Subtle: CSSColor = "var(--gray4-subtle)"
+public let gray5Subtle: CSSColor = "var(--gray5-subtle)"
+public let gray6Subtle: CSSColor = "var(--gray6-subtle)"
  
 public let colorBase: CSSColor = "var(--color-base)"
 public let colorBaseFixed: CSSColor = "var(--color-base-fixed)"

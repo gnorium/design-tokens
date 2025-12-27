@@ -2,18 +2,18 @@ import WebTypes
 
 // MARK: - Typography Configuration
 public struct TypographyConfig {
-	public let fontSans: (any CSSValue)...
-	public let fontSansItalic: (any CSSValue)...
-	public let fontSerif: (any CSSValue)...
-	public let fontSerifItalic: (any CSSValue)...
-	public let fontMono: (any CSSValue)...
+	public let fontSans: String
+	public let fontSansItalic: String
+	public let fontSerif: String
+	public let fontSerifItalic: String
+	public let fontMono: String
 
 	public init(
-		fontSans: (any CSSValue)...,
-		fontSansItalic: (any CSSValue)...,
-		fontSerif: (any CSSValue)...,
-		fontSerifItalic: (any CSSValue)...,
-		fontMono: (any CSSValue)...
+		fontSans: String,
+		fontSansItalic: String,
+		fontSerif: String,
+		fontSerifItalic: String,
+		fontMono: String
 	) {
 		self.fontSans = fontSans
 		self.fontSansItalic = fontSansItalic
