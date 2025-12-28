@@ -3,7 +3,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "DesignTokens",
+    name: "design-tokens",
     platforms: [
         .macOS(.v14),
         .iOS(.v17),
