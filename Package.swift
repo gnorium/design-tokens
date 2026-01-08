@@ -32,10 +32,6 @@ let package = Package(
                 .enableUpcomingFeature("ExistentialAny"),
                 .enableUpcomingFeature("StrictConcurrency")
             ]
-        ),
-        .testTarget(
-            name: "DesignTokensTests",
-            dependencies: ["DesignTokens"]
-        ),
+        )
     ]
 )

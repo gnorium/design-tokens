@@ -1,18 +1,36 @@
 # DesignTokens, as used in [gnorium.com](https://gnorium.com)
 
-Universal design tokens for Swift web development based on Apple Human Interface Guidelines and Wikimedia Codex.
+Universal design tokens for Swift web development based on Apple Human Interface Guidelines.
 
 ## Overview
 
-DesignTokens provides CSS custom property definitions and Swift constants for creating consistent, accessible web interfaces. Includes complete implementations of Apple HIG system colors and Wikimedia Codex design system.
+DesignTokens provides CSS custom property definitions and Swift constants for creating consistent, accessible web interfaces. This package implements an Apple HIG-compliant design system, with authentic tokens sourced from `apple.com`, `developer.apple.com`, and `icloud.com`.
 
 ## Features
 
-- **Apple HIG System Colors**: Complete light/dark mode color palettes with contrast variants
-- **Wikimedia Codex Design System**: Comprehensive UI design tokens for colors, spacing, typography, and more
-- **CSS Generation**: Functions to generate complete CSS custom property definitions
-- **Swift Constants**: Type-safe references to CSS variables for use in Swift DSL builders
-- **Accessibility**: Built-in support for light/dark modes and contrast preferences
+- **Apple HIG Compliant**: Complete implementation of Apple's system colors, fills, and standards.
+- **Layered Architecture**: Organized into **Source Tokens** (primitives) and **Applied Tokens** (semantic mappings) for maximum flexibility and consistency.
+- **Dark Mode & Contrast Support**: Full support for Light/Dark modes and Less/More contrast variants.
+- **CSS Generation**: Integrated functions to generate comprehensive CSS custom property definitions.
+- **Type-Safe Swift Constants**: Seamlessly use design tokens in Swift DSL builders with compile-time safety.
+
+## Architecture
+
+The system is built on a two-layer architecture:
+
+### 1. Source Tokens
+Authentic primitives derived from Apple's platform environments.
+- **System Colors**: 12 polymorphic colors (Red, Orange, Yellow, Green, Mint, Teal, Cyan, Blue, Indigo, Purple, Pink, Brown).
+- **Fills & Glyphs**: Platform-specific background fills and iconography (glyph) states.
+- **Syntax Colors**: Authentic IDE-grade syntax highlighting palettes.
+- **Grays**: Full light/dark mode grayscale ramps.
+
+### 2. Applied Tokens
+Semantic tokens that map source primitives to specific UI roles based on Wikimedia Codex.
+- **Foregrounds**: `colorBase`, `colorSubtle`, `colorEmphasized`.
+- **States**: `colorProgressive`, `colorDestructive`, `colorSuccess`, `colorWarning`.
+- **Layout**: `spacing`, `size`, `zIndex`, `borderRadius`.
+- **Typography**: `fontFamilyBase`, `fontSizeXXXLarge28`, `lineHeightContent`.
 
 ## Installation
 
@@ -22,19 +40,8 @@ Add DesignTokens to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/gnorium/design-tokens", from: "1.0.0")
+    .package(url: "https://github.com/gnorium/design-tokens", from: "1.0.1")
 ]
-```
-
-Then add it to your target dependencies:
-
-```swift
-.target(
-    name: "YourTarget",
-    dependencies: [
-        .product(name: "DesignTokens", package: "design-tokens")
-    ]
-)
 ```
 
 ## Usage
@@ -43,72 +50,45 @@ Then add it to your target dependencies:
 
 ```swift
 import DesignTokens
-import CSSBuilder
 
-// Generate Apple HIG system colors CSS
-let css = AppleHIGSystemColorsLightLessCSS()
-
-// Generate Wikimedia Codex design tokens CSS
-let codexCSS = WikimediaCodexDesignTokensLightModeLessContrastCSS()
+// Generate Source and Applied tokens for light mode
+let sourceCSS = SourceTokensLightModeLessContrastCSS()
+let appliedCSS = AppliedTokensLightModeLessContrastCSS()
 ```
 
-### Using Design Tokens in Swift
+### Using Tokens in Swift
 
 ```swift
 import DesignTokens
+import HTMLBuilder
+import CSSBuilder
 
-// Use color tokens
 div {
     "Hello World"
 }
 .style {
-    color(blueFg)
-    backgroundColor(gray6Bg)
+    color(colorBase)
+    backgroundColor(backgroundColorProgressive)
     padding(spacing16)
     fontSize(fontSizeMedium16)
 }
 ```
 
-## Design Systems
-
-### Apple Human Interface Guidelines
-
-Complete implementation of Apple's system colors with support for:
-- Light and dark modes
-- Increased and decreased contrast variants
-- Polymorphic foreground/background color pairs
-- Full gray scale (6 shades)
-
-### Wikimedia Codex
-
-Comprehensive design system tokens including:
-- Color semantics (progressive, destructive, error, warning, success)
-- Spacing scale (rem-based)
-- Typography (font families, sizes, weights, line heights)
-- Interactive states (hover, active, focus, disabled)
-- Z-index layering
-- Border radius and shadows
-- Cursor styles
-- Transitions and animations
-
 ## Requirements
 
 - Swift 6.2+
-- Depends on web-builders for CSS generation
+- Depends on `web-builders` for CSS generation
 
 ## License
 
 Apache License 2.0 - See [LICENSE](LICENSE) for details
 
-## Contributing
-
-Contributions welcome! Please open an issue or submit a pull request.
-
 ## Related Packages
 
 - [embedded-swift-utilities](https://github.com/gnorium/embedded-swift-utilities) - Utilities for Embedded Swift
+- [web-administrator](https://github.com/gnorium/web-administrator) - Web administration panel for applications
 - [web-apis](https://github.com/gnorium/web-apis) - Web API implementations for Swift WebAssembly
 - [web-builders](https://github.com/gnorium/web-builders) - HTML, CSS, JS, and SVG DSL builders
-- [web-components](https://github.com/gnorium/web-components) - Reusable UI components based on Wikimedia Codex
+- [web-components](https://github.com/gnorium/web-components) - Reusable UI components based on Apple HIG
 - [web-formats](https://github.com/gnorium/web-formats) - Structured data format builders
 - [web-types](https://github.com/gnorium/web-types) - Shared web types and design tokens
