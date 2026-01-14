@@ -40,7 +40,7 @@ Add DesignTokens to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/gnorium/design-tokens", from: "1.0.1")
+    .package(url: "https://github.com/gnorium/design-tokens", branch: "main")
 ]
 ```
 
@@ -85,10 +85,12 @@ Apache License 2.0 - See [LICENSE](LICENSE) for details
 
 ## Related Packages
 
-- [embedded-swift-utilities](https://github.com/gnorium/embedded-swift-utilities) - Utilities for Embedded Swift
+- [embedded-swift-utilities](https://github.com/gnorium/embedded-swift-utilities) - Utility functions for Embedded Swift environments
+- [markdown-utilities](https://github.com/gnorium/markdown-utilities) - Markdown rendering with media attribution support
 - [web-administrator](https://github.com/gnorium/web-administrator) - Web administration panel for applications
 - [web-apis](https://github.com/gnorium/web-apis) - Web API implementations for Swift WebAssembly
 - [web-builders](https://github.com/gnorium/web-builders) - HTML, CSS, JS, and SVG DSL builders
-- [web-components](https://github.com/gnorium/web-components) - Reusable UI components based on Apple HIG
+- [web-components](https://github.com/gnorium/web-components) - Reusable UI components for web applications
 - [web-formats](https://github.com/gnorium/web-formats) - Structured data format builders
+- [web-security](https://github.com/gnorium/web-security) - Portable security utilities for web applications
 - [web-types](https://github.com/gnorium/web-types) - Shared web types and design tokens
