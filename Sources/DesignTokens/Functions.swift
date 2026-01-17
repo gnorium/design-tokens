@@ -943,6 +943,7 @@ public func AppliedTokensLightModeLessContrastCSS() -> [any CSS] {
 	customProperty("--border-color-content-removed", fillYellowSecondary) // was hex(0xFFE49C)
 	customProperty("--border-color-transparent", .transparent)
 	customProperty("--border-color-divider", fillGrayTertiary) // was hex(0xA2A9B1)
+	customProperty("--border-radius-minimal", px(2))
 	customProperty("--border-radius-base", px(12))
 	customProperty("--border-radius-sharp", 0)
 	customProperty("--border-radius-pill", px(9999))

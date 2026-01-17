@@ -574,6 +574,7 @@ public let borderColorTransparent: CSSColor = "var(--border-color-transparent)"
 public let borderColorDivider: CSSColor = "var(--border-color-divider)"
 
 // MARK: - Applied: Border Radius
+public let borderRadiusMinimal: Length = "var(--border-radius-minimal)"
 public let borderRadiusBase: Length = "var(--border-radius-base)"
 public let borderRadiusSharp: Length = "var(--border-radius-sharp)"
 public let borderRadiusPill: Length = "var(--border-radius-pill)"
