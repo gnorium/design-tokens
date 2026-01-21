@@ -944,7 +944,7 @@ public func AppliedTokensLightModeLessContrastCSS() -> [any CSS] {
 	customProperty("--border-color-transparent", .transparent)
 	customProperty("--border-color-divider", fillGrayTertiary) // was hex(0xA2A9B1)
 	customProperty("--border-radius-minimal", px(2))
-	customProperty("--border-radius-base", px(12))
+	customProperty("--border-radius-base", px(8))
 	customProperty("--border-radius-sharp", 0)
 	customProperty("--border-radius-pill", px(9999))
 	customProperty("--border-radius-circle", perc(50))
@@ -1105,7 +1105,7 @@ public func AppliedTokensDarkModeLessContrastCSS() -> [any CSS] {
 	customProperty("--box-shadow-color-alpha-base", rgba(0, 0, 0, 0.87))
 	customProperty("--mix-blend-mode-blend", .screen)
 
-	customProperty("--background-color-base", fillSecondary) // was hex(0x101418)
+	customProperty("--background-color-base", fill) // was hex(0x101418)
 	customProperty("--background-color-neutral", fillTertiary) // was hex(0x27292D)
 	customProperty("--background-color-neutral-subtle", fillSecondary) // was hex(0x202122)
 	customProperty("--background-color-interactive", fillTertiary) // was hex(0x27292D)
@@ -1187,7 +1187,7 @@ public func AppliedTokensDarkModeMoreContrastCSS() -> [any CSS] {
 	customProperty("--color-notice", glyphGraySecondary) // was hex(0xA2A9B1)
 	customProperty("--color-inverted", fill) // was hex(0x101418)
 
-	customProperty("--background-color-base", fillSecondary) // was hex(0x101418)
+	customProperty("--background-color-base", fill) // was hex(0x101418)
 	customProperty("--background-color-neutral", fillTertiary) // was hex(0x27292D)
 	customProperty("--background-color-neutral-subtle", fillSecondary) // was hex(0x202122)
 	customProperty("--background-color-interactive", fillTertiary) // was hex(0x27292D)
