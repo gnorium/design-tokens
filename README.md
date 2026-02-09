@@ -85,6 +85,7 @@ Apache License 2.0 - See [LICENSE](LICENSE) for details
 
 ## Related Packages
 
+- [diff-engine](https://github.com/gnorium/diff-engine) - Platform-agnostic character-level diff engine
 - [embedded-swift-utilities](https://github.com/gnorium/embedded-swift-utilities) - Utility functions for Embedded Swift environments
 - [markdown-utilities](https://github.com/gnorium/markdown-utilities) - Markdown rendering with media attribution support
 - [admin-core](https://github.com/gnorium/admin-core) - Core admin functionalities for web applications
