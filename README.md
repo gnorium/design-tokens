@@ -20,7 +20,7 @@ The system is built on a two-layer architecture:
 
 ### 1. Source Tokens
 Authentic primitives derived from Apple's platform environments.
-- **System Colors**: 12 polymorphic colors (Red, Orange, Yellow, Green, Mint, Teal, Cyan, Blue, Indigo, Purple, Pink, Brown).
+- **System Colors**: 12 polymorphic colors (Red, Orange, Yellow, Green, Mint, Teal, Cyan, Blue, Indigo, Purple, Pink, Brown) + Gray.
 - **Fills & Glyphs**: Platform-specific background fills and iconography (glyph) states.
 - **Syntax Colors**: Authentic IDE-grade syntax highlighting palettes.
 - **Grays**: Full light/dark mode grayscale ramps.
