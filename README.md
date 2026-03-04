@@ -26,7 +26,7 @@ Authentic primitives derived from Apple's platform environments.
 - **Grays**: Full light/dark mode grayscale ramps.
 
 ### 2. Applied Tokens
-Semantic tokens that map source primitives to specific UI roles based on Wikimedia Codex.
+Semantic tokens that map source primitives to specific UI roles.
 - **Foregrounds**: `colorBase`, `colorSubtle`, `colorEmphasized`.
 - **States**: `colorProgressive`, `colorDestructive`, `colorSuccess`, `colorWarning`.
 - **Layout**: `spacing`, `size`, `zIndex`, `borderRadius`.
