@@ -11,7 +11,7 @@ import WebTypes
 
 // MARK: - Typography Tokens
 @CSSBuilder
-public func TypographyTokensCSS(config: TypographyConfig) -> [any CSSProtocol] {
+public func TypographyTokensCSS(config: TypographyConfig) -> [any CSSContent] {
 	customProperty("--typography-font-sans", config.fontSans)
 	customProperty("--typography-font-sans-italic", config.fontSansItalic)
 	customProperty("--typography-font-serif", config.fontSerif)
@@ -21,7 +21,7 @@ public func TypographyTokensCSS(config: TypographyConfig) -> [any CSSProtocol] {
 
 // MARK: - Color Tokens - Light Mode
 @CSSBuilder
-public func ColorTokensLightModeCSS() -> [any CSSProtocol] {
+public func ColorTokensLightModeCSS() -> [any CSSContent] {
 	colorScheme(.light).important()
 
 	customProperty("--extreme", .black)
@@ -31,7 +31,7 @@ public func ColorTokensLightModeCSS() -> [any CSSProtocol] {
 
 // MARK: - Color Tokens - Dark Mode
 @CSSBuilder
-public func ColorTokensDarkModeCSS() -> [any CSSProtocol] {
+public func ColorTokensDarkModeCSS() -> [any CSSContent] {
 	colorScheme(.dark).important()
 
 	customProperty("--extreme", .white)
@@ -90,7 +90,7 @@ public func srgbGamutPeak(h: Double) -> (l: Double, c: Double) {
 // Glyph = Fill for now. Gray is near-achromatic.
 
 @CSSBuilder
-public func HueTokensCSS() -> [any CSSProtocol] {
+public func HueTokensCSS() -> [any CSSContent] {
 	// Hue angles (Apple HIG system colors, OKLCH)
 	customProperty("--hue-red", 25.74)      // Apple Red
 	customProperty("--hue-orange", 55.72)   // Apple Orange
@@ -137,10 +137,15 @@ public func HueTokensCSS() -> [any CSSProtocol] {
 	// Gray: near-achromatic with slight blue tint
 	customProperty("--gray-glyph", oklch(l: 0.55, c: 0.015, h: hueGray))
 	customProperty("--gray-fill", oklch(l: 0.65, c: 0.015, h: hueGray))
+	
+	// Traffic Lights (macOS style)
+	customProperty("--traffic-light-red", hex(0xEC6765))
+	customProperty("--traffic-light-yellow", hex(0xF2CA44))
+	customProperty("--traffic-light-green", hex(0x65C466))
 }
 
 @CSSBuilder
-public func SourceTokensLightModeLessContrastCSS() -> [any CSSProtocol] {
+public func SourceTokensLightModeLessContrastCSS() -> [any CSSContent] {
 	// Fill (surface hierarchy)
 	customProperty("--fill", .white)
 	customProperty("--fill-alpha", rgba(120, 120, 128, 0.2))
@@ -178,10 +183,42 @@ public func SourceTokensLightModeLessContrastCSS() -> [any CSSProtocol] {
 	customProperty("--shadow-alpha", rgba(0, 0, 0, 0.06))
 	customProperty("--backdrop-light", rgba(255, 255, 255, 0.65))
 	customProperty("--backdrop-dark", rgba(0, 0, 0, 0.65))
+
+	// MARK: - Apple HIG Syntax Tokens (Light Mode)
+	customProperty("--color-syntax-addition", glyphGreen)
+	customProperty("--color-syntax-attributes", hex(0x947100))
+	customProperty("--color-syntax-characters", hex(0x272AD8))
+	customProperty("--color-syntax-comments", hex(0x707F8C))
+	customProperty("--color-syntax-deletion", glyphRed)
+	customProperty("--color-syntax-documentation-markup", hex(0x506375))
+	customProperty("--color-syntax-heading", hex(0xBA2DA2))
+	customProperty("--color-syntax-highlighted", rgba(0, 113, 227, 0.2))
+	customProperty("--color-syntax-keywords", hex(0xAD3DA4))
+	customProperty("--color-syntax-marks", hex(0x000000))
+	customProperty("--color-syntax-numbers", hex(0x272AD8))
+	customProperty("--color-syntax-other-class-names", hex(0x703DAA))
+	customProperty("--color-syntax-other-constants", hex(0x4B21B0))
+	customProperty("--color-syntax-other-declarations", hex(0x047CB0))
+	customProperty("--color-syntax-other-function-and-method-names", hex(0x4B21B0))
+	customProperty("--color-syntax-other-instance-variables-and-globals", hex(0x703DAA))
+	customProperty("--color-syntax-other-preprocessor-macros", hex(0x78492A))
+	customProperty("--color-syntax-other-type-names", hex(0x703DAA))
+	customProperty("--color-syntax-param-internal-name", hex(0x404040))
+	customProperty("--color-syntax-plain-text", hex(0x000000))
+	customProperty("--color-syntax-preprocessor-statements", hex(0x78492A))
+	customProperty("--color-syntax-project-class-names", hex(0x3E8087))
+	customProperty("--color-syntax-project-constants", hex(0x2D6469))
+	customProperty("--color-syntax-project-function-and-method-names", hex(0x2D6469))
+	customProperty("--color-syntax-project-instance-variables-and-globals", hex(0x3E8087))
+	customProperty("--color-syntax-project-preprocessor-macros", hex(0x78492A))
+	customProperty("--color-syntax-project-type-names", hex(0x3E8087))
+	customProperty("--color-syntax-strings", hex(0xD12F1B))
+	customProperty("--color-syntax-type-declarations", hex(0x03638C))
+	customProperty("--color-syntax-urls", hex(0x1337FF))
 }
 
 @CSSBuilder
-public func SourceTokensLightModeMoreContrastCSS() -> [any CSSProtocol] {
+public func SourceTokensLightModeMoreContrastCSS() -> [any CSSContent] {
 	// Fill (surface hierarchy — increased contrast)
 	customProperty("--fill", .white)
 	customProperty("--fill-alpha", rgba(120, 120, 128, 0.24))
@@ -222,7 +259,7 @@ public func SourceTokensLightModeMoreContrastCSS() -> [any CSSProtocol] {
 }
 
 @CSSBuilder
-public func SourceTokensDarkModeLessContrastCSS() -> [any CSSProtocol] {
+public func SourceTokensDarkModeLessContrastCSS() -> [any CSSContent] {
 	// Fill (surface hierarchy)
 	customProperty("--fill", .black)
 	customProperty("--fill-alpha", rgba(182, 182, 182, 0.3))
@@ -269,10 +306,40 @@ public func SourceTokensDarkModeLessContrastCSS() -> [any CSSProtocol] {
 	customProperty("--shadow-alpha", rgba(0, 0, 0, 0.87))
 	customProperty("--backdrop-light", rgba(0, 0, 0, 0.65))
 	customProperty("--backdrop-dark", rgba(255, 255, 255, 0.65))
+
+	// MARK: - Apple HIG Syntax Tokens (Dark Mode)
+	customProperty("--color-syntax-attributes", hex(0xCC9768))
+	customProperty("--color-syntax-characters", hex(0xD9C97C))
+	customProperty("--color-syntax-comments", hex(0x7F8C98))
+	customProperty("--color-syntax-documentation-markup", hex(0x7F8C98))
+	customProperty("--color-syntax-documentation-markup-keywords", hex(0xA3B1BF))
+	customProperty("--color-syntax-highlighted", rgba(0, 113, 227, 0.6))
+	customProperty("--color-syntax-keywords", hex(0xFF7AB2))
+	customProperty("--color-syntax-marks", hex(0xFFFFFF))
+	customProperty("--color-syntax-numbers", hex(0xD9C97C))
+	customProperty("--color-syntax-other-class-names", hex(0xDABAFF))
+	customProperty("--color-syntax-other-constants", hex(0xA7EBDD))
+	customProperty("--color-syntax-other-declarations", hex(0x4EB0CC))
+	customProperty("--color-syntax-other-function-and-method-names", hex(0xB281EB))
+	customProperty("--color-syntax-other-instance-variables-and-globals", hex(0xB281EB))
+	customProperty("--color-syntax-other-preprocessor-macros", hex(0xFFA14F))
+	customProperty("--color-syntax-other-type-names", hex(0xDABAFF))
+	customProperty("--color-syntax-param-internal-name", hex(0xBFBFBF))
+	customProperty("--color-syntax-plain-text", hex(0xFFFFFF))
+	customProperty("--color-syntax-preprocessor-statements", hex(0xFFA14F))
+	customProperty("--color-syntax-project-class-names", hex(0xACF2E4))
+	customProperty("--color-syntax-project-constants", hex(0x78C2B3))
+	customProperty("--color-syntax-project-function-and-method-names", hex(0x78C2B3))
+	customProperty("--color-syntax-project-instance-variables-and-globals", hex(0x78C2B3))
+	customProperty("--color-syntax-project-preprocessor-macros", hex(0xFFA14F))
+	customProperty("--color-syntax-project-type-names", hex(0xACF2E4))
+	customProperty("--color-syntax-strings", hex(0xFF8170))
+	customProperty("--color-syntax-type-declarations", hex(0x6BDFFF))
+	customProperty("--color-syntax-urls", hex(0x6699FF))
 }
 
 @CSSBuilder
-public func SourceTokensDarkModeMoreContrastCSS() -> [any CSSProtocol] {
+public func SourceTokensDarkModeMoreContrastCSS() -> [any CSSContent] {
 	// Fill (surface hierarchy — increased contrast)
 	customProperty("--fill", .black)
 	customProperty("--fill-alpha", rgba(182, 182, 182, 0.34))
@@ -329,7 +396,7 @@ public func SourceTokensDarkModeMoreContrastCSS() -> [any CSSProtocol] {
 // Interactive hover/active: `borderInteractive`. Shadows: `shadowAlpha`.
 // Backdrops: `backdropLight`/`backdropDark`.
 @CSSBuilder
-public func AppliedTokensCSS() -> [any CSSProtocol] {
+public func AppliedTokensCSS() -> [any CSSContent] {
 	// MARK: Text / Foreground
 	customProperty("--color-base", glyphGray)
 	customProperty("--color-base-fixed", glyphGrayFixed)
