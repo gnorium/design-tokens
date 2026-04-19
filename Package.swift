@@ -29,8 +29,11 @@ let package = Package(
                 .product(name: "WebTypes", package: "web-types")
             ],
             swiftSettings: [
+                .enableExperimentalFeature("Embedded", .when(platforms: [.wasi])),
                 .enableUpcomingFeature("ExistentialAny"),
-                .enableUpcomingFeature("StrictConcurrency")
+                .enableUpcomingFeature("StrictConcurrency"),
+                .define("CLIENT", .when(platforms: [.wasi])),
+                .define("SERVER", .when(platforms: [.macOS, .linux, .windows]))
             ]
         )
     ]

@@ -1,6 +1,7 @@
-#if !os(WASI)
+#if SERVER
 
 import CSSBuilder
+import CSSOMBuilder
 import Foundation
 import WebTypes
 
@@ -11,7 +12,7 @@ import WebTypes
 
 // MARK: - Typography Tokens
 @CSSBuilder
-public func TypographyTokensCSS(config: TypographyConfig) -> [any CSSContent] {
+public func TypographyTokensCSS(config: TypographyConfig) -> [CSSRule] {
 	customProperty("--typography-font-sans", config.fontSans)
 	customProperty("--typography-font-sans-italic", config.fontSansItalic)
 	customProperty("--typography-font-serif", config.fontSerif)
@@ -21,7 +22,7 @@ public func TypographyTokensCSS(config: TypographyConfig) -> [any CSSContent] {
 
 // MARK: - Color Tokens - Light Mode
 @CSSBuilder
-public func ColorTokensLightModeCSS() -> [any CSSContent] {
+public func ColorTokensLightModeCSS() -> [CSSRule] {
 	colorScheme(.light).important()
 
 	customProperty("--extreme", .black)
@@ -31,7 +32,7 @@ public func ColorTokensLightModeCSS() -> [any CSSContent] {
 
 // MARK: - Color Tokens - Dark Mode
 @CSSBuilder
-public func ColorTokensDarkModeCSS() -> [any CSSContent] {
+public func ColorTokensDarkModeCSS() -> [CSSRule] {
 	colorScheme(.dark).important()
 
 	customProperty("--extreme", .white)
@@ -90,7 +91,7 @@ public func srgbGamutPeak(h: Double) -> (l: Double, c: Double) {
 // Glyph = Fill for now. Gray is near-achromatic.
 
 @CSSBuilder
-public func HueTokensCSS() -> [any CSSContent] {
+public func HueTokensCSS() -> [CSSRule] {
 	// Hue angles (Apple HIG system colors, OKLCH)
 	customProperty("--hue-red", 25.74)      // Apple Red
 	customProperty("--hue-orange", 55.72)   // Apple Orange
@@ -145,7 +146,7 @@ public func HueTokensCSS() -> [any CSSContent] {
 }
 
 @CSSBuilder
-public func SourceTokensLightModeLessContrastCSS() -> [any CSSContent] {
+public func SourceTokensLightModeLessContrastCSS() -> [CSSRule] {
 	// Fill (surface hierarchy)
 	customProperty("--fill", .white)
 	customProperty("--fill-alpha", rgba(120, 120, 128, 0.2))
@@ -218,7 +219,7 @@ public func SourceTokensLightModeLessContrastCSS() -> [any CSSContent] {
 }
 
 @CSSBuilder
-public func SourceTokensLightModeMoreContrastCSS() -> [any CSSContent] {
+public func SourceTokensLightModeMoreContrastCSS() -> [CSSRule] {
 	// Fill (surface hierarchy — increased contrast)
 	customProperty("--fill", .white)
 	customProperty("--fill-alpha", rgba(120, 120, 128, 0.24))
@@ -259,7 +260,7 @@ public func SourceTokensLightModeMoreContrastCSS() -> [any CSSContent] {
 }
 
 @CSSBuilder
-public func SourceTokensDarkModeLessContrastCSS() -> [any CSSContent] {
+public func SourceTokensDarkModeLessContrastCSS() -> [CSSRule] {
 	// Fill (surface hierarchy)
 	customProperty("--fill", .black)
 	customProperty("--fill-alpha", rgba(182, 182, 182, 0.3))
@@ -339,7 +340,7 @@ public func SourceTokensDarkModeLessContrastCSS() -> [any CSSContent] {
 }
 
 @CSSBuilder
-public func SourceTokensDarkModeMoreContrastCSS() -> [any CSSContent] {
+public func SourceTokensDarkModeMoreContrastCSS() -> [CSSRule] {
 	// Fill (surface hierarchy — increased contrast)
 	customProperty("--fill", .black)
 	customProperty("--fill-alpha", rgba(182, 182, 182, 0.34))
@@ -396,7 +397,7 @@ public func SourceTokensDarkModeMoreContrastCSS() -> [any CSSContent] {
 // Interactive hover/active: `borderInteractive`. Shadows: `shadowAlpha`.
 // Backdrops: `backdropLight`/`backdropDark`.
 @CSSBuilder
-public func AppliedTokensCSS() -> [any CSSContent] {
+public func AppliedTokensCSS() -> [CSSRule] {
 	// MARK: Text / Foreground
 	customProperty("--color-base", glyphGray)
 	customProperty("--color-base-fixed", glyphGrayFixed)
