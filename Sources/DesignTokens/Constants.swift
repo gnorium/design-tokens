@@ -11,7 +11,6 @@ public let typographyFontMono: CSSFontFamily = `var`("--typography-font-mono")
 public let extreme: CSSColor = `var`("--extreme")
 public let extremeInverted: CSSColor = `var`("--extreme-inverted")
 
-
 // MARK: - OKLCH Hue Angles (Apple HIG)
 // Each hue's glyph/fill tokens are set to the absolute sRGB gamut peak in HueTokensCSS.
 // Mode functions can override --glyph-{hue}/--fill-{hue} with srgbMaxChroma(l:h:).
@@ -248,7 +247,7 @@ public let sizeDouble: Percentage = `var`("--size-double")
 public let sizeSearchFigure: Length = `var`("--size-search-figure")
 public let maxWidthBase: Length = `var`("--max-width-base")
 // Breakpoints use raw px() values, not CSSContent variables — media queries don't support var()
-public let maxWidthBreakpointPhoneNarrow: Length = px(479) // NEW
+public let maxWidthBreakpointPhoneNarrow: Length = px(479)  // NEW
 public let maxWidthBreakpointMobile: Length = px(768)
 public let maxWidthBreakpointTablet: Length = px(1024)
 public let maxWidthBreakpointDesktop: Length = px(1279)
@@ -259,7 +258,8 @@ public let borderStyleBase: CSSBorder.LineStyle = `var`("--border-style-base")
 public let borderStyleDashed: CSSBorder.LineStyle = `var`("--border-style-dashed")
 public let boxShadowInsetSmall: CSSSpreadShadow = `var`("--box-shadow-inset-small")
 public let boxShadowInsetMedium: CSSSpreadShadow = `var`("--box-shadow-inset-medium")
-public let boxShadowInsetMediumVertical: CSSSpreadShadow = `var`("--box-shadow-inset-medium-vertical")
+public let boxShadowInsetMediumVertical: CSSSpreadShadow = `var`(
+  "--box-shadow-inset-medium-vertical")
 public let boxShadowOutsetSmall: CSSSpreadShadow = `var`("--box-shadow-outset-small")
 public let boxShadowOutsetSmallTop: CSSSpreadShadow = `var`("--box-shadow-outset-small-top")
 public let boxShadowOutsetSmallBottom: CSSSpreadShadow = `var`("--box-shadow-outset-small-bottom")
@@ -308,18 +308,25 @@ public let textDecorationUnderline: CSSTextDecoration = `var`("--text-decoration
 public let textOverflowClip: CSSTextOverflow = `var`("--text-overflow-clip")
 public let textOverflowEllipsis: CSSTextOverflow = `var`("--text-overflow-ellipsis")
 public let tabSizeBase: CSSNumber = `var`("--tab-size-base")
-public let transformCheckboxTickChecked: CSSTransformFunction = `var`("--transform-checkbox-tick-checked")
-public let transformProgressIndicatorSpinnerStart: CSSTransformFunction = `var`("--transform-progress-indicator-spinner-start")
-public let transformProgressIndicatorSpinnerEnd: CSSTransformFunction = `var`("--transform-progress-indicator-spinner-end")
+public let transformCheckboxTickChecked: CSSTransformFunction = `var`(
+  "--transform-checkbox-tick-checked")
+public let transformProgressIndicatorSpinnerStart: CSSTransformFunction = `var`(
+  "--transform-progress-indicator-spinner-start")
+public let transformProgressIndicatorSpinnerEnd: CSSTransformFunction = `var`(
+  "--transform-progress-indicator-spinner-end")
 public let transitionDurationBase: CSSTime = `var`("--transition-duration-base")
 public let transitionDurationMedium: CSSTime = `var`("--transition-duration-medium")
 public let transitionPropertyBase: CSSSingleTransitionProperty = `var`("--transition-property-base")
 public let transitionPropertyFade: CSSSingleTransitionProperty = `var`("--transition-property-fade")
 public let transitionPropertyIcon: CSSSingleTransitionProperty = `var`("--transition-property-icon")
-public let transitionPropertyIconCssOnly: CSSSingleTransitionProperty = `var`("--transition-property-icon-css-only")
-public let transitionPropertyToggleSwitchGrip: CSSSingleTransitionProperty = `var`("--transition-property-toggle-switch-grip")
-public let transitionTimingFunctionSystem: CSSEasingFunction = `var`("--transition-timing-function-system")
-public let transitionTimingFunctionUser: CSSEasingFunction = `var`("--transition-timing-function-user")
+public let transitionPropertyIconCssOnly: CSSSingleTransitionProperty = `var`(
+  "--transition-property-icon-css-only")
+public let transitionPropertyToggleSwitchGrip: CSSSingleTransitionProperty = `var`(
+  "--transition-property-toggle-switch-grip")
+public let transitionTimingFunctionSystem: CSSEasingFunction = `var`(
+  "--transition-timing-function-system")
+public let transitionTimingFunctionUser: CSSEasingFunction = `var`(
+  "--transition-timing-function-user")
 
 // MARK: - Applied: Animations
 public let animationDelayNone: CSSTime = `var`("--animation-delay-none")
@@ -328,8 +335,10 @@ public let animationDelaySlow: CSSTime = `var`("--animation-delay-slow")
 public let animationDurationFast: CSSTime = `var`("--animation-duration-fast")
 public let animationDurationMedium: CSSTime = `var`("--animation-duration-medium")
 public let animationDurationSlow: CSSTime = `var`("--animation-duration-slow")
-public let animationTimingFunctionBase: CSSEasingFunction = `var`("--animation-timing-function-base")
-public let animationTimingFunctionBouncing: CSSEasingFunction = `var`("--animation-timing-function-bouncing")
+public let animationTimingFunctionBase: CSSEasingFunction = `var`(
+  "--animation-timing-function-base")
+public let animationTimingFunctionBouncing: CSSEasingFunction = `var`(
+  "--animation-timing-function-bouncing")
 public let animationIterationCountBase: CSSNumber = `var`("--animation-iteration-count-base")
 
 // MARK: - Applied: Cursors & Blend Modes
@@ -356,10 +365,14 @@ public let backgroundColorNeutral: CSSColor = `var`("--background-color-neutral"
 public let backgroundColorNeutralSubtle: CSSColor = `var`("--background-color-neutral-subtle")
 public let backgroundColorInteractive: CSSColor = `var`("--background-color-interactive")
 public let backgroundColorInteractiveHover: CSSColor = `var`("--background-color-interactive-hover")
-public let backgroundColorInteractiveActive: CSSColor = `var`("--background-color-interactive-active")
-public let backgroundColorInteractiveSubtle: CSSColor = `var`("--background-color-interactive-subtle")
-public let backgroundColorInteractiveSubtleHover: CSSColor = `var`("--background-color-interactive-subtle-hover")
-public let backgroundColorInteractiveSubtleActive: CSSColor = `var`("--background-color-interactive-subtle-active")
+public let backgroundColorInteractiveActive: CSSColor = `var`(
+  "--background-color-interactive-active")
+public let backgroundColorInteractiveSubtle: CSSColor = `var`(
+  "--background-color-interactive-subtle")
+public let backgroundColorInteractiveSubtleHover: CSSColor = `var`(
+  "--background-color-interactive-subtle-hover")
+public let backgroundColorInteractiveSubtleActive: CSSColor = `var`(
+  "--background-color-interactive-subtle-active")
 public let backgroundColorDisabled: CSSColor = `var`("--background-color-disabled")
 public let backgroundColorDisabledSubtle: CSSColor = `var`("--background-color-disabled-subtle")
 public let backgroundColorInverted: CSSColor = `var`("--background-color-inverted")
@@ -368,11 +381,16 @@ public let backgroundColorContentRemoved: CSSColor = `var`("--background-color-c
 public let backgroundColorTransparent: CSSColor = `var`("--background-color-transparent")
 public let backgroundColorBackdropLight: CSSColor = `var`("--background-color-backdrop-light")
 public let backgroundColorBackdropDark: CSSColor = `var`("--background-color-backdrop-dark")
-public let backgroundColorButtonQuietHover: CSSColor = `var`("--background-color-button-quiet-hover")
-public let backgroundColorButtonQuietActive: CSSColor = `var`("--background-color-button-quiet-active")
-public let backgroundColorInputBinaryChecked: CSSColor = `var`("--background-color-input-binary-checked")
-public let backgroundColorTabListItemFramedHover: CSSColor = `var`("--background-color-tab-list-item-framed-hover")
-public let backgroundColorTabListItemFramedActive: CSSColor = `var`("--background-color-tab-list-item-framed-active")
+public let backgroundColorButtonQuietHover: CSSColor = `var`(
+  "--background-color-button-quiet-hover")
+public let backgroundColorButtonQuietActive: CSSColor = `var`(
+  "--background-color-button-quiet-active")
+public let backgroundColorInputBinaryChecked: CSSColor = `var`(
+  "--background-color-input-binary-checked")
+public let backgroundColorTabListItemFramedHover: CSSColor = `var`(
+  "--background-color-tab-list-item-framed-hover")
+public let backgroundColorTabListItemFramedActive: CSSColor = `var`(
+  "--background-color-tab-list-item-framed-active")
 
 // MARK: - Applied: HIG Background Colors
 // Red
@@ -389,24 +407,30 @@ public let backgroundColorOrangeHover: CSSColor = `var`("--background-color-oran
 public let backgroundColorOrangeActive: CSSColor = `var`("--background-color-orange-active")
 public let backgroundColorOrangeFocus: CSSColor = `var`("--background-color-orange-focus")
 public let backgroundColorOrangeSubtle: CSSColor = `var`("--background-color-orange-subtle")
-public let backgroundColorOrangeSubtleHover: CSSColor = `var`("--background-color-orange-subtle-hover")
-public let backgroundColorOrangeSubtleActive: CSSColor = `var`("--background-color-orange-subtle-active")
+public let backgroundColorOrangeSubtleHover: CSSColor = `var`(
+  "--background-color-orange-subtle-hover")
+public let backgroundColorOrangeSubtleActive: CSSColor = `var`(
+  "--background-color-orange-subtle-active")
 // Yellow
 public let backgroundColorYellow: CSSColor = `var`("--background-color-yellow")
 public let backgroundColorYellowHover: CSSColor = `var`("--background-color-yellow-hover")
 public let backgroundColorYellowActive: CSSColor = `var`("--background-color-yellow-active")
 public let backgroundColorYellowFocus: CSSColor = `var`("--background-color-yellow-focus")
 public let backgroundColorYellowSubtle: CSSColor = `var`("--background-color-yellow-subtle")
-public let backgroundColorYellowSubtleHover: CSSColor = `var`("--background-color-yellow-subtle-hover")
-public let backgroundColorYellowSubtleActive: CSSColor = `var`("--background-color-yellow-subtle-active")
+public let backgroundColorYellowSubtleHover: CSSColor = `var`(
+  "--background-color-yellow-subtle-hover")
+public let backgroundColorYellowSubtleActive: CSSColor = `var`(
+  "--background-color-yellow-subtle-active")
 // Green
 public let backgroundColorGreen: CSSColor = `var`("--background-color-green")
 public let backgroundColorGreenHover: CSSColor = `var`("--background-color-green-hover")
 public let backgroundColorGreenActive: CSSColor = `var`("--background-color-green-active")
 public let backgroundColorGreenFocus: CSSColor = `var`("--background-color-green-focus")
 public let backgroundColorGreenSubtle: CSSColor = `var`("--background-color-green-subtle")
-public let backgroundColorGreenSubtleHover: CSSColor = `var`("--background-color-green-subtle-hover")
-public let backgroundColorGreenSubtleActive: CSSColor = `var`("--background-color-green-subtle-active")
+public let backgroundColorGreenSubtleHover: CSSColor = `var`(
+  "--background-color-green-subtle-hover")
+public let backgroundColorGreenSubtleActive: CSSColor = `var`(
+  "--background-color-green-subtle-active")
 // Mint
 public let backgroundColorMint: CSSColor = `var`("--background-color-mint")
 public let backgroundColorMintHover: CSSColor = `var`("--background-color-mint-hover")
@@ -414,7 +438,8 @@ public let backgroundColorMintActive: CSSColor = `var`("--background-color-mint-
 public let backgroundColorMintFocus: CSSColor = `var`("--background-color-mint-focus")
 public let backgroundColorMintSubtle: CSSColor = `var`("--background-color-mint-subtle")
 public let backgroundColorMintSubtleHover: CSSColor = `var`("--background-color-mint-subtle-hover")
-public let backgroundColorMintSubtleActive: CSSColor = `var`("--background-color-mint-subtle-active")
+public let backgroundColorMintSubtleActive: CSSColor = `var`(
+  "--background-color-mint-subtle-active")
 // Teal
 public let backgroundColorTeal: CSSColor = `var`("--background-color-teal")
 public let backgroundColorTealHover: CSSColor = `var`("--background-color-teal-hover")
@@ -422,7 +447,8 @@ public let backgroundColorTealActive: CSSColor = `var`("--background-color-teal-
 public let backgroundColorTealFocus: CSSColor = `var`("--background-color-teal-focus")
 public let backgroundColorTealSubtle: CSSColor = `var`("--background-color-teal-subtle")
 public let backgroundColorTealSubtleHover: CSSColor = `var`("--background-color-teal-subtle-hover")
-public let backgroundColorTealSubtleActive: CSSColor = `var`("--background-color-teal-subtle-active")
+public let backgroundColorTealSubtleActive: CSSColor = `var`(
+  "--background-color-teal-subtle-active")
 // Cyan
 public let backgroundColorCyan: CSSColor = `var`("--background-color-cyan")
 public let backgroundColorCyanHover: CSSColor = `var`("--background-color-cyan-hover")
@@ -430,7 +456,8 @@ public let backgroundColorCyanActive: CSSColor = `var`("--background-color-cyan-
 public let backgroundColorCyanFocus: CSSColor = `var`("--background-color-cyan-focus")
 public let backgroundColorCyanSubtle: CSSColor = `var`("--background-color-cyan-subtle")
 public let backgroundColorCyanSubtleHover: CSSColor = `var`("--background-color-cyan-subtle-hover")
-public let backgroundColorCyanSubtleActive: CSSColor = `var`("--background-color-cyan-subtle-active")
+public let backgroundColorCyanSubtleActive: CSSColor = `var`(
+  "--background-color-cyan-subtle-active")
 // Blue
 public let backgroundColorBlue: CSSColor = `var`("--background-color-blue")
 public let backgroundColorBlueHover: CSSColor = `var`("--background-color-blue-hover")
@@ -438,23 +465,28 @@ public let backgroundColorBlueActive: CSSColor = `var`("--background-color-blue-
 public let backgroundColorBlueFocus: CSSColor = `var`("--background-color-blue-focus")
 public let backgroundColorBlueSubtle: CSSColor = `var`("--background-color-blue-subtle")
 public let backgroundColorBlueSubtleHover: CSSColor = `var`("--background-color-blue-subtle-hover")
-public let backgroundColorBlueSubtleActive: CSSColor = `var`("--background-color-blue-subtle-active")
+public let backgroundColorBlueSubtleActive: CSSColor = `var`(
+  "--background-color-blue-subtle-active")
 // Indigo
 public let backgroundColorIndigo: CSSColor = `var`("--background-color-indigo")
 public let backgroundColorIndigoHover: CSSColor = `var`("--background-color-indigo-hover")
 public let backgroundColorIndigoActive: CSSColor = `var`("--background-color-indigo-active")
 public let backgroundColorIndigoFocus: CSSColor = `var`("--background-color-indigo-focus")
 public let backgroundColorIndigoSubtle: CSSColor = `var`("--background-color-indigo-subtle")
-public let backgroundColorIndigoSubtleHover: CSSColor = `var`("--background-color-indigo-subtle-hover")
-public let backgroundColorIndigoSubtleActive: CSSColor = `var`("--background-color-indigo-subtle-active")
+public let backgroundColorIndigoSubtleHover: CSSColor = `var`(
+  "--background-color-indigo-subtle-hover")
+public let backgroundColorIndigoSubtleActive: CSSColor = `var`(
+  "--background-color-indigo-subtle-active")
 // Purple
 public let backgroundColorPurple: CSSColor = `var`("--background-color-purple")
 public let backgroundColorPurpleHover: CSSColor = `var`("--background-color-purple-hover")
 public let backgroundColorPurpleActive: CSSColor = `var`("--background-color-purple-active")
 public let backgroundColorPurpleFocus: CSSColor = `var`("--background-color-purple-focus")
 public let backgroundColorPurpleSubtle: CSSColor = `var`("--background-color-purple-subtle")
-public let backgroundColorPurpleSubtleHover: CSSColor = `var`("--background-color-purple-subtle-hover")
-public let backgroundColorPurpleSubtleActive: CSSColor = `var`("--background-color-purple-subtle-active")
+public let backgroundColorPurpleSubtleHover: CSSColor = `var`(
+  "--background-color-purple-subtle-hover")
+public let backgroundColorPurpleSubtleActive: CSSColor = `var`(
+  "--background-color-purple-subtle-active")
 // Pink
 public let backgroundColorPink: CSSColor = `var`("--background-color-pink")
 public let backgroundColorPinkHover: CSSColor = `var`("--background-color-pink-hover")
@@ -462,15 +494,18 @@ public let backgroundColorPinkActive: CSSColor = `var`("--background-color-pink-
 public let backgroundColorPinkFocus: CSSColor = `var`("--background-color-pink-focus")
 public let backgroundColorPinkSubtle: CSSColor = `var`("--background-color-pink-subtle")
 public let backgroundColorPinkSubtleHover: CSSColor = `var`("--background-color-pink-subtle-hover")
-public let backgroundColorPinkSubtleActive: CSSColor = `var`("--background-color-pink-subtle-active")
+public let backgroundColorPinkSubtleActive: CSSColor = `var`(
+  "--background-color-pink-subtle-active")
 // Brown
 public let backgroundColorBrown: CSSColor = `var`("--background-color-brown")
 public let backgroundColorBrownHover: CSSColor = `var`("--background-color-brown-hover")
 public let backgroundColorBrownActive: CSSColor = `var`("--background-color-brown-active")
 public let backgroundColorBrownFocus: CSSColor = `var`("--background-color-brown-focus")
 public let backgroundColorBrownSubtle: CSSColor = `var`("--background-color-brown-subtle")
-public let backgroundColorBrownSubtleHover: CSSColor = `var`("--background-color-brown-subtle-hover")
-public let backgroundColorBrownSubtleActive: CSSColor = `var`("--background-color-brown-subtle-active")
+public let backgroundColorBrownSubtleHover: CSSColor = `var`(
+  "--background-color-brown-subtle-hover")
+public let backgroundColorBrownSubtleActive: CSSColor = `var`(
+  "--background-color-brown-subtle-active")
 // Gray
 public let backgroundColorGray: CSSColor = `var`("--background-color-gray")
 public let backgroundColorGrayHover: CSSColor = `var`("--background-color-gray-hover")
@@ -478,7 +513,8 @@ public let backgroundColorGrayActive: CSSColor = `var`("--background-color-gray-
 public let backgroundColorGrayFocus: CSSColor = `var`("--background-color-gray-focus")
 public let backgroundColorGraySubtle: CSSColor = `var`("--background-color-gray-subtle")
 public let backgroundColorGraySubtleHover: CSSColor = `var`("--background-color-gray-subtle-hover")
-public let backgroundColorGraySubtleActive: CSSColor = `var`("--background-color-gray-subtle-active")
+public let backgroundColorGraySubtleActive: CSSColor = `var`(
+  "--background-color-gray-subtle-active")
 
 // MARK: - Applied: Icon Opacity
 public let opacityIconBase: CSSNumber = `var`("--opacity-icon-base")
@@ -625,8 +661,10 @@ public let boxShadowColorBlueFocus: CSSColor = `var`("--box-shadow-color-blue-fo
 public let boxShadowColorIndigoActive: CSSColor = `var`("--box-shadow-color-indigo-active")
 public let boxShadowColorIndigoFocus: CSSColor = `var`("--box-shadow-color-indigo-focus")
 public let boxShadowColorIndigoSelected: CSSColor = `var`("--box-shadow-color-indigo-selected")
-public let boxShadowColorIndigoSelectedHover: CSSColor = `var`("--box-shadow-color-indigo-selected-hover")
-public let boxShadowColorIndigoSelectedActive: CSSColor = `var`("--box-shadow-color-indigo-selected-active")
+public let boxShadowColorIndigoSelectedHover: CSSColor = `var`(
+  "--box-shadow-color-indigo-selected-hover")
+public let boxShadowColorIndigoSelectedActive: CSSColor = `var`(
+  "--box-shadow-color-indigo-selected-active")
 public let boxShadowColorPurpleActive: CSSColor = `var`("--box-shadow-color-purple-active")
 public let boxShadowColorPurpleFocus: CSSColor = `var`("--box-shadow-color-purple-focus")
 public let boxShadowColorPinkActive: CSSColor = `var`("--box-shadow-color-pink-active")
@@ -689,11 +727,14 @@ public let positionOffsetBorderWidthBase: Length = `var`("--position-offset-bord
 // MARK: - Applied: Button Spacing
 public let spacingHorizontalButton: Length = `var`("--spacing-horizontal-button")
 public let spacingHorizontalButtonIconOnly: Length = `var`("--spacing-horizontal-button-icon-only")
-public let spacingHorizontalButtonSmallIconOnly: Length = `var`("--spacing-horizontal-button-small-icon-only")
+public let spacingHorizontalButtonSmallIconOnly: Length = `var`(
+  "--spacing-horizontal-button-small-icon-only")
 public let spacingHorizontalButtonSmall: Length = `var`("--spacing-horizontal-button-small")
 public let spacingHorizontalButtonLarge: Length = `var`("--spacing-horizontal-button-large")
-public let spacingHorizontalInputTextTwoEndIcons: Length = `var`("--spacing-horizontal-input-text-two-end-icons")
-public let spacingStartTypeaheadSearchFigure: Length = `var`("--spacing-start-typeahead-search-figure")
+public let spacingHorizontalInputTextTwoEndIcons: Length = `var`(
+  "--spacing-horizontal-input-text-two-end-icons")
+public let spacingStartTypeaheadSearchFigure: Length = `var`(
+  "--spacing-start-typeahead-search-figure")
 public let spacingToggleSwitchGripStart: Length = `var`("--spacing-toggle-switch-grip-start")
 public let spacingToggleSwitchGripEnd: Length = `var`("--spacing-toggle-switch-grip-end")
 
@@ -726,7 +767,8 @@ public let outlineBaseFocus: CSSBorder = `var`("--outline-base-focus")
 public let widthToggleSwitch: Length = `var`("--width-toggle-switch")
 public let heightToggleSwitch: Length = `var`("--height-toggle-switch")
 public let spacingStartTypeaheadSearchIcon: Length = `var`("--spacing-start-typeahead-search-icon")
-public let spacingTypeaheadSearchFocusAddition: Length = `var`("--spacing-typeahead-search-focus-addition")
+public let spacingTypeaheadSearchFocusAddition: Length = `var`(
+  "--spacing-typeahead-search-focus-addition")
 
 // MARK: - Source: Syntax Highlighting (Apple HIG)
 public let syntaxAddition: CSSColor = `var`("--color-syntax-addition")
@@ -735,7 +777,8 @@ public let syntaxCharacters: CSSColor = `var`("--color-syntax-characters")
 public let syntaxComments: CSSColor = `var`("--color-syntax-comments")
 public let syntaxDeletion: CSSColor = `var`("--color-syntax-deletion")
 public let syntaxDocumentationMarkup: CSSColor = `var`("--color-syntax-documentation-markup")
-public let syntaxDocumentationMarkupKeywords: CSSColor = `var`("--color-syntax-documentation-markup-keywords")
+public let syntaxDocumentationMarkupKeywords: CSSColor = `var`(
+  "--color-syntax-documentation-markup-keywords")
 public let syntaxHeading: CSSColor = `var`("--color-syntax-heading")
 public let syntaxHighlighted: CSSColor = `var`("--color-syntax-highlighted")
 public let syntaxKeywords: CSSColor = `var`("--color-syntax-keywords")
@@ -744,18 +787,24 @@ public let syntaxNumbers: CSSColor = `var`("--color-syntax-numbers")
 public let syntaxOtherClassNames: CSSColor = `var`("--color-syntax-other-class-names")
 public let syntaxOtherConstants: CSSColor = `var`("--color-syntax-other-constants")
 public let syntaxOtherDeclarations: CSSColor = `var`("--color-syntax-other-declarations")
-public let syntaxOtherFunctionAndMethodNames: CSSColor = `var`("--color-syntax-other-function-and-method-names")
-public let syntaxOtherInstanceVariablesAndGlobals: CSSColor = `var`("--color-syntax-other-instance-variables-and-globals")
-public let syntaxOtherPreprocessorMacros: CSSColor = `var`("--color-syntax-other-preprocessor-macros")
+public let syntaxOtherFunctionAndMethodNames: CSSColor = `var`(
+  "--color-syntax-other-function-and-method-names")
+public let syntaxOtherInstanceVariablesAndGlobals: CSSColor = `var`(
+  "--color-syntax-other-instance-variables-and-globals")
+public let syntaxOtherPreprocessorMacros: CSSColor = `var`(
+  "--color-syntax-other-preprocessor-macros")
 public let syntaxOtherTypeNames: CSSColor = `var`("--color-syntax-other-type-names")
 public let syntaxParamInternalName: CSSColor = `var`("--color-syntax-param-internal-name")
 public let syntaxPlainText: CSSColor = `var`("--color-syntax-plain-text")
 public let syntaxPreprocessorStatements: CSSColor = `var`("--color-syntax-preprocessor-statements")
 public let syntaxProjectClassNames: CSSColor = `var`("--color-syntax-project-class-names")
 public let syntaxProjectConstants: CSSColor = `var`("--color-syntax-project-constants")
-public let syntaxProjectFunctionAndMethodNames: CSSColor = `var`("--color-syntax-project-function-and-method-names")
-public let syntaxProjectInstanceVariablesAndGlobals: CSSColor = `var`("--color-syntax-project-instance-variables-and-globals")
-public let syntaxProjectPreprocessorMacros: CSSColor = `var`("--color-syntax-project-preprocessor-macros")
+public let syntaxProjectFunctionAndMethodNames: CSSColor = `var`(
+  "--color-syntax-project-function-and-method-names")
+public let syntaxProjectInstanceVariablesAndGlobals: CSSColor = `var`(
+  "--color-syntax-project-instance-variables-and-globals")
+public let syntaxProjectPreprocessorMacros: CSSColor = `var`(
+  "--color-syntax-project-preprocessor-macros")
 public let syntaxProjectTypeNames: CSSColor = `var`("--color-syntax-project-type-names")
 public let syntaxStrings: CSSColor = `var`("--color-syntax-strings")
 public let syntaxTypeDeclarations: CSSColor = `var`("--color-syntax-type-declarations")

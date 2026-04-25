@@ -1,991 +1,1143 @@
 #if SERVER
+  import CSSBuilder
+  import CSSOMBuilder
+  import Foundation
+  import WebTypes
 
-import CSSBuilder
-import CSSOMBuilder
-import Foundation
-import WebTypes
+  // https://developer.apple.com/design/human-interface-guidelines/color
+  // https://doc.wikimedia.org/codex/latest/design-tokens/color.html
+  // https://doc.wikimedia.org/codex/latest/style-guide/colors.html
+  // https://meta.wikimedia.org/wiki/Brand/colours
 
-// https://developer.apple.com/design/human-interface-guidelines/color
-// https://doc.wikimedia.org/codex/latest/design-tokens/color.html
-// https://doc.wikimedia.org/codex/latest/style-guide/colors.html
-// https://meta.wikimedia.org/wiki/Brand/colours
+  // MARK: - Typography Tokens
+  @CSSBuilder
+  public func TypographyTokensCSS(config: TypographyConfig) -> [CSSRule] {
+    customProperty("--typography-font-sans", config.fontSans)
+    customProperty("--typography-font-sans-italic", config.fontSansItalic)
+    customProperty("--typography-font-serif", config.fontSerif)
+    customProperty("--typography-font-serif-italic", config.fontSerifItalic)
+    customProperty("--typography-font-mono", config.fontMono)
+  }
 
-// MARK: - Typography Tokens
-@CSSBuilder
-public func TypographyTokensCSS(config: TypographyConfig) -> [CSSRule] {
-	customProperty("--typography-font-sans", config.fontSans)
-	customProperty("--typography-font-sans-italic", config.fontSansItalic)
-	customProperty("--typography-font-serif", config.fontSerif)
-	customProperty("--typography-font-serif-italic", config.fontSerifItalic)
-	customProperty("--typography-font-mono", config.fontMono)
-}
+  // MARK: - Color Tokens - Light Mode
+  @CSSBuilder
+  public func ColorTokensLightModeCSS() -> [CSSRule] {
+    colorScheme(.light).important()
 
-// MARK: - Color Tokens - Light Mode
-@CSSBuilder
-public func ColorTokensLightModeCSS() -> [CSSRule] {
-	colorScheme(.light).important()
+    customProperty("--extreme", .black)
+    customProperty("--extreme-inverted", .white)
+    customProperty("--mix-blend-mode-blend", .multiply)
+  }
 
-	customProperty("--extreme", .black)
-	customProperty("--extreme-inverted", .white)
-	customProperty("--mix-blend-mode-blend", .multiply)
-}
+  // MARK: - Color Tokens - Dark Mode
+  @CSSBuilder
+  public func ColorTokensDarkModeCSS() -> [CSSRule] {
+    colorScheme(.dark).important()
 
-// MARK: - Color Tokens - Dark Mode
-@CSSBuilder
-public func ColorTokensDarkModeCSS() -> [CSSRule] {
-	colorScheme(.dark).important()
+    customProperty("--extreme", .white)
+    customProperty("--extreme-inverted", .black)
+    customProperty("--mix-blend-mode-blend", .screen)
+  }
 
-	customProperty("--extreme", .white)
-	customProperty("--extreme-inverted", .black)
-	customProperty("--mix-blend-mode-blend", .screen)
-}
+  // MARK: - sRGB Gamut Computation
 
-// MARK: - sRGB Gamut Computation
+  /// Convert OKLCH to linear sRGB.
+  private func oklchToLinearSRGB(_ l: Double, _ c: Double, _ h: Double) -> (
+    r: Double, g: Double, b: Double
+  ) {
+    let hRad = h * .pi / 180
+    let a = c * cos(hRad)
+    let b = c * sin(hRad)
+    let l_ = l + 0.3963377774 * a + 0.2158037573 * b
+    let m_ = l - 0.1055613458 * a - 0.0638541728 * b
+    let s_ = l - 0.0894841775 * a - 1.2914855480 * b
+    let lc = l_ * l_ * l_
+    let mc = m_ * m_ * m_
+    let sc = s_ * s_ * s_
+    return (
+      r: +4.0767416621 * lc - 3.3077115913 * mc + 0.2309699292 * sc,
+      g: -1.2684380046 * lc + 2.6097574011 * mc - 0.3413193965 * sc,
+      b: -0.0041960863 * lc - 0.7034186147 * mc + 1.7076147010 * sc
+    )
+  }
 
-/// Convert OKLCH to linear sRGB.
-private func oklchToLinearSRGB(_ l: Double, _ c: Double, _ h: Double) -> (r: Double, g: Double, b: Double) {
-	let hRad = h * .pi / 180
-	let a = c * cos(hRad)
-	let b = c * sin(hRad)
-	let l_ = l + 0.3963377774 * a + 0.2158037573 * b
-	let m_ = l - 0.1055613458 * a - 0.0638541728 * b
-	let s_ = l - 0.0894841775 * a - 1.2914855480 * b
-	let lc = l_ * l_ * l_, mc = m_ * m_ * m_, sc = s_ * s_ * s_
-	return (
-		r: +4.0767416621 * lc - 3.3077115913 * mc + 0.2309699292 * sc,
-		g: -1.2684380046 * lc + 2.6097574011 * mc - 0.3413193965 * sc,
-		b: -0.0041960863 * lc - 0.7034186147 * mc + 1.7076147010 * sc
-	)
-}
+  /// Maximum OKLCH chroma within sRGB gamut at given lightness and hue (binary search).
+  public func srgbMaxChroma(l: Double, h: Double) -> Double {
+    let eps = 1e-7
+    var lo = 0.0
+    var hi = 0.5
+    while hi - lo > eps {
+      let mid = (lo + hi) / 2
+      let rgb = oklchToLinearSRGB(l, mid, h)
+      if rgb.r >= -eps && rgb.r <= 1 + eps && rgb.g >= -eps && rgb.g <= 1 + eps && rgb.b >= -eps
+        && rgb.b <= 1 + eps
+      {
+        lo = mid
+      } else {
+        hi = mid
+      }
+    }
+    return lo
+  }
 
-/// Maximum OKLCH chroma within sRGB gamut at given lightness and hue (binary search).
-public func srgbMaxChroma(l: Double, h: Double) -> Double {
-	let eps = 1e-7
-	var lo = 0.0, hi = 0.5
-	while hi - lo > eps {
-		let mid = (lo + hi) / 2
-		let rgb = oklchToLinearSRGB(l, mid, h)
-		if rgb.r >= -eps && rgb.r <= 1 + eps && rgb.g >= -eps && rgb.g <= 1 + eps && rgb.b >= -eps && rgb.b <= 1 + eps {
-			lo = mid
-		} else {
-			hi = mid
-		}
-	}
-	return lo
-}
+  /// Absolute sRGB gamut peak for a given hue: the (L, C) with maximum chroma across all lightness values.
+  public func srgbGamutPeak(h: Double) -> (l: Double, c: Double) {
+    var bestL = 0.0
+    var bestC = 0.0
+    for i in 0...10000 {
+      let l = Double(i) / 10000
+      let c = srgbMaxChroma(l: l, h: h)
+      if c > bestC {
+        bestC = c
+        bestL = l
+      }
+    }
+    return (bestL, bestC)
+  }
 
-/// Absolute sRGB gamut peak for a given hue: the (L, C) with maximum chroma across all lightness values.
-public func srgbGamutPeak(h: Double) -> (l: Double, c: Double) {
-	var bestL = 0.0, bestC = 0.0
-	for i in 0...10000 {
-		let l = Double(i) / 10000
-		let c = srgbMaxChroma(l: l, h: h)
-		if c > bestC { bestC = c; bestL = l }
-	}
-	return (bestL, bestC)
-}
+  // MARK: - OKLCH Hue Tokens
+  // Apple HIG system colors (Default, light mode), converted to OKLCH.
+  // 12 hues (Apple HIG order): red, orange, yellow, green, mint, teal, cyan, blue, indigo, purple, pink, brown.
+  // Glyph = Fill for now. Gray is near-achromatic.
 
-// MARK: - OKLCH Hue Tokens
-// Apple HIG system colors (Default, light mode), converted to OKLCH.
-// 12 hues (Apple HIG order): red, orange, yellow, green, mint, teal, cyan, blue, indigo, purple, pink, brown.
-// Glyph = Fill for now. Gray is near-achromatic.
+  @CSSBuilder
+  public func HueTokensCSS() -> [CSSRule] {
+    // Hue angles (Apple HIG system colors, OKLCH)
+    customProperty("--hue-red", 25.74)  // Apple Red
+    customProperty("--hue-orange", 55.72)  // Apple Orange
+    customProperty("--hue-yellow", 90.38)  // Apple Yellow
+    customProperty("--hue-green", 147.44)  // Apple Green
+    customProperty("--hue-mint", 181.77)  // Apple Mint
+    customProperty("--hue-teal", 203.30)  // Apple Teal
+    customProperty("--hue-cyan", 219.96)  // Apple Cyan
+    customProperty("--hue-blue", 254.09)  // Apple Blue
+    customProperty("--hue-indigo", 279.31)  // Apple Indigo
+    customProperty("--hue-purple", 322.51)  // Apple Purple
+    customProperty("--hue-pink", 17.90)  // Apple Pink
+    customProperty("--hue-brown", 57.23)  // Apple Brown
+    customProperty("--hue-gray", 260)
 
-@CSSBuilder
-public func HueTokensCSS() -> [CSSRule] {
-	// Hue angles (Apple HIG system colors, OKLCH)
-	customProperty("--hue-red", 25.74)      // Apple Red
-	customProperty("--hue-orange", 55.72)   // Apple Orange
-	customProperty("--hue-yellow", 90.38)   // Apple Yellow
-	customProperty("--hue-green", 147.44)   // Apple Green
-	customProperty("--hue-mint", 181.77)    // Apple Mint
-	customProperty("--hue-teal", 203.30)    // Apple Teal
-	customProperty("--hue-cyan", 219.96)    // Apple Cyan
-	customProperty("--hue-blue", 254.09)    // Apple Blue
-	customProperty("--hue-indigo", 279.31)  // Apple Indigo
-	customProperty("--hue-purple", 322.51)  // Apple Purple
-	customProperty("--hue-pink", 17.90)     // Apple Pink
-	customProperty("--hue-brown", 57.23)    // Apple Brown
-	customProperty("--hue-gray", 260)
+    // Glyph: Apple HIG Default (light) system colors
+    customProperty("--glyph-red", oklch(l: 0.6532, c: 0.2328, h: hueRed))
+    customProperty("--glyph-orange", oklch(l: 0.7533, c: 0.1720, h: hueOrange))
+    customProperty("--glyph-yellow", oklch(l: 0.8652, c: 0.1768, h: hueYellow))
+    customProperty("--glyph-green", oklch(l: 0.7303, c: 0.1944, h: hueGreen))
+    customProperty("--glyph-mint", oklch(l: 0.7471, c: 0.1340, h: hueMint))
+    customProperty("--glyph-teal", oklch(l: 0.7446, c: 0.1268, h: hueTeal))
+    customProperty("--glyph-cyan", oklch(l: 0.7471, c: 0.1360, h: hueCyan))
+    customProperty("--glyph-blue", oklch(l: 0.6321, c: 0.2018, h: hueBlue))
+    customProperty("--glyph-indigo", oklch(l: 0.5595, c: 0.2296, h: hueIndigo))
+    customProperty("--glyph-purple", oklch(l: 0.6216, c: 0.2629, h: huePurple))
+    customProperty("--glyph-pink", oklch(l: 0.6497, c: 0.2383, h: huePink))
+    customProperty("--glyph-brown", oklch(l: 0.6329, c: 0.0727, h: hueBrown))
 
-	// Glyph: Apple HIG Default (light) system colors
-	customProperty("--glyph-red", oklch(l: 0.6532, c: 0.2328, h: hueRed))
-	customProperty("--glyph-orange", oklch(l: 0.7533, c: 0.1720, h: hueOrange))
-	customProperty("--glyph-yellow", oklch(l: 0.8652, c: 0.1768, h: hueYellow))
-	customProperty("--glyph-green", oklch(l: 0.7303, c: 0.1944, h: hueGreen))
-	customProperty("--glyph-mint", oklch(l: 0.7471, c: 0.1340, h: hueMint))
-	customProperty("--glyph-teal", oklch(l: 0.7446, c: 0.1268, h: hueTeal))
-	customProperty("--glyph-cyan", oklch(l: 0.7471, c: 0.1360, h: hueCyan))
-	customProperty("--glyph-blue", oklch(l: 0.6321, c: 0.2018, h: hueBlue))
-	customProperty("--glyph-indigo", oklch(l: 0.5595, c: 0.2296, h: hueIndigo))
-	customProperty("--glyph-purple", oklch(l: 0.6216, c: 0.2629, h: huePurple))
-	customProperty("--glyph-pink", oklch(l: 0.6497, c: 0.2383, h: huePink))
-	customProperty("--glyph-brown", oklch(l: 0.6329, c: 0.0727, h: hueBrown))
+    // Fill: same as glyph for now
+    customProperty("--fill-red", oklch(l: 0.6532, c: 0.2328, h: hueRed))
+    customProperty("--fill-orange", oklch(l: 0.7533, c: 0.1720, h: hueOrange))
+    customProperty("--fill-yellow", oklch(l: 0.8652, c: 0.1768, h: hueYellow))
+    customProperty("--fill-green", oklch(l: 0.7303, c: 0.1944, h: hueGreen))
+    customProperty("--fill-mint", oklch(l: 0.7471, c: 0.1340, h: hueMint))
+    customProperty("--fill-teal", oklch(l: 0.7446, c: 0.1268, h: hueTeal))
+    customProperty("--fill-cyan", oklch(l: 0.7471, c: 0.1360, h: hueCyan))
+    customProperty("--fill-blue", oklch(l: 0.6321, c: 0.2018, h: hueBlue))
+    customProperty("--fill-indigo", oklch(l: 0.5595, c: 0.2296, h: hueIndigo))
+    customProperty("--fill-purple", oklch(l: 0.6216, c: 0.2629, h: huePurple))
+    customProperty("--fill-pink", oklch(l: 0.6497, c: 0.2383, h: huePink))
+    customProperty("--fill-brown", oklch(l: 0.6329, c: 0.0727, h: hueBrown))
 
-	// Fill: same as glyph for now
-	customProperty("--fill-red", oklch(l: 0.6532, c: 0.2328, h: hueRed))
-	customProperty("--fill-orange", oklch(l: 0.7533, c: 0.1720, h: hueOrange))
-	customProperty("--fill-yellow", oklch(l: 0.8652, c: 0.1768, h: hueYellow))
-	customProperty("--fill-green", oklch(l: 0.7303, c: 0.1944, h: hueGreen))
-	customProperty("--fill-mint", oklch(l: 0.7471, c: 0.1340, h: hueMint))
-	customProperty("--fill-teal", oklch(l: 0.7446, c: 0.1268, h: hueTeal))
-	customProperty("--fill-cyan", oklch(l: 0.7471, c: 0.1360, h: hueCyan))
-	customProperty("--fill-blue", oklch(l: 0.6321, c: 0.2018, h: hueBlue))
-	customProperty("--fill-indigo", oklch(l: 0.5595, c: 0.2296, h: hueIndigo))
-	customProperty("--fill-purple", oklch(l: 0.6216, c: 0.2629, h: huePurple))
-	customProperty("--fill-pink", oklch(l: 0.6497, c: 0.2383, h: huePink))
-	customProperty("--fill-brown", oklch(l: 0.6329, c: 0.0727, h: hueBrown))
+    // Gray: near-achromatic with slight blue tint
+    customProperty("--gray-glyph", oklch(l: 0.55, c: 0.015, h: hueGray))
+    customProperty("--gray-fill", oklch(l: 0.65, c: 0.015, h: hueGray))
 
-	// Gray: near-achromatic with slight blue tint
-	customProperty("--gray-glyph", oklch(l: 0.55, c: 0.015, h: hueGray))
-	customProperty("--gray-fill", oklch(l: 0.65, c: 0.015, h: hueGray))
-	
-	// Traffic Lights (macOS style)
-	customProperty("--traffic-light-red", hex(0xEC6765))
-	customProperty("--traffic-light-yellow", hex(0xF2CA44))
-	customProperty("--traffic-light-green", hex(0x65C466))
-}
+    // Traffic Lights (macOS style)
+    customProperty("--traffic-light-red", hex(0xEC6765))
+    customProperty("--traffic-light-yellow", hex(0xF2CA44))
+    customProperty("--traffic-light-green", hex(0x65C466))
+  }
 
-@CSSBuilder
-public func SourceTokensLightModeLessContrastCSS() -> [CSSRule] {
-	// Fill (surface hierarchy)
-	customProperty("--fill", .white)
-	customProperty("--fill-alpha", rgba(120, 120, 128, 0.2))
-	customProperty("--fill-secondary", oklch(0.98, 0.004, 260))
-	customProperty("--fill-tertiary", oklch(0.97, 0.002, 260))
-	customProperty("--fill-tertiary-alpha", rgba(118, 118, 128, 0.12))
-	customProperty("--fill-gray", oklch(0.20, 0.003, 260))
-	customProperty("--fill-gray-alpha", rgba(0, 0, 0, 0.88))
-	customProperty("--fill-gray-hover", oklch(0.26, 0.003, 260))
-	customProperty("--fill-gray-active", oklch(0.16, 0.003, 260))
-	customProperty("--fill-gray-secondary", oklch(0.60, 0.005, 260))
-	customProperty("--fill-gray-secondary-alpha", rgba(0, 0, 0, 0.48))
-	customProperty("--fill-gray-tertiary", oklch(0.86, 0.005, 260))
-	customProperty("--fill-gray-tertiary-alpha", rgba(0, 0, 0, 0.16))
-	customProperty("--fill-gray-quaternary", oklch(0.94, 0.005, 260))
-	customProperty("--fill-gray-quaternary-alpha", rgba(0, 0, 0, 0.08))
+  @CSSBuilder
+  public func SourceTokensLightModeLessContrastCSS() -> [CSSRule] {
+    // Fill (surface hierarchy)
+    customProperty("--fill", .white)
+    customProperty("--fill-alpha", rgba(120, 120, 128, 0.2))
+    customProperty("--fill-secondary", oklch(0.98, 0.004, 260))
+    customProperty("--fill-tertiary", oklch(0.97, 0.002, 260))
+    customProperty("--fill-tertiary-alpha", rgba(118, 118, 128, 0.12))
+    customProperty("--fill-gray", oklch(0.20, 0.003, 260))
+    customProperty("--fill-gray-alpha", rgba(0, 0, 0, 0.88))
+    customProperty("--fill-gray-hover", oklch(0.26, 0.003, 260))
+    customProperty("--fill-gray-active", oklch(0.16, 0.003, 260))
+    customProperty("--fill-gray-secondary", oklch(0.60, 0.005, 260))
+    customProperty("--fill-gray-secondary-alpha", rgba(0, 0, 0, 0.48))
+    customProperty("--fill-gray-tertiary", oklch(0.86, 0.005, 260))
+    customProperty("--fill-gray-tertiary-alpha", rgba(0, 0, 0, 0.16))
+    customProperty("--fill-gray-quaternary", oklch(0.94, 0.005, 260))
+    customProperty("--fill-gray-quaternary-alpha", rgba(0, 0, 0, 0.08))
 
-	// Glyph (text hierarchy)
-	customProperty("--glyph", .black)
-	customProperty("--glyph-fixed", .black)
-	customProperty("--glyph-gray", oklch(0.20, 0.003, 260))
-	customProperty("--glyph-gray-alpha", rgba(0, 0, 0, 0.88))
-	customProperty("--glyph-gray-fixed", oklch(0.20, 0.003, 260))
-	customProperty("--glyph-gray-secondary", oklch(0.52, 0.003, 260))
-	customProperty("--glyph-gray-secondary-alpha", rgba(0, 0, 0, 0.56))
-	customProperty("--glyph-gray-secondary-alt", oklch(0.35, 0.003, 260))
-	customProperty("--glyph-gray-secondary-alt-alpha", rgba(0, 0, 0, 0.72))
-	customProperty("--glyph-gray-tertiary", oklch(0.60, 0.005, 260))
-	customProperty("--glyph-gray-tertiary-alpha", rgba(0, 0, 0, 0.48))
+    // Glyph (text hierarchy)
+    customProperty("--glyph", .black)
+    customProperty("--glyph-fixed", .black)
+    customProperty("--glyph-gray", oklch(0.20, 0.003, 260))
+    customProperty("--glyph-gray-alpha", rgba(0, 0, 0, 0.88))
+    customProperty("--glyph-gray-fixed", oklch(0.20, 0.003, 260))
+    customProperty("--glyph-gray-secondary", oklch(0.52, 0.003, 260))
+    customProperty("--glyph-gray-secondary-alpha", rgba(0, 0, 0, 0.56))
+    customProperty("--glyph-gray-secondary-alt", oklch(0.35, 0.003, 260))
+    customProperty("--glyph-gray-secondary-alt-alpha", rgba(0, 0, 0, 0.72))
+    customProperty("--glyph-gray-tertiary", oklch(0.60, 0.005, 260))
+    customProperty("--glyph-gray-tertiary-alpha", rgba(0, 0, 0, 0.48))
 
-	// Semantic bridge for unified applied function
-	customProperty("--border-neutral", oklch(0.86, 0.005, 260))
-	customProperty("--border-emphasis", oklch(0.20, 0.003, 260))
-	customProperty("--border-interactive", oklch(0.20, 0.003, 260))
-	customProperty("--shadow-alpha", rgba(0, 0, 0, 0.06))
-	customProperty("--backdrop-light", rgba(255, 255, 255, 0.65))
-	customProperty("--backdrop-dark", rgba(0, 0, 0, 0.65))
+    // Semantic bridge for unified applied function
+    customProperty("--border-neutral", oklch(0.86, 0.005, 260))
+    customProperty("--border-emphasis", oklch(0.20, 0.003, 260))
+    customProperty("--border-interactive", oklch(0.20, 0.003, 260))
+    customProperty("--shadow-alpha", rgba(0, 0, 0, 0.06))
+    customProperty("--backdrop-light", rgba(255, 255, 255, 0.65))
+    customProperty("--backdrop-dark", rgba(0, 0, 0, 0.65))
 
-	// MARK: - Apple HIG Syntax Tokens (Light Mode)
-	customProperty("--color-syntax-addition", glyphGreen)
-	customProperty("--color-syntax-attributes", hex(0x947100))
-	customProperty("--color-syntax-characters", hex(0x272AD8))
-	customProperty("--color-syntax-comments", hex(0x707F8C))
-	customProperty("--color-syntax-deletion", glyphRed)
-	customProperty("--color-syntax-documentation-markup", hex(0x506375))
-	customProperty("--color-syntax-heading", hex(0xBA2DA2))
-	customProperty("--color-syntax-highlighted", rgba(0, 113, 227, 0.2))
-	customProperty("--color-syntax-keywords", hex(0xAD3DA4))
-	customProperty("--color-syntax-marks", hex(0x000000))
-	customProperty("--color-syntax-numbers", hex(0x272AD8))
-	customProperty("--color-syntax-other-class-names", hex(0x703DAA))
-	customProperty("--color-syntax-other-constants", hex(0x4B21B0))
-	customProperty("--color-syntax-other-declarations", hex(0x047CB0))
-	customProperty("--color-syntax-other-function-and-method-names", hex(0x4B21B0))
-	customProperty("--color-syntax-other-instance-variables-and-globals", hex(0x703DAA))
-	customProperty("--color-syntax-other-preprocessor-macros", hex(0x78492A))
-	customProperty("--color-syntax-other-type-names", hex(0x703DAA))
-	customProperty("--color-syntax-param-internal-name", hex(0x404040))
-	customProperty("--color-syntax-plain-text", hex(0x000000))
-	customProperty("--color-syntax-preprocessor-statements", hex(0x78492A))
-	customProperty("--color-syntax-project-class-names", hex(0x3E8087))
-	customProperty("--color-syntax-project-constants", hex(0x2D6469))
-	customProperty("--color-syntax-project-function-and-method-names", hex(0x2D6469))
-	customProperty("--color-syntax-project-instance-variables-and-globals", hex(0x3E8087))
-	customProperty("--color-syntax-project-preprocessor-macros", hex(0x78492A))
-	customProperty("--color-syntax-project-type-names", hex(0x3E8087))
-	customProperty("--color-syntax-strings", hex(0xD12F1B))
-	customProperty("--color-syntax-type-declarations", hex(0x03638C))
-	customProperty("--color-syntax-urls", hex(0x1337FF))
-}
+    // MARK: - Apple HIG Syntax Tokens (Light Mode)
+    customProperty("--color-syntax-addition", glyphGreen)
+    customProperty("--color-syntax-attributes", hex(0x947100))
+    customProperty("--color-syntax-characters", hex(0x272AD8))
+    customProperty("--color-syntax-comments", hex(0x707F8C))
+    customProperty("--color-syntax-deletion", glyphRed)
+    customProperty("--color-syntax-documentation-markup", hex(0x506375))
+    customProperty("--color-syntax-heading", hex(0xBA2DA2))
+    customProperty("--color-syntax-highlighted", rgba(0, 113, 227, 0.2))
+    customProperty("--color-syntax-keywords", hex(0xAD3DA4))
+    customProperty("--color-syntax-marks", hex(0x000000))
+    customProperty("--color-syntax-numbers", hex(0x272AD8))
+    customProperty("--color-syntax-other-class-names", hex(0x703DAA))
+    customProperty("--color-syntax-other-constants", hex(0x4B21B0))
+    customProperty("--color-syntax-other-declarations", hex(0x047CB0))
+    customProperty("--color-syntax-other-function-and-method-names", hex(0x4B21B0))
+    customProperty("--color-syntax-other-instance-variables-and-globals", hex(0x703DAA))
+    customProperty("--color-syntax-other-preprocessor-macros", hex(0x78492A))
+    customProperty("--color-syntax-other-type-names", hex(0x703DAA))
+    customProperty("--color-syntax-param-internal-name", hex(0x404040))
+    customProperty("--color-syntax-plain-text", hex(0x000000))
+    customProperty("--color-syntax-preprocessor-statements", hex(0x78492A))
+    customProperty("--color-syntax-project-class-names", hex(0x3E8087))
+    customProperty("--color-syntax-project-constants", hex(0x2D6469))
+    customProperty("--color-syntax-project-function-and-method-names", hex(0x2D6469))
+    customProperty("--color-syntax-project-instance-variables-and-globals", hex(0x3E8087))
+    customProperty("--color-syntax-project-preprocessor-macros", hex(0x78492A))
+    customProperty("--color-syntax-project-type-names", hex(0x3E8087))
+    customProperty("--color-syntax-strings", hex(0xD12F1B))
+    customProperty("--color-syntax-type-declarations", hex(0x03638C))
+    customProperty("--color-syntax-urls", hex(0x1337FF))
+  }
 
-@CSSBuilder
-public func SourceTokensLightModeMoreContrastCSS() -> [CSSRule] {
-	// Fill (surface hierarchy — increased contrast)
-	customProperty("--fill", .white)
-	customProperty("--fill-alpha", rgba(120, 120, 128, 0.24))
-	customProperty("--fill-secondary", oklch(0.97, 0.005, 260))
-	customProperty("--fill-tertiary", oklch(0.96, 0.003, 260))
-	customProperty("--fill-tertiary-alpha", rgba(118, 118, 128, 0.16))
-	customProperty("--fill-gray", oklch(0.15, 0.004, 260))
-	customProperty("--fill-gray-alpha", rgba(0, 0, 0, 0.92))
-	customProperty("--fill-gray-hover", oklch(0.20, 0.004, 260))
-	customProperty("--fill-gray-active", oklch(0.12, 0.004, 260))
-	customProperty("--fill-gray-secondary", oklch(0.50, 0.006, 260))
-	customProperty("--fill-gray-secondary-alpha", rgba(0, 0, 0, 0.56))
-	customProperty("--fill-gray-tertiary", oklch(0.80, 0.006, 260))
-	customProperty("--fill-gray-tertiary-alpha", rgba(0, 0, 0, 0.2))
-	customProperty("--fill-gray-quaternary", oklch(0.88, 0.006, 260))
-	customProperty("--fill-gray-quaternary-alpha", rgba(0, 0, 0, 0.12))
+  @CSSBuilder
+  public func SourceTokensLightModeMoreContrastCSS() -> [CSSRule] {
+    // Fill (surface hierarchy — increased contrast)
+    customProperty("--fill", .white)
+    customProperty("--fill-alpha", rgba(120, 120, 128, 0.24))
+    customProperty("--fill-secondary", oklch(0.97, 0.005, 260))
+    customProperty("--fill-tertiary", oklch(0.96, 0.003, 260))
+    customProperty("--fill-tertiary-alpha", rgba(118, 118, 128, 0.16))
+    customProperty("--fill-gray", oklch(0.15, 0.004, 260))
+    customProperty("--fill-gray-alpha", rgba(0, 0, 0, 0.92))
+    customProperty("--fill-gray-hover", oklch(0.20, 0.004, 260))
+    customProperty("--fill-gray-active", oklch(0.12, 0.004, 260))
+    customProperty("--fill-gray-secondary", oklch(0.50, 0.006, 260))
+    customProperty("--fill-gray-secondary-alpha", rgba(0, 0, 0, 0.56))
+    customProperty("--fill-gray-tertiary", oklch(0.80, 0.006, 260))
+    customProperty("--fill-gray-tertiary-alpha", rgba(0, 0, 0, 0.2))
+    customProperty("--fill-gray-quaternary", oklch(0.88, 0.006, 260))
+    customProperty("--fill-gray-quaternary-alpha", rgba(0, 0, 0, 0.12))
 
-	// Glyph (text hierarchy — increased contrast)
-	customProperty("--glyph", .black)
-	customProperty("--glyph-fixed", .black)
-	customProperty("--glyph-gray", oklch(0.12, 0.004, 260))
-	customProperty("--glyph-gray-alpha", rgba(0, 0, 0, 0.94))
-	customProperty("--glyph-gray-fixed", oklch(0.20, 0.003, 260))
-	customProperty("--glyph-gray-secondary", oklch(0.42, 0.004, 260))
-	customProperty("--glyph-gray-secondary-alpha", rgba(0, 0, 0, 0.64))
-	customProperty("--glyph-gray-secondary-alt", oklch(0.28, 0.004, 260))
-	customProperty("--glyph-gray-secondary-alt-alpha", rgba(0, 0, 0, 0.8))
-	customProperty("--glyph-gray-tertiary", oklch(0.50, 0.006, 260))
-	customProperty("--glyph-gray-tertiary-alpha", rgba(0, 0, 0, 0.56))
+    // Glyph (text hierarchy — increased contrast)
+    customProperty("--glyph", .black)
+    customProperty("--glyph-fixed", .black)
+    customProperty("--glyph-gray", oklch(0.12, 0.004, 260))
+    customProperty("--glyph-gray-alpha", rgba(0, 0, 0, 0.94))
+    customProperty("--glyph-gray-fixed", oklch(0.20, 0.003, 260))
+    customProperty("--glyph-gray-secondary", oklch(0.42, 0.004, 260))
+    customProperty("--glyph-gray-secondary-alpha", rgba(0, 0, 0, 0.64))
+    customProperty("--glyph-gray-secondary-alt", oklch(0.28, 0.004, 260))
+    customProperty("--glyph-gray-secondary-alt-alpha", rgba(0, 0, 0, 0.8))
+    customProperty("--glyph-gray-tertiary", oklch(0.50, 0.006, 260))
+    customProperty("--glyph-gray-tertiary-alpha", rgba(0, 0, 0, 0.56))
 
-	// Semantic bridge for unified applied function
-	customProperty("--border-neutral", oklch(0.80, 0.006, 260))
-	customProperty("--border-emphasis", oklch(0.12, 0.004, 260))
-	customProperty("--border-interactive", oklch(0.12, 0.004, 260))
-	customProperty("--shadow-alpha", rgba(0, 0, 0, 0.08))
-	customProperty("--backdrop-light", rgba(255, 255, 255, 0.65))
-	customProperty("--backdrop-dark", rgba(0, 0, 0, 0.65))
-}
+    // Semantic bridge for unified applied function
+    customProperty("--border-neutral", oklch(0.80, 0.006, 260))
+    customProperty("--border-emphasis", oklch(0.12, 0.004, 260))
+    customProperty("--border-interactive", oklch(0.12, 0.004, 260))
+    customProperty("--shadow-alpha", rgba(0, 0, 0, 0.08))
+    customProperty("--backdrop-light", rgba(255, 255, 255, 0.65))
+    customProperty("--backdrop-dark", rgba(0, 0, 0, 0.65))
+  }
 
-@CSSBuilder
-public func SourceTokensDarkModeLessContrastCSS() -> [CSSRule] {
-	// Fill (surface hierarchy)
-	customProperty("--fill", .black)
-	customProperty("--fill-alpha", rgba(182, 182, 182, 0.3))
-	customProperty("--fill-secondary", oklch(0.15, 0.003, 260))
-	customProperty("--fill-tertiary", oklch(0.18, 0.003, 260))
-	customProperty("--fill-tertiary-alpha", rgba(118, 118, 128, 0.24))
-	customProperty("--fill-quaternary-alpha", rgba(116, 116, 128, 0.25))
-	customProperty("--fill-gray", oklch(0.96, 0.003, 260))
-	customProperty("--fill-gray-alpha", rgba(255, 255, 255, 0.92))
-	customProperty("--fill-gray-hover", oklch(0.92, 0.003, 260))
-	customProperty("--fill-gray-active", oklch(0.98, 0.003, 260))
-	customProperty("--fill-gray-secondary", oklch(0.50, 0.005, 260))
-	customProperty("--fill-gray-secondary-alpha", rgba(255, 255, 255, 0.4))
-	customProperty("--fill-gray-tertiary", oklch(0.35, 0.005, 260))
-	customProperty("--fill-gray-tertiary-alpha", rgba(255, 255, 255, 0.24))
-	customProperty("--fill-gray-quaternary", oklch(0.28, 0.005, 260))
-	customProperty("--fill-gray-quaternary-alpha", rgba(255, 255, 255, 0.2))
+  @CSSBuilder
+  public func SourceTokensDarkModeLessContrastCSS() -> [CSSRule] {
+    // Fill (surface hierarchy)
+    customProperty("--fill", .black)
+    customProperty("--fill-alpha", rgba(182, 182, 182, 0.3))
+    customProperty("--fill-secondary", oklch(0.15, 0.003, 260))
+    customProperty("--fill-tertiary", oklch(0.18, 0.003, 260))
+    customProperty("--fill-tertiary-alpha", rgba(118, 118, 128, 0.24))
+    customProperty("--fill-quaternary-alpha", rgba(116, 116, 128, 0.25))
+    customProperty("--fill-gray", oklch(0.96, 0.003, 260))
+    customProperty("--fill-gray-alpha", rgba(255, 255, 255, 0.92))
+    customProperty("--fill-gray-hover", oklch(0.92, 0.003, 260))
+    customProperty("--fill-gray-active", oklch(0.98, 0.003, 260))
+    customProperty("--fill-gray-secondary", oklch(0.50, 0.005, 260))
+    customProperty("--fill-gray-secondary-alpha", rgba(255, 255, 255, 0.4))
+    customProperty("--fill-gray-tertiary", oklch(0.35, 0.005, 260))
+    customProperty("--fill-gray-tertiary-alpha", rgba(255, 255, 255, 0.24))
+    customProperty("--fill-gray-quaternary", oklch(0.28, 0.005, 260))
+    customProperty("--fill-gray-quaternary-alpha", rgba(255, 255, 255, 0.2))
 
-	// Glyph (text hierarchy)
-	customProperty("--glyph", .white)
-	customProperty("--glyph-fixed", .black)
-	customProperty("--glyph-gray", oklch(0.96, 0.003, 260))
-	customProperty("--glyph-gray-alpha", rgba(255, 255, 255, 0.92))
-	customProperty("--glyph-gray-fixed", oklch(0.20, 0.003, 260))
-	customProperty("--glyph-gray-secondary", oklch(0.62, 0.005, 260))
-	customProperty("--glyph-gray-secondary-alpha", rgba(255, 255, 255, 0.56))
-	customProperty("--glyph-gray-secondary-alt", oklch(0.85, 0.003, 260))
-	customProperty("--glyph-gray-secondary-alt-alpha", rgba(255, 255, 255, 0.8))
-	customProperty("--glyph-gray-tertiary", oklch(0.50, 0.005, 260))
-	customProperty("--glyph-gray-tertiary-alpha", rgba(255, 255, 255, 0.4))
+    // Glyph (text hierarchy)
+    customProperty("--glyph", .white)
+    customProperty("--glyph-fixed", .black)
+    customProperty("--glyph-gray", oklch(0.96, 0.003, 260))
+    customProperty("--glyph-gray-alpha", rgba(255, 255, 255, 0.92))
+    customProperty("--glyph-gray-fixed", oklch(0.20, 0.003, 260))
+    customProperty("--glyph-gray-secondary", oklch(0.62, 0.005, 260))
+    customProperty("--glyph-gray-secondary-alpha", rgba(255, 255, 255, 0.56))
+    customProperty("--glyph-gray-secondary-alt", oklch(0.85, 0.003, 260))
+    customProperty("--glyph-gray-secondary-alt-alpha", rgba(255, 255, 255, 0.8))
+    customProperty("--glyph-gray-tertiary", oklch(0.50, 0.005, 260))
+    customProperty("--glyph-gray-tertiary-alpha", rgba(255, 255, 255, 0.4))
 
-	// Background Layers
-	customProperty("--background-primary", oklch(0.17, 0.003, 260))
-	customProperty("--background-layer1", oklch(0.27, 0.004, 260))
-	customProperty("--background-layer2", oklch(0.34, 0.005, 260))
-	customProperty("--backdrop", rgba(10, 10, 10, 0.8))
-	customProperty("--sidebar", oklch(0.20, 0.003, 260))
-	customProperty("--separator", oklch(0.28, 0.004, 260))
+    // Background Layers
+    customProperty("--background-primary", oklch(0.17, 0.003, 260))
+    customProperty("--background-layer1", oklch(0.27, 0.004, 260))
+    customProperty("--background-layer2", oklch(0.34, 0.005, 260))
+    customProperty("--backdrop", rgba(10, 10, 10, 0.8))
+    customProperty("--sidebar", oklch(0.20, 0.003, 260))
+    customProperty("--separator", oklch(0.28, 0.004, 260))
 
-	// Semantic bridge for unified applied function
-	customProperty("--border-neutral", oklch(0.50, 0.005, 260))
-	customProperty("--border-emphasis", oklch(0.96, 0.003, 260))
-	customProperty("--border-interactive", oklch(0.62, 0.005, 260))
-	customProperty("--shadow-alpha", rgba(0, 0, 0, 0.87))
-	customProperty("--backdrop-light", rgba(0, 0, 0, 0.65))
-	customProperty("--backdrop-dark", rgba(255, 255, 255, 0.65))
+    // Semantic bridge for unified applied function
+    customProperty("--border-neutral", oklch(0.50, 0.005, 260))
+    customProperty("--border-emphasis", oklch(0.96, 0.003, 260))
+    customProperty("--border-interactive", oklch(0.62, 0.005, 260))
+    customProperty("--shadow-alpha", rgba(0, 0, 0, 0.87))
+    customProperty("--backdrop-light", rgba(0, 0, 0, 0.65))
+    customProperty("--backdrop-dark", rgba(255, 255, 255, 0.65))
 
-	// MARK: - Apple HIG Syntax Tokens (Dark Mode)
-	customProperty("--color-syntax-attributes", hex(0xCC9768))
-	customProperty("--color-syntax-characters", hex(0xD9C97C))
-	customProperty("--color-syntax-comments", hex(0x7F8C98))
-	customProperty("--color-syntax-documentation-markup", hex(0x7F8C98))
-	customProperty("--color-syntax-documentation-markup-keywords", hex(0xA3B1BF))
-	customProperty("--color-syntax-highlighted", rgba(0, 113, 227, 0.6))
-	customProperty("--color-syntax-keywords", hex(0xFF7AB2))
-	customProperty("--color-syntax-marks", hex(0xFFFFFF))
-	customProperty("--color-syntax-numbers", hex(0xD9C97C))
-	customProperty("--color-syntax-other-class-names", hex(0xDABAFF))
-	customProperty("--color-syntax-other-constants", hex(0xA7EBDD))
-	customProperty("--color-syntax-other-declarations", hex(0x4EB0CC))
-	customProperty("--color-syntax-other-function-and-method-names", hex(0xB281EB))
-	customProperty("--color-syntax-other-instance-variables-and-globals", hex(0xB281EB))
-	customProperty("--color-syntax-other-preprocessor-macros", hex(0xFFA14F))
-	customProperty("--color-syntax-other-type-names", hex(0xDABAFF))
-	customProperty("--color-syntax-param-internal-name", hex(0xBFBFBF))
-	customProperty("--color-syntax-plain-text", hex(0xFFFFFF))
-	customProperty("--color-syntax-preprocessor-statements", hex(0xFFA14F))
-	customProperty("--color-syntax-project-class-names", hex(0xACF2E4))
-	customProperty("--color-syntax-project-constants", hex(0x78C2B3))
-	customProperty("--color-syntax-project-function-and-method-names", hex(0x78C2B3))
-	customProperty("--color-syntax-project-instance-variables-and-globals", hex(0x78C2B3))
-	customProperty("--color-syntax-project-preprocessor-macros", hex(0xFFA14F))
-	customProperty("--color-syntax-project-type-names", hex(0xACF2E4))
-	customProperty("--color-syntax-strings", hex(0xFF8170))
-	customProperty("--color-syntax-type-declarations", hex(0x6BDFFF))
-	customProperty("--color-syntax-urls", hex(0x6699FF))
-}
+    // MARK: - Apple HIG Syntax Tokens (Dark Mode)
+    customProperty("--color-syntax-attributes", hex(0xCC9768))
+    customProperty("--color-syntax-characters", hex(0xD9C97C))
+    customProperty("--color-syntax-comments", hex(0x7F8C98))
+    customProperty("--color-syntax-documentation-markup", hex(0x7F8C98))
+    customProperty("--color-syntax-documentation-markup-keywords", hex(0xA3B1BF))
+    customProperty("--color-syntax-highlighted", rgba(0, 113, 227, 0.6))
+    customProperty("--color-syntax-keywords", hex(0xFF7AB2))
+    customProperty("--color-syntax-marks", hex(0xFFFFFF))
+    customProperty("--color-syntax-numbers", hex(0xD9C97C))
+    customProperty("--color-syntax-other-class-names", hex(0xDABAFF))
+    customProperty("--color-syntax-other-constants", hex(0xA7EBDD))
+    customProperty("--color-syntax-other-declarations", hex(0x4EB0CC))
+    customProperty("--color-syntax-other-function-and-method-names", hex(0xB281EB))
+    customProperty("--color-syntax-other-instance-variables-and-globals", hex(0xB281EB))
+    customProperty("--color-syntax-other-preprocessor-macros", hex(0xFFA14F))
+    customProperty("--color-syntax-other-type-names", hex(0xDABAFF))
+    customProperty("--color-syntax-param-internal-name", hex(0xBFBFBF))
+    customProperty("--color-syntax-plain-text", hex(0xFFFFFF))
+    customProperty("--color-syntax-preprocessor-statements", hex(0xFFA14F))
+    customProperty("--color-syntax-project-class-names", hex(0xACF2E4))
+    customProperty("--color-syntax-project-constants", hex(0x78C2B3))
+    customProperty("--color-syntax-project-function-and-method-names", hex(0x78C2B3))
+    customProperty("--color-syntax-project-instance-variables-and-globals", hex(0x78C2B3))
+    customProperty("--color-syntax-project-preprocessor-macros", hex(0xFFA14F))
+    customProperty("--color-syntax-project-type-names", hex(0xACF2E4))
+    customProperty("--color-syntax-strings", hex(0xFF8170))
+    customProperty("--color-syntax-type-declarations", hex(0x6BDFFF))
+    customProperty("--color-syntax-urls", hex(0x6699FF))
+  }
 
-@CSSBuilder
-public func SourceTokensDarkModeMoreContrastCSS() -> [CSSRule] {
-	// Fill (surface hierarchy — increased contrast)
-	customProperty("--fill", .black)
-	customProperty("--fill-alpha", rgba(182, 182, 182, 0.34))
-	customProperty("--fill-secondary", oklch(0.14, 0.004, 260))
-	customProperty("--fill-tertiary", oklch(0.17, 0.004, 260))
-	customProperty("--fill-tertiary-alpha", rgba(118, 118, 128, 0.28))
-	customProperty("--fill-quaternary-alpha", rgba(116, 116, 128, 0.29))
-	customProperty("--fill-gray", oklch(0.98, 0.002, 260))
-	customProperty("--fill-gray-alpha", rgba(255, 255, 255, 0.96))
-	customProperty("--fill-gray-hover", oklch(0.94, 0.002, 260))
-	customProperty("--fill-gray-active", oklch(0.99, 0.002, 260))
-	customProperty("--fill-gray-secondary", oklch(0.58, 0.006, 260))
-	customProperty("--fill-gray-secondary-alpha", rgba(255, 255, 255, 0.48))
-	customProperty("--fill-gray-tertiary", oklch(0.40, 0.006, 260))
-	customProperty("--fill-gray-tertiary-alpha", rgba(255, 255, 255, 0.28))
-	customProperty("--fill-gray-quaternary", oklch(0.32, 0.006, 260))
-	customProperty("--fill-gray-quaternary-alpha", rgba(255, 255, 255, 0.24))
+  @CSSBuilder
+  public func SourceTokensDarkModeMoreContrastCSS() -> [CSSRule] {
+    // Fill (surface hierarchy — increased contrast)
+    customProperty("--fill", .black)
+    customProperty("--fill-alpha", rgba(182, 182, 182, 0.34))
+    customProperty("--fill-secondary", oklch(0.14, 0.004, 260))
+    customProperty("--fill-tertiary", oklch(0.17, 0.004, 260))
+    customProperty("--fill-tertiary-alpha", rgba(118, 118, 128, 0.28))
+    customProperty("--fill-quaternary-alpha", rgba(116, 116, 128, 0.29))
+    customProperty("--fill-gray", oklch(0.98, 0.002, 260))
+    customProperty("--fill-gray-alpha", rgba(255, 255, 255, 0.96))
+    customProperty("--fill-gray-hover", oklch(0.94, 0.002, 260))
+    customProperty("--fill-gray-active", oklch(0.99, 0.002, 260))
+    customProperty("--fill-gray-secondary", oklch(0.58, 0.006, 260))
+    customProperty("--fill-gray-secondary-alpha", rgba(255, 255, 255, 0.48))
+    customProperty("--fill-gray-tertiary", oklch(0.40, 0.006, 260))
+    customProperty("--fill-gray-tertiary-alpha", rgba(255, 255, 255, 0.28))
+    customProperty("--fill-gray-quaternary", oklch(0.32, 0.006, 260))
+    customProperty("--fill-gray-quaternary-alpha", rgba(255, 255, 255, 0.24))
 
-	// Glyph (text hierarchy — increased contrast)
-	customProperty("--glyph", .white)
-	customProperty("--glyph-fixed", .black)
-	customProperty("--glyph-gray", oklch(0.98, 0.002, 260))
-	customProperty("--glyph-gray-alpha", rgba(255, 255, 255, 0.96))
-	customProperty("--glyph-gray-fixed", oklch(0.20, 0.003, 260))
-	customProperty("--glyph-gray-secondary", oklch(0.70, 0.005, 260))
-	customProperty("--glyph-gray-secondary-alpha", rgba(255, 255, 255, 0.64))
-	customProperty("--glyph-gray-secondary-alt", oklch(0.90, 0.003, 260))
-	customProperty("--glyph-gray-secondary-alt-alpha", rgba(255, 255, 255, 0.86))
-	customProperty("--glyph-gray-tertiary", oklch(0.58, 0.006, 260))
-	customProperty("--glyph-gray-tertiary-alpha", rgba(255, 255, 255, 0.48))
+    // Glyph (text hierarchy — increased contrast)
+    customProperty("--glyph", .white)
+    customProperty("--glyph-fixed", .black)
+    customProperty("--glyph-gray", oklch(0.98, 0.002, 260))
+    customProperty("--glyph-gray-alpha", rgba(255, 255, 255, 0.96))
+    customProperty("--glyph-gray-fixed", oklch(0.20, 0.003, 260))
+    customProperty("--glyph-gray-secondary", oklch(0.70, 0.005, 260))
+    customProperty("--glyph-gray-secondary-alpha", rgba(255, 255, 255, 0.64))
+    customProperty("--glyph-gray-secondary-alt", oklch(0.90, 0.003, 260))
+    customProperty("--glyph-gray-secondary-alt-alpha", rgba(255, 255, 255, 0.86))
+    customProperty("--glyph-gray-tertiary", oklch(0.58, 0.006, 260))
+    customProperty("--glyph-gray-tertiary-alpha", rgba(255, 255, 255, 0.48))
 
-	// Background Layers
-	customProperty("--background-primary", oklch(0.17, 0.003, 260))
-	customProperty("--background-layer1", oklch(0.27, 0.004, 260))
-	customProperty("--background-layer2", oklch(0.34, 0.005, 260))
-	customProperty("--backdrop", rgba(10, 10, 10, 0.85))
-	customProperty("--sidebar", oklch(0.20, 0.003, 260))
-	customProperty("--separator", oklch(0.28, 0.004, 260))
+    // Background Layers
+    customProperty("--background-primary", oklch(0.17, 0.003, 260))
+    customProperty("--background-layer1", oklch(0.27, 0.004, 260))
+    customProperty("--background-layer2", oklch(0.34, 0.005, 260))
+    customProperty("--backdrop", rgba(10, 10, 10, 0.85))
+    customProperty("--sidebar", oklch(0.20, 0.003, 260))
+    customProperty("--separator", oklch(0.28, 0.004, 260))
 
-	// Semantic bridge for unified applied function
-	customProperty("--border-neutral", oklch(0.58, 0.006, 260))
-	customProperty("--border-emphasis", oklch(0.98, 0.002, 260))
-	customProperty("--border-interactive", oklch(0.70, 0.005, 260))
-	customProperty("--shadow-alpha", rgba(0, 0, 0, 0.90))
-	customProperty("--backdrop-light", rgba(0, 0, 0, 0.65))
-	customProperty("--backdrop-dark", rgba(255, 255, 255, 0.65))
-}
+    // Semantic bridge for unified applied function
+    customProperty("--border-neutral", oklch(0.58, 0.006, 260))
+    customProperty("--border-emphasis", oklch(0.98, 0.002, 260))
+    customProperty("--border-interactive", oklch(0.70, 0.005, 260))
+    customProperty("--shadow-alpha", rgba(0, 0, 0, 0.90))
+    customProperty("--backdrop-light", rgba(0, 0, 0, 0.65))
+    customProperty("--backdrop-dark", rgba(255, 255, 255, 0.65))
+  }
 
-// MARK: - Unified Applied Tokens
-// Single function for all modes. Source tokens + semantic bridge handle light/dark/contrast differences.
-// Hover/active direction: `extreme` (black in light, white in dark).
-// Inverted: `extremeInverted` (white in light, black in dark).
-// Neutral borders/disabled: `borderNeutral`. Emphasized: `borderEmphasis`.
-// Interactive hover/active: `borderInteractive`. Shadows: `shadowAlpha`.
-// Backdrops: `backdropLight`/`backdropDark`.
-@CSSBuilder
-public func AppliedTokensCSS() -> [CSSRule] {
-	// MARK: Text / Foreground
-	customProperty("--color-base", glyphGray)
-	customProperty("--color-base-fixed", glyphGrayFixed)
-	customProperty("--color-base-hover", glyphGraySecondary)
-	customProperty("--color-emphasized", glyph)
-	customProperty("--color-subtle", glyphGraySecondary)
-	customProperty("--color-placeholder", glyphGrayTertiary)
-	customProperty("--color-disabled", borderNeutral)
-	customProperty("--color-disabled-emphasized", borderNeutral)
-	customProperty("--color-inverted", fill)
-	customProperty("--color-inverted-fixed", .white)
-	customProperty("--color-content-added", glyphGreen)
-	customProperty("--color-content-removed", glyphRed)
-	customProperty("--opacity-base", 1)
-	customProperty("--opacity-medium", 0.65)
-	customProperty("--opacity-low", 0.3)
-	customProperty("--opacity-transparent", 0)
-	customProperty("--filter-invert-icon", 0)
-	customProperty("--filter-invert-primary-button-icon", 1)
-	customProperty("--background-position-base", .center)
-	customProperty("--background-size-search-figure", .cover)
-	customProperty("--z-index-bottom", -100)
-	customProperty("--z-index-base", 0)
-	customProperty("--z-index-above-content", 1)
-	customProperty("--z-index-toolbar", 2)
-	customProperty("--z-index-dropdown", 50)
-	customProperty("--z-index-sticky", 100)
-	customProperty("--z-index-fixed", 200)
-	customProperty("--z-index-off-canvas-backdrop", 300)
-	customProperty("--z-index-off-canvas", 350)
-	customProperty("--z-index-overlay-backdrop", 400)
-	customProperty("--z-index-overlay", 450)
-	customProperty("--z-index-popover", 700)
-	customProperty("--z-index-tooltip", 800)
-	customProperty("--z-index-toast-notification", 900)
-	customProperty("--z-index-top", 9999)
-	customProperty("--z-index-stacking-0", 0)
-	customProperty("--z-index-stacking-1", 1)
-	customProperty("--z-index-stacking-2", 2)
-	customProperty("--z-index-stacking-3", 3)
-	customProperty("--box-sizing-base", .borderBox)
-	customProperty("--size-0", rem(0))
-	customProperty("--size-1", rem(0.0625))
-	customProperty("--size-2", rem(0.125))
-	customProperty("--size-4", rem(0.25))
-	customProperty("--size-8", rem(0.5))
-	customProperty("--size-12", rem(0.75))
-	customProperty("--size-16", rem(1))
-	customProperty("--size-20", rem(1.25))
-	customProperty("--size-24", rem(1.5))
-	customProperty("--size-32", rem(2))
-	customProperty("--size-40", rem(2.5))
-	customProperty("--size-44", rem(2.75))
-	customProperty("--size-48", rem(3))
-	customProperty("--size-64", rem(4))
-	customProperty("--size-128", rem(8))
-	customProperty("--size-192", rem(12))
-	customProperty("--size-256", rem(16))
-	customProperty("--size-384", rem(24))
-	customProperty("--size-448", rem(28))
-	customProperty("--size-512", rem(32))
-	customProperty("--size-640", rem(40))
-	customProperty("--size-896", rem(56))
-	customProperty("--size-viewport-width-full", vw(100))
-	customProperty("--size-viewport-height-full", vh(100))
-	customProperty("--size-absolute-1", px(1))
-	customProperty("--size-absolute-9999", px(9999))
-	customProperty("--size-content-min", .minContent)
-	customProperty("--size-content-fit", .fitContent)
-	customProperty("--size-content-max", .maxContent)
-	customProperty("--size-third", perc(33.33))
-	customProperty("--size-half", perc(50))
-	customProperty("--size-full", perc(100))
-	customProperty("--size-double", perc(200))
-	customProperty("--size-search-figure", rem(2.5))
-	customProperty("--max-width-base", CSSKeyword.None.none)
-	customProperty("--max-width-breakpoint-phone-narrow", px(479)) // NEW
-	customProperty("--max-width-breakpoint-mobile", px(768))
-	customProperty("--max-width-breakpoint-tablet", px(1024))
-	customProperty("--max-width-breakpoint-desktop", px(1279))
-	customProperty("--max-width-button", rem(28))
-	customProperty("--border-style-base", .solid)
-	customProperty("--border-style-dashed", .dashed)
-	customProperty("--box-shadow-inset-small", (.inset, 0, 0, 0, px(1)))
-	customProperty("--box-shadow-inset-medium", (.inset, 0, 0, 0, px(2)))
-	customProperty("--box-shadow-inset-medium-vertical", (.inset, 0, -2, 0, 0))
-	customProperty("--box-shadow-outset-small", (0, 0, 0, px(1)))
-	customProperty("--box-shadow-outset-small-top", (0, px(-1), 0, 0))
-	customProperty("--box-shadow-outset-small-bottom", (0, px(1), 0, 0))
-	customProperty("--box-shadow-outset-small-start", (px(-1), 0, 0, 0))
-	customProperty("--box-shadow-outset-medium-below", (0, px(4), px(4), 0))
-	customProperty("--box-shadow-outset-medium-around", (0, 0, px(8), 0))
-	customProperty("--box-shadow-outset-large-below", (0, px(4), px(8), 0))
-	customProperty("--box-shadow-outset-large-around", (0, 0, px(16), 0))
-	customProperty("--box-shadow-color-base", borderNeutral)
-	customProperty("--box-shadow-color-inverted", extremeInverted)
-	customProperty("--box-shadow-color-alpha-base", shadowAlpha)
-	customProperty("--box-shadow-color-transparent", .transparent)
-	customProperty("--font-family-base", CSSFontFamily.GenericFamily.GenericComplete.sansSerif)
-	customProperty("--font-family-system-sans", ("\"-apple-system\"", "\"BlinkMacSystemFont\"", "\"Segoe UI\"", "\"Roboto\"", "\"Inter\"", "\"Helvetica\"", "\"Arial\"", CSSFontFamily.GenericFamily.GenericComplete.sansSerif))
-	customProperty("--font-family-sans--fallback", CSSFontFamily.GenericFamily.GenericComplete.sansSerif)
-	customProperty("--font-family-serif", ("\"Linux Libertine\"", "\"Georgia\"", "\"Times\"", "\"Source Serif 4\"", CSSFontFamily.GenericFamily.GenericComplete.serif))
-	customProperty("--font-family-serif--fallback", CSSFontFamily.GenericFamily.GenericComplete.serif)
-	customProperty("--font-family-monospace", ("\"Menlo\"", "\"Consolas\"", "\"Liberation Mono\"", "\"Fira Code\"", "\"Courier New\"", CSSFontFamily.GenericFamily.GenericComplete.monospace))
-	customProperty("--font-family-monospace--fallback", CSSFontFamily.GenericFamily.GenericComplete.monospace)
-	customProperty("--font-family-heading-main", ("\"Linux Libertine\"", "\"Georgia\"", "\"Times\"", "\"Source Serif 4\"", CSSFontFamily.GenericFamily.GenericComplete.monospace))
-	customProperty("--font-size-x-small-12", rem(0.75))
-	customProperty("--font-size-small-14", rem(0.875))
-	customProperty("--font-size-medium-16", rem(1))
-	customProperty("--font-size-large-18", rem(1.125))
-	customProperty("--font-size-x-large-20", rem(1.25))
-	customProperty("--font-size-xx-large-24", rem(1.5))
-	customProperty("--font-size-xxx-large-28", rem(1.75))
-	customProperty("--font-weight-hairline", 100)
-	customProperty("--font-weight-light", 300)
-	customProperty("--font-weight-normal", 400)
-	customProperty("--font-weight-semi-bold", 600)
-	customProperty("--font-weight-bold", 700)
-	customProperty("--line-height-x-small-20", rem(1.25))
-	customProperty("--line-height-small-22", rem(1.375))
-	customProperty("--line-height-medium-26", rem(1.625))
-	customProperty("--line-height-large-28", rem(1.75))
-	customProperty("--line-height-x-large-30", rem(1.875))
-	customProperty("--line-height-xx-large-34", rem(2.125))
-	customProperty("--line-height-xxx-large-38", rem(2.375))
-	customProperty("--line-height-content", 1.625)
-	customProperty("--text-decoration-none", CSSKeyword.None.none)
-	customProperty("--text-decoration-line-through", .lineThrough)
-	customProperty("--text-decoration-underline", .underline)
-	customProperty("--text-overflow-clip", .clip)
-	customProperty("--text-overflow-ellipsis", .ellipsis)
-	customProperty("--tab-size-base", 4)
-	customProperty("--transform-checkbox-tick-checked", rotate(deg(45)))
-	customProperty("--transform-progress-indicator-spinner-start", rotate(deg(-45)))
-	customProperty("--transform-progress-indicator-spinner-end", rotate(deg(315)))
-	customProperty("--transition-duration-base", ms(100))
-	customProperty("--transition-duration-medium", ms(250))
-	customProperty("--transition-property-base", (.backgroundColor, .color, .borderColor, .boxShadow))
-	customProperty("--transition-property-fade", .opacity)
-	customProperty("--transition-property-icon", CSSSingleTransitionProperty.color)
-	customProperty("--transition-property-icon-css-only", .backgroundColor)
-	customProperty("--transition-property-toggle-switch-grip", (.backgroundColor, .borderColor, .transform))
-	customProperty("--transition-timing-function-system", .ease)
-	customProperty("--transition-timing-function-user", .easeOut)
-	customProperty("--animation-delay-none", ms(0))
-	customProperty("--animation-delay-medium", ms(-160))
-	customProperty("--animation-delay-slow", ms(-320))
-	customProperty("--animation-duration-fast", ms(1000))
-	customProperty("--animation-duration-medium", ms(1600))
-	customProperty("--animation-duration-slow", ms(2000))
-	customProperty("--animation-timing-function-base", .linear)
-	customProperty("--animation-timing-function-bouncing", .easeInOut)
-	customProperty("--animation-iteration-count-base", .infinite)
-	customProperty("--cursor-base", .default)
-	customProperty("--cursor-base-disabled", .default)
-	customProperty("--cursor-base-hover", .pointer)
-	customProperty("--cursor-grab", .grab)
-	customProperty("--cursor-grabbing", .grabbing)
-	customProperty("--cursor-help", .help)
-	customProperty("--cursor-move", .move)
-	customProperty("--cursor-not-allowed", .notAllowed)
-	customProperty("--cursor-resize-nesw", .neswResize)
-	customProperty("--cursor-resize-nwse", .nwseResize)
-	customProperty("--cursor-text", .text)
-	customProperty("--cursor-zoom-in", .zoomIn)
-	customProperty("--cursor-zoom-out", .zoomOut)
-	customProperty("--mix-blend-mode-base", .normal)
+  // MARK: - Unified Applied Tokens
+  // Single function for all modes. Source tokens + semantic bridge handle light/dark/contrast differences.
+  // Hover/active direction: `extreme` (black in light, white in dark).
+  // Inverted: `extremeInverted` (white in light, black in dark).
+  // Neutral borders/disabled: `borderNeutral`. Emphasized: `borderEmphasis`.
+  // Interactive hover/active: `borderInteractive`. Shadows: `shadowAlpha`.
+  // Backdrops: `backdropLight`/`backdropDark`.
+  @CSSBuilder
+  public func AppliedTokensCSS() -> [CSSRule] {
+    // MARK: Text / Foreground
+    customProperty("--color-base", glyphGray)
+    customProperty("--color-base-fixed", glyphGrayFixed)
+    customProperty("--color-base-hover", glyphGraySecondary)
+    customProperty("--color-emphasized", glyph)
+    customProperty("--color-subtle", glyphGraySecondary)
+    customProperty("--color-placeholder", glyphGrayTertiary)
+    customProperty("--color-disabled", borderNeutral)
+    customProperty("--color-disabled-emphasized", borderNeutral)
+    customProperty("--color-inverted", fill)
+    customProperty("--color-inverted-fixed", .white)
+    customProperty("--color-content-added", glyphGreen)
+    customProperty("--color-content-removed", glyphRed)
+    customProperty("--opacity-base", 1)
+    customProperty("--opacity-medium", 0.65)
+    customProperty("--opacity-low", 0.3)
+    customProperty("--opacity-transparent", 0)
+    customProperty("--filter-invert-icon", 0)
+    customProperty("--filter-invert-primary-button-icon", 1)
+    customProperty("--background-position-base", CSSBackgroundPosition.center)
+    customProperty("--background-size-search-figure", .cover)
+    customProperty("--z-index-bottom", -100)
+    customProperty("--z-index-base", 0)
+    customProperty("--z-index-above-content", 1)
+    customProperty("--z-index-toolbar", 2)
+    customProperty("--z-index-dropdown", 50)
+    customProperty("--z-index-sticky", 100)
+    customProperty("--z-index-fixed", 200)
+    customProperty("--z-index-off-canvas-backdrop", 300)
+    customProperty("--z-index-off-canvas", 350)
+    customProperty("--z-index-overlay-backdrop", 400)
+    customProperty("--z-index-overlay", 450)
+    customProperty("--z-index-popover", 700)
+    customProperty("--z-index-tooltip", 800)
+    customProperty("--z-index-toast-notification", 900)
+    customProperty("--z-index-top", 9999)
+    customProperty("--z-index-stacking-0", 0)
+    customProperty("--z-index-stacking-1", 1)
+    customProperty("--z-index-stacking-2", 2)
+    customProperty("--z-index-stacking-3", 3)
+    customProperty("--box-sizing-base", .borderBox)
+    customProperty("--size-0", rem(0))
+    customProperty("--size-1", rem(0.0625))
+    customProperty("--size-2", rem(0.125))
+    customProperty("--size-4", rem(0.25))
+    customProperty("--size-8", rem(0.5))
+    customProperty("--size-12", rem(0.75))
+    customProperty("--size-16", rem(1))
+    customProperty("--size-20", rem(1.25))
+    customProperty("--size-24", rem(1.5))
+    customProperty("--size-32", rem(2))
+    customProperty("--size-40", rem(2.5))
+    customProperty("--size-44", rem(2.75))
+    customProperty("--size-48", rem(3))
+    customProperty("--size-64", rem(4))
+    customProperty("--size-128", rem(8))
+    customProperty("--size-192", rem(12))
+    customProperty("--size-256", rem(16))
+    customProperty("--size-384", rem(24))
+    customProperty("--size-448", rem(28))
+    customProperty("--size-512", rem(32))
+    customProperty("--size-640", rem(40))
+    customProperty("--size-896", rem(56))
+    customProperty("--size-viewport-width-full", vw(100))
+    customProperty("--size-viewport-height-full", vh(100))
+    customProperty("--size-absolute-1", px(1))
+    customProperty("--size-absolute-9999", px(9999))
+    customProperty("--size-content-min", .minContent)
+    customProperty("--size-content-fit", .fitContent)
+    customProperty("--size-content-max", .maxContent)
+    customProperty("--size-third", perc(33.33))
+    customProperty("--size-half", perc(50))
+    customProperty("--size-full", perc(100))
+    customProperty("--size-double", perc(200))
+    customProperty("--size-search-figure", rem(2.5))
+    customProperty("--max-width-base", CSSKeyword.None.none)
+    customProperty("--max-width-breakpoint-phone-narrow", px(479))  // NEW
+    customProperty("--max-width-breakpoint-mobile", px(768))
+    customProperty("--max-width-breakpoint-tablet", px(1024))
+    customProperty("--max-width-breakpoint-desktop", px(1279))
+    customProperty("--max-width-button", rem(28))
+    customProperty("--border-style-base", CSSBorder.LineStyle.solid)
+    customProperty("--border-style-dashed", CSSBorder.LineStyle.dashed)
+    customProperty("--box-shadow-inset-small", (.inset, 0, 0, 0, px(1)))
+    customProperty("--box-shadow-inset-medium", (.inset, 0, 0, 0, px(2)))
+    customProperty("--box-shadow-inset-medium-vertical", (.inset, 0, -2, 0, 0))
+    customProperty("--box-shadow-outset-small", (0, 0, 0, px(1)))
+    customProperty("--box-shadow-outset-small-top", (0, px(-1), 0, 0))
+    customProperty("--box-shadow-outset-small-bottom", (0, px(1), 0, 0))
+    customProperty("--box-shadow-outset-small-start", (px(-1), 0, 0, 0))
+    customProperty("--box-shadow-outset-medium-below", (0, px(4), px(4), 0))
+    customProperty("--box-shadow-outset-medium-around", (0, 0, px(8), 0))
+    customProperty("--box-shadow-outset-large-below", (0, px(4), px(8), 0))
+    customProperty("--box-shadow-outset-large-around", (0, 0, px(16), 0))
+    customProperty("--box-shadow-color-base", borderNeutral)
+    customProperty("--box-shadow-color-inverted", extremeInverted)
+    customProperty("--box-shadow-color-alpha-base", shadowAlpha)
+    customProperty("--box-shadow-color-transparent", .transparent)
+    customProperty("--font-family-base", CSSFontFamily.GenericFamily.GenericComplete.sansSerif)
+    customProperty(
+      "--font-family-system-sans",
+      (
+        "\"-apple-system\"", "\"BlinkMacSystemFont\"", "\"Segoe UI\"", "\"Roboto\"", "\"Inter\"",
+        "\"Helvetica\"", "\"Arial\"", CSSFontFamily.GenericFamily.GenericComplete.sansSerif
+      ))
+    customProperty(
+      "--font-family-sans--fallback", CSSFontFamily.GenericFamily.GenericComplete.sansSerif)
+    customProperty(
+      "--font-family-serif",
+      (
+        "\"Linux Libertine\"", "\"Georgia\"", "\"Times\"", "\"Source Serif 4\"",
+        CSSFontFamily.GenericFamily.GenericComplete.serif
+      ))
+    customProperty(
+      "--font-family-serif--fallback", CSSFontFamily.GenericFamily.GenericComplete.serif)
+    customProperty(
+      "--font-family-monospace",
+      (
+        "\"Menlo\"", "\"Consolas\"", "\"Liberation Mono\"", "\"Fira Code\"", "\"Courier New\"",
+        CSSFontFamily.GenericFamily.GenericComplete.monospace
+      ))
+    customProperty(
+      "--font-family-monospace--fallback", CSSFontFamily.GenericFamily.GenericComplete.monospace)
+    customProperty(
+      "--font-family-heading-main",
+      (
+        "\"Linux Libertine\"", "\"Georgia\"", "\"Times\"", "\"Source Serif 4\"",
+        CSSFontFamily.GenericFamily.GenericComplete.monospace
+      ))
+    customProperty("--font-size-x-small-12", rem(0.75))
+    customProperty("--font-size-small-14", rem(0.875))
+    customProperty("--font-size-medium-16", rem(1))
+    customProperty("--font-size-large-18", rem(1.125))
+    customProperty("--font-size-x-large-20", rem(1.25))
+    customProperty("--font-size-xx-large-24", rem(1.5))
+    customProperty("--font-size-xxx-large-28", rem(1.75))
+    customProperty("--font-weight-hairline", 100)
+    customProperty("--font-weight-light", 300)
+    customProperty("--font-weight-normal", 400)
+    customProperty("--font-weight-semi-bold", 600)
+    customProperty("--font-weight-bold", 700)
+    customProperty("--line-height-x-small-20", rem(1.25))
+    customProperty("--line-height-small-22", rem(1.375))
+    customProperty("--line-height-medium-26", rem(1.625))
+    customProperty("--line-height-large-28", rem(1.75))
+    customProperty("--line-height-x-large-30", rem(1.875))
+    customProperty("--line-height-xx-large-34", rem(2.125))
+    customProperty("--line-height-xxx-large-38", rem(2.375))
+    customProperty("--line-height-content", 1.625)
+    customProperty("--text-decoration-none", CSSKeyword.None.none)
+    customProperty("--text-decoration-line-through", .lineThrough)
+    customProperty("--text-decoration-underline", .underline)
+    customProperty("--text-overflow-clip", .clip)
+    customProperty("--text-overflow-ellipsis", .ellipsis)
+    customProperty("--tab-size-base", 4)
+    customProperty("--transform-checkbox-tick-checked", rotate(deg(45)))
+    customProperty("--transform-progress-indicator-spinner-start", rotate(deg(-45)))
+    customProperty("--transform-progress-indicator-spinner-end", rotate(deg(315)))
+    customProperty("--transition-duration-base", ms(100))
+    customProperty("--transition-duration-medium", ms(250))
+    customProperty(
+      "--transition-property-base", (.backgroundColor, .color, .borderColor, .boxShadow))
+    customProperty("--transition-property-fade", .opacity)
+    customProperty("--transition-property-icon", CSSSingleTransitionProperty.color)
+    customProperty("--transition-property-icon-css-only", .backgroundColor)
+    customProperty(
+      "--transition-property-toggle-switch-grip", (.backgroundColor, .borderColor, .transform))
+    customProperty("--transition-timing-function-system", .ease)
+    customProperty("--transition-timing-function-user", .easeOut)
+    customProperty("--animation-delay-none", ms(0))
+    customProperty("--animation-delay-medium", ms(-160))
+    customProperty("--animation-delay-slow", ms(-320))
+    customProperty("--animation-duration-fast", ms(1000))
+    customProperty("--animation-duration-medium", ms(1600))
+    customProperty("--animation-duration-slow", ms(2000))
+    customProperty("--animation-timing-function-base", .linear)
+    customProperty("--animation-timing-function-bouncing", .easeInOut)
+    customProperty("--animation-iteration-count-base", .infinite)
+    customProperty("--cursor-base", .default)
+    customProperty("--cursor-base-disabled", .default)
+    customProperty("--cursor-base-hover", .pointer)
+    customProperty("--cursor-grab", .grab)
+    customProperty("--cursor-grabbing", .grabbing)
+    customProperty("--cursor-help", .help)
+    customProperty("--cursor-move", .move)
+    customProperty("--cursor-not-allowed", .notAllowed)
+    customProperty("--cursor-resize-nesw", .neswResize)
+    customProperty("--cursor-resize-nwse", .nwseResize)
+    customProperty("--cursor-text", .text)
+    customProperty("--cursor-zoom-in", .zoomIn)
+    customProperty("--cursor-zoom-out", .zoomOut)
+    customProperty("--mix-blend-mode-base", .normal)
 
-	// MARK: Background Colors
-	customProperty("--background-color-base", fill)
-	customProperty("--background-color-base-fixed", .white)
-	customProperty("--background-color-neutral", fillTertiary)
-	customProperty("--background-color-neutral-subtle", fillSecondary)
-	customProperty("--background-color-interactive", fillTertiary)
-	customProperty("--background-color-interactive-hover", fillGrayTertiary)
-	customProperty("--background-color-interactive-active", fillGraySecondary)
-	customProperty("--background-color-interactive-subtle", fillSecondary)
-	customProperty("--background-color-interactive-subtle-hover", fillTertiary)
-	customProperty("--background-color-interactive-subtle-active", fillGrayTertiary)
-	customProperty("--background-color-disabled", fillGrayTertiary)
-	customProperty("--background-color-disabled-subtle", fillTertiary)
-	customProperty("--background-color-inverted", glyph)
-	customProperty("--background-color-content-added", colorMix(in: .srgb, fill, (fillGreen, perc(15))))
-	customProperty("--background-color-content-removed", colorMix(in: .srgb, fill, (fillRed, perc(15))))
-	customProperty("--background-color-transparent", .transparent)
-	customProperty("--background-color-backdrop-light", backdropLight)
-	customProperty("--background-color-backdrop-dark", backdropDark)
-	customProperty("--background-color-button-quiet-hover", rgba(0, 24, 73, 0.027))
-	customProperty("--background-color-button-quiet-active", rgba(0, 24, 73, 0.082))
-	customProperty("--background-color-input-binary-checked", fillBlue)
-	customProperty("--background-color-tab-list-item-framed-hover", rgba(255, 255, 255, 0.3))
-	customProperty("--background-color-tab-list-item-framed-active", rgba(255, 255, 255, 0.65))
-	customProperty("--opacity-icon-base", 0.87)
-	customProperty("--opacity-icon-base-hover", 0.74)
-	customProperty("--opacity-icon-base-selected", 1)
-	customProperty("--opacity-icon-base-disabled", 0.51)
-	customProperty("--opacity-icon-placeholder", 0.51)
-	customProperty("--opacity-icon-subtle", 0.67)
-	customProperty("--min-size-interactive-pointer", px(32))
-	customProperty("--min-size-interactive-touch", px(44))
-	customProperty("--min-size-search-figure", px(40))
-	customProperty("--min-size-icon-x-small", px(10))
-	customProperty("--min-size-icon-small", px(14))
-	customProperty("--min-size-icon-medium", px(18))
-	customProperty("--min-size-input-binary", px(20))
-	customProperty("--min-size-input-chip-clear-button", px(20))
-	customProperty("--min-size-toggle-switch-grip", px(18))
-	customProperty("--min-width-medium", px(256))
-	customProperty("--min-width-breakpoint-mobile", px(480))
-	customProperty("--min-width-breakpoint-tablet", px(769))
-	customProperty("--min-width-breakpoint-desktop", px(1025))
-	customProperty("--min-width-breakpoint-desktop-wide", px(1280))
-	customProperty("--min-width-toggle-switch", px(42))
-	customProperty("--spacing-0", 0)
-	customProperty("--spacing-1", px(1))
-	customProperty("--spacing-2", px(2))
-	customProperty("--spacing-4", px(4))
-	customProperty("--spacing-5", px(5))
-	customProperty("--spacing-6", px(6))
-	customProperty("--spacing-8", px(8))
-	customProperty("--spacing-10", px(10))
-	customProperty("--spacing-12", px(12))
-	customProperty("--spacing-16", px(16))
-	customProperty("--spacing-20", px(20))
-	customProperty("--spacing-24", px(24))
-	customProperty("--spacing-32", px(32))
-	customProperty("--spacing-40", px(40))
-	customProperty("--spacing-48", px(48))
-	customProperty("--spacing-64", px(64))
-	customProperty("--spacing-half", perc(50))
-	customProperty("--spacing-full", perc(100))
-	customProperty("--border-width-base", px(1))
-	customProperty("--border-width-thick", px(2))
-	customProperty("--border-width-input-radio-checked", px(6))
-	// MARK: Border Colors
-	customProperty("--border-color-base", borderNeutral)
-	customProperty("--border-color-emphasized", borderEmphasis)
-	customProperty("--border-color-subtle", borderNeutral)
-	customProperty("--border-color-muted", borderNeutral)
-	customProperty("--border-color-interactive", glyphGrayTertiary)
-	customProperty("--border-color-interactive-hover", borderInteractive)
-	customProperty("--border-color-interactive-active", borderInteractive)
-	customProperty("--border-color-disabled", borderNeutral)
-	customProperty("--border-color-inverted", fill)
-	customProperty("--border-color-inverted-fixed", .white)
-	customProperty("--border-color-content-added", glyphGreen)
-	customProperty("--border-color-content-removed", glyphRed)
-	customProperty("--border-color-transparent", .transparent)
-	customProperty("--border-color-divider", borderNeutral)
-	customProperty("--border-radius-minimal", px(2)) // NEW
-	customProperty("--border-radius-base", px(8))
-	customProperty("--border-radius-sharp", 0)
-	customProperty("--border-radius-pill", px(9999))
-	customProperty("--border-radius-circle", perc(50))
-	customProperty("--min-height-text-area", px(64))
-	customProperty("--min-height-table-header", px(40))
-	customProperty("--min-height-table-footer", px(40))
-	customProperty("--min-height-toggle-switch", px(28))
-	customProperty("--max-height-chip", rem(1.375))
-	// MARK: Links
-	customProperty("--color-link", glyphBlue)
-	customProperty("--color-link-hover", colorMix(in: .srgb, glyphBlue, (extreme, perc(10))))
-	customProperty("--color-link-active", colorMix(in: .srgb, glyphBlue, (extreme, perc(20))))
-	customProperty("--color-link-focus", glyphBlue)
-	customProperty("--color-link-visited", glyphBrown)
-	customProperty("--color-link-visited-hover", colorMix(in: .srgb, glyphBrown, (extreme, perc(10))))
-	customProperty("--color-link-visited-active", colorMix(in: .srgb, glyphBrown, (extreme, perc(20))))
-	customProperty("--color-link-red", glyphRed)
-	customProperty("--color-link-red-hover", colorMix(in: .srgb, glyphRed, (extreme, perc(10))))
-	customProperty("--color-link-red-active", colorMix(in: .srgb, glyphRed, (extreme, perc(20))))
-	customProperty("--color-link-red-focus", glyphBlue)
-	customProperty("--color-link-red-visited", colorMix(in: .srgb, glyphRed, (extreme, perc(10))))
-	customProperty("--color-link-red-visited-hover", colorMix(in: .srgb, glyphRed, (extreme, perc(20))))
-	customProperty("--color-link-red-visited-active", colorMix(in: .srgb, glyphRed, (extreme, perc(40))))
-	customProperty("--size-icon-x-small", calc(fontSizeMedium16 - px(4)))
-	customProperty("--size-icon-small", fontSizeMedium16)
-	customProperty("--size-icon-medium", calc(fontSizeMedium16 + px(4)))
-	customProperty("--size-toggle-switch-grip", calc(fontSizeMedium16 * 1.25))
-	customProperty("--box-shadow-small", (boxShadowOutsetSmall, boxShadowColorBase))
-	customProperty("--box-shadow-small-top", (boxShadowOutsetSmallTop, boxShadowColorBase))
-	customProperty("--box-shadow-small-bottom", (boxShadowOutsetSmallBottom, boxShadowColorBase))
-	customProperty("--box-shadow-medium", ((boxShadowOutsetMediumBelow, boxShadowColorAlphaBase), (boxShadowOutsetMediumAround, boxShadowColorAlphaBase)))
-	customProperty("--box-shadow-large", ((boxShadowOutsetLargeBelow, boxShadowColorAlphaBase), (boxShadowOutsetLargeAround, boxShadowColorAlphaBase)))
-	customProperty("--accent-color-base", glyphBlue)
-	customProperty("--position-offset-border-width-base", "-\(borderWidthBase)")
-	customProperty("--spacing-horizontal-button", calc(spacing12 - borderWidthBase))
-	customProperty("--spacing-horizontal-button-icon-only", calc(spacing6 - borderWidthBase))
-	customProperty("--spacing-horizontal-button-small-icon-only", calc(spacing2 - borderWidthBase))
-	customProperty("--spacing-horizontal-button-small", calc(spacing6 - borderWidthBase))
-	customProperty("--spacing-horizontal-button-large", calc(spacing16 - borderWidthBase))
-	customProperty("--spacing-horizontal-input-text-two-end-icons", calc(spacing8 * 2 + sizeIconSmall))
-	customProperty("--spacing-start-typeahead-search-figure", spacing12)
-	customProperty("--spacing-toggle-switch-grip-start", calc(fontSizeMedium16 * 0.375))
-	customProperty("--spacing-toggle-switch-grip-end", calc(fontSizeMedium16 * 1.25))
-	customProperty("--border-color-input-hover", borderColorInteractive)
-	customProperty("--border-color-input-binary", borderColorInteractive)
-	customProperty("--border-color-input-binary-hover", colorMix(in: .srgb, glyphBlue, (extreme, perc(10))))
-	customProperty("--border-color-input-binary-active", colorMix(in: .srgb, glyphBlue, (extreme, perc(20))))
-	customProperty("--border-color-input-binary-focus", glyphBlue)
-	customProperty("--border-color-input-binary-checked", glyphBlue)
-	customProperty("--border-base", (borderWidthBase, borderStyleBase, borderColorBase))
-	customProperty("--border-subtle", (borderWidthBase, borderStyleBase, borderColorSubtle))
-	customProperty("--border-transparent", (borderWidthBase, borderStyleBase, borderColorTransparent))
-	customProperty("--outline-base-focus", (borderWidthBase, .solid, .transparent))
-	customProperty("--width-toggle-switch", calc(fontSizeMedium16 * 3))
-	customProperty("--height-toggle-switch", calc(fontSizeMedium16 * 2))
-	customProperty("--spacing-start-typeahead-search-icon", calc(spacingStartTypeaheadSearchFigure + (minSizeSearchFigure - minSizeIconMedium) / 2))
-	customProperty("--spacing-typeahead-search-focus-addition", calc((spacingStartTypeaheadSearchFigure + minSizeSearchFigure) - (minSizeIconMedium + spacing8)))
+    // MARK: Background Colors
+    customProperty("--background-color-base", fill)
+    customProperty("--background-color-base-fixed", .white)
+    customProperty("--background-color-neutral", fillTertiary)
+    customProperty("--background-color-neutral-subtle", fillSecondary)
+    customProperty("--background-color-interactive", fillTertiary)
+    customProperty("--background-color-interactive-hover", fillGrayTertiary)
+    customProperty("--background-color-interactive-active", fillGraySecondary)
+    customProperty("--background-color-interactive-subtle", fillSecondary)
+    customProperty("--background-color-interactive-subtle-hover", fillTertiary)
+    customProperty("--background-color-interactive-subtle-active", fillGrayTertiary)
+    customProperty("--background-color-disabled", fillGrayTertiary)
+    customProperty("--background-color-disabled-subtle", fillTertiary)
+    customProperty("--background-color-inverted", glyph)
+    customProperty(
+      "--background-color-content-added", colorMix(in: .srgb, fill, (fillGreen, perc(15))))
+    customProperty(
+      "--background-color-content-removed", colorMix(in: .srgb, fill, (fillRed, perc(15))))
+    customProperty("--background-color-transparent", .transparent)
+    customProperty("--background-color-backdrop-light", backdropLight)
+    customProperty("--background-color-backdrop-dark", backdropDark)
+    customProperty("--background-color-button-quiet-hover", rgba(0, 24, 73, 0.027))
+    customProperty("--background-color-button-quiet-active", rgba(0, 24, 73, 0.082))
+    customProperty("--background-color-input-binary-checked", fillBlue)
+    customProperty("--background-color-tab-list-item-framed-hover", rgba(255, 255, 255, 0.3))
+    customProperty("--background-color-tab-list-item-framed-active", rgba(255, 255, 255, 0.65))
+    customProperty("--opacity-icon-base", 0.87)
+    customProperty("--opacity-icon-base-hover", 0.74)
+    customProperty("--opacity-icon-base-selected", 1)
+    customProperty("--opacity-icon-base-disabled", 0.51)
+    customProperty("--opacity-icon-placeholder", 0.51)
+    customProperty("--opacity-icon-subtle", 0.67)
+    customProperty("--min-size-interactive-pointer", px(32))
+    customProperty("--min-size-interactive-touch", px(44))
+    customProperty("--min-size-search-figure", px(40))
+    customProperty("--min-size-icon-x-small", px(10))
+    customProperty("--min-size-icon-small", px(14))
+    customProperty("--min-size-icon-medium", px(18))
+    customProperty("--min-size-input-binary", px(20))
+    customProperty("--min-size-input-chip-clear-button", px(20))
+    customProperty("--min-size-toggle-switch-grip", px(18))
+    customProperty("--min-width-medium", px(256))
+    customProperty("--min-width-breakpoint-mobile", px(480))
+    customProperty("--min-width-breakpoint-tablet", px(769))
+    customProperty("--min-width-breakpoint-desktop", px(1025))
+    customProperty("--min-width-breakpoint-desktop-wide", px(1280))
+    customProperty("--min-width-toggle-switch", px(42))
+    customProperty("--spacing-0", 0)
+    customProperty("--spacing-1", px(1))
+    customProperty("--spacing-2", px(2))
+    customProperty("--spacing-4", px(4))
+    customProperty("--spacing-5", px(5))
+    customProperty("--spacing-6", px(6))
+    customProperty("--spacing-8", px(8))
+    customProperty("--spacing-10", px(10))
+    customProperty("--spacing-12", px(12))
+    customProperty("--spacing-16", px(16))
+    customProperty("--spacing-20", px(20))
+    customProperty("--spacing-24", px(24))
+    customProperty("--spacing-32", px(32))
+    customProperty("--spacing-40", px(40))
+    customProperty("--spacing-48", px(48))
+    customProperty("--spacing-64", px(64))
+    customProperty("--spacing-half", perc(50))
+    customProperty("--spacing-full", perc(100))
+    customProperty("--border-width-base", px(1))
+    customProperty("--border-width-thick", px(2))
+    customProperty("--border-width-input-radio-checked", px(6))
+    // MARK: Border Colors
+    customProperty("--border-color-base", borderNeutral)
+    customProperty("--border-color-emphasized", borderEmphasis)
+    customProperty("--border-color-subtle", borderNeutral)
+    customProperty("--border-color-muted", borderNeutral)
+    customProperty("--border-color-interactive", glyphGrayTertiary)
+    customProperty("--border-color-interactive-hover", borderInteractive)
+    customProperty("--border-color-interactive-active", borderInteractive)
+    customProperty("--border-color-disabled", borderNeutral)
+    customProperty("--border-color-inverted", fill)
+    customProperty("--border-color-inverted-fixed", .white)
+    customProperty("--border-color-content-added", glyphGreen)
+    customProperty("--border-color-content-removed", glyphRed)
+    customProperty("--border-color-transparent", .transparent)
+    customProperty("--border-color-divider", borderNeutral)
+    customProperty("--border-radius-minimal", px(2))  // NEW
+    customProperty("--border-radius-base", px(8))
+    customProperty("--border-radius-sharp", 0)
+    customProperty("--border-radius-pill", px(9999))
+    customProperty("--border-radius-circle", perc(50))
+    customProperty("--min-height-text-area", px(64))
+    customProperty("--min-height-table-header", px(40))
+    customProperty("--min-height-table-footer", px(40))
+    customProperty("--min-height-toggle-switch", px(28))
+    customProperty("--max-height-chip", rem(1.375))
+    // MARK: Links
+    customProperty("--color-link", glyphBlue)
+    customProperty("--color-link-hover", colorMix(in: .srgb, glyphBlue, (extreme, perc(10))))
+    customProperty("--color-link-active", colorMix(in: .srgb, glyphBlue, (extreme, perc(20))))
+    customProperty("--color-link-focus", glyphBlue)
+    customProperty("--color-link-visited", glyphBrown)
+    customProperty(
+      "--color-link-visited-hover", colorMix(in: .srgb, glyphBrown, (extreme, perc(10))))
+    customProperty(
+      "--color-link-visited-active", colorMix(in: .srgb, glyphBrown, (extreme, perc(20))))
+    customProperty("--color-link-red", glyphRed)
+    customProperty("--color-link-red-hover", colorMix(in: .srgb, glyphRed, (extreme, perc(10))))
+    customProperty("--color-link-red-active", colorMix(in: .srgb, glyphRed, (extreme, perc(20))))
+    customProperty("--color-link-red-focus", glyphBlue)
+    customProperty("--color-link-red-visited", colorMix(in: .srgb, glyphRed, (extreme, perc(10))))
+    customProperty(
+      "--color-link-red-visited-hover", colorMix(in: .srgb, glyphRed, (extreme, perc(20))))
+    customProperty(
+      "--color-link-red-visited-active", colorMix(in: .srgb, glyphRed, (extreme, perc(40))))
+    customProperty("--size-icon-x-small", calc(fontSizeMedium16 - px(4)))
+    customProperty("--size-icon-small", fontSizeMedium16)
+    customProperty("--size-icon-medium", calc(fontSizeMedium16 + px(4)))
+    customProperty("--size-toggle-switch-grip", calc(fontSizeMedium16 * 1.25))
+    customProperty("--box-shadow-small", (boxShadowOutsetSmall, boxShadowColorBase))
+    customProperty("--box-shadow-small-top", (boxShadowOutsetSmallTop, boxShadowColorBase))
+    customProperty("--box-shadow-small-bottom", (boxShadowOutsetSmallBottom, boxShadowColorBase))
+    customProperty(
+      "--box-shadow-medium",
+      (
+        (boxShadowOutsetMediumBelow, boxShadowColorAlphaBase),
+        (boxShadowOutsetMediumAround, boxShadowColorAlphaBase)
+      ))
+    customProperty(
+      "--box-shadow-large",
+      (
+        (boxShadowOutsetLargeBelow, boxShadowColorAlphaBase),
+        (boxShadowOutsetLargeAround, boxShadowColorAlphaBase)
+      ))
+    customProperty("--accent-color-base", glyphBlue)
+    customProperty("--position-offset-border-width-base", "-\(borderWidthBase)")
+    customProperty("--spacing-horizontal-button", calc(spacing12 - borderWidthBase))
+    customProperty("--spacing-horizontal-button-icon-only", calc(spacing6 - borderWidthBase))
+    customProperty("--spacing-horizontal-button-small-icon-only", calc(spacing2 - borderWidthBase))
+    customProperty("--spacing-horizontal-button-small", calc(spacing6 - borderWidthBase))
+    customProperty("--spacing-horizontal-button-large", calc(spacing16 - borderWidthBase))
+    customProperty(
+      "--spacing-horizontal-input-text-two-end-icons", calc(spacing8 * 2 + sizeIconSmall))
+    customProperty("--spacing-start-typeahead-search-figure", spacing12)
+    customProperty("--spacing-toggle-switch-grip-start", calc(fontSizeMedium16 * 0.375))
+    customProperty("--spacing-toggle-switch-grip-end", calc(fontSizeMedium16 * 1.25))
+    customProperty("--border-color-input-hover", borderColorInteractive)
+    customProperty("--border-color-input-binary", borderColorInteractive)
+    customProperty(
+      "--border-color-input-binary-hover", colorMix(in: .srgb, glyphBlue, (extreme, perc(10))))
+    customProperty(
+      "--border-color-input-binary-active", colorMix(in: .srgb, glyphBlue, (extreme, perc(20))))
+    customProperty("--border-color-input-binary-focus", glyphBlue)
+    customProperty("--border-color-input-binary-checked", glyphBlue)
+    customProperty("--border-base", (borderWidthBase, borderStyleBase, borderColorBase))
+    customProperty("--border-subtle", (borderWidthBase, borderStyleBase, borderColorSubtle))
+    customProperty(
+      "--border-transparent", (borderWidthBase, borderStyleBase, borderColorTransparent))
+    customProperty("--outline-base-focus", (borderWidthBase, .solid, .transparent))
+    customProperty("--width-toggle-switch", calc(fontSizeMedium16 * 3))
+    customProperty("--height-toggle-switch", calc(fontSizeMedium16 * 2))
+    customProperty(
+      "--spacing-start-typeahead-search-icon",
+      calc(spacingStartTypeaheadSearchFigure + (minSizeSearchFigure - minSizeIconMedium) / 2))
+    customProperty(
+      "--spacing-typeahead-search-focus-addition",
+      calc(
+        (spacingStartTypeaheadSearchFigure + minSizeSearchFigure) - (minSizeIconMedium + spacing8)))
 
-	// MARK: HIG Component Color Aliases — Uniform 19-token block per hue
-	// All 12 hues use glyph{Hue} (fg) + fill{Hue} (bg) + extreme (hover/active direction)
-	// Hue order: red, orange, yellow, green, mint, teal, cyan, blue, indigo, purple, pink, brown, gray
+    // MARK: HIG Component Color Aliases — Uniform 19-token block per hue
+    // All 12 hues use glyph{Hue} (fg) + fill{Hue} (bg) + extreme (hover/active direction)
+    // Hue order: red, orange, yellow, green, mint, teal, cyan, blue, indigo, purple, pink, brown, gray
 
-	// -- Red
-	customProperty("--color-red", glyphRed)
-	customProperty("--color-red-hover", colorMix(in: .srgb, glyphRed, (extreme, perc(10))))
-	customProperty("--color-red-active", colorMix(in: .srgb, glyphRed, (extreme, perc(20))))
-	customProperty("--color-red-focus", glyphBlue)
-	customProperty("--background-color-red", fillRed)
-	customProperty("--background-color-red-hover", colorMix(in: .srgb, fillRed, (extreme, perc(10))))
-	customProperty("--background-color-red-active", colorMix(in: .srgb, fillRed, (extreme, perc(20))))
-	customProperty("--background-color-red-focus", fillRed)
-	customProperty("--background-color-red-subtle", colorMix(in: .srgb, fill, (fillRed, perc(8))))
-	customProperty("--background-color-red-subtle-hover", colorMix(in: .srgb, fill, (fillRed, perc(12))))
-	customProperty("--background-color-red-subtle-active", colorMix(in: .srgb, fill, (fillRed, perc(16))))
-	customProperty("--border-color-red", glyphRed)
-	customProperty("--border-color-red-hover", colorMix(in: .srgb, glyphRed, (extreme, perc(10))))
-	customProperty("--border-color-red-active", colorMix(in: .srgb, glyphRed, (extreme, perc(20))))
-	customProperty("--border-color-red-focus", glyphBlue)
-	customProperty("--box-shadow-color-red-active", colorMix(in: .srgb, glyphRed, (extreme, perc(20))))
-	customProperty("--box-shadow-color-red-focus", glyphBlue)
-	customProperty("--outline-color-red-focus", glyphBlue)
-	customProperty("--border-red", (borderWidthBase, borderStyleBase, borderColorRed))
+    // -- Red
+    customProperty("--color-red", glyphRed)
+    customProperty("--color-red-hover", colorMix(in: .srgb, glyphRed, (extreme, perc(10))))
+    customProperty("--color-red-active", colorMix(in: .srgb, glyphRed, (extreme, perc(20))))
+    customProperty("--color-red-focus", glyphBlue)
+    customProperty("--background-color-red", fillRed)
+    customProperty(
+      "--background-color-red-hover", colorMix(in: .srgb, fillRed, (extreme, perc(10))))
+    customProperty(
+      "--background-color-red-active", colorMix(in: .srgb, fillRed, (extreme, perc(20))))
+    customProperty("--background-color-red-focus", fillRed)
+    customProperty("--background-color-red-subtle", colorMix(in: .srgb, fill, (fillRed, perc(8))))
+    customProperty(
+      "--background-color-red-subtle-hover", colorMix(in: .srgb, fill, (fillRed, perc(12))))
+    customProperty(
+      "--background-color-red-subtle-active", colorMix(in: .srgb, fill, (fillRed, perc(16))))
+    customProperty("--border-color-red", glyphRed)
+    customProperty("--border-color-red-hover", colorMix(in: .srgb, glyphRed, (extreme, perc(10))))
+    customProperty("--border-color-red-active", colorMix(in: .srgb, glyphRed, (extreme, perc(20))))
+    customProperty("--border-color-red-focus", glyphBlue)
+    customProperty(
+      "--box-shadow-color-red-active", colorMix(in: .srgb, glyphRed, (extreme, perc(20))))
+    customProperty("--box-shadow-color-red-focus", glyphBlue)
+    customProperty("--outline-color-red-focus", glyphBlue)
+    customProperty("--border-red", (borderWidthBase, borderStyleBase, borderColorRed))
 
-	// -- Orange
-	customProperty("--color-orange", glyphOrange)
-	customProperty("--color-orange-hover", colorMix(in: .srgb, glyphOrange, (extreme, perc(10))))
-	customProperty("--color-orange-active", colorMix(in: .srgb, glyphOrange, (extreme, perc(20))))
-	customProperty("--color-orange-focus", glyphBlue)
-	customProperty("--background-color-orange", fillOrange)
-	customProperty("--background-color-orange-hover", colorMix(in: .srgb, fillOrange, (extreme, perc(10))))
-	customProperty("--background-color-orange-active", colorMix(in: .srgb, fillOrange, (extreme, perc(20))))
-	customProperty("--background-color-orange-focus", fillOrange)
-	customProperty("--background-color-orange-subtle", colorMix(in: .srgb, fill, (fillOrange, perc(8))))
-	customProperty("--background-color-orange-subtle-hover", colorMix(in: .srgb, fill, (fillOrange, perc(12))))
-	customProperty("--background-color-orange-subtle-active", colorMix(in: .srgb, fill, (fillOrange, perc(16))))
-	customProperty("--border-color-orange", glyphOrange)
-	customProperty("--border-color-orange-hover", colorMix(in: .srgb, glyphOrange, (extreme, perc(10))))
-	customProperty("--border-color-orange-active", colorMix(in: .srgb, glyphOrange, (extreme, perc(20))))
-	customProperty("--border-color-orange-focus", glyphBlue)
-	customProperty("--box-shadow-color-orange-active", colorMix(in: .srgb, glyphOrange, (extreme, perc(20))))
-	customProperty("--box-shadow-color-orange-focus", glyphBlue)
-	customProperty("--outline-color-orange-focus", glyphBlue)
-	customProperty("--border-orange", (borderWidthBase, borderStyleBase, borderColorOrange))
+    // -- Orange
+    customProperty("--color-orange", glyphOrange)
+    customProperty("--color-orange-hover", colorMix(in: .srgb, glyphOrange, (extreme, perc(10))))
+    customProperty("--color-orange-active", colorMix(in: .srgb, glyphOrange, (extreme, perc(20))))
+    customProperty("--color-orange-focus", glyphBlue)
+    customProperty("--background-color-orange", fillOrange)
+    customProperty(
+      "--background-color-orange-hover", colorMix(in: .srgb, fillOrange, (extreme, perc(10))))
+    customProperty(
+      "--background-color-orange-active", colorMix(in: .srgb, fillOrange, (extreme, perc(20))))
+    customProperty("--background-color-orange-focus", fillOrange)
+    customProperty(
+      "--background-color-orange-subtle", colorMix(in: .srgb, fill, (fillOrange, perc(8))))
+    customProperty(
+      "--background-color-orange-subtle-hover", colorMix(in: .srgb, fill, (fillOrange, perc(12))))
+    customProperty(
+      "--background-color-orange-subtle-active", colorMix(in: .srgb, fill, (fillOrange, perc(16))))
+    customProperty("--border-color-orange", glyphOrange)
+    customProperty(
+      "--border-color-orange-hover", colorMix(in: .srgb, glyphOrange, (extreme, perc(10))))
+    customProperty(
+      "--border-color-orange-active", colorMix(in: .srgb, glyphOrange, (extreme, perc(20))))
+    customProperty("--border-color-orange-focus", glyphBlue)
+    customProperty(
+      "--box-shadow-color-orange-active", colorMix(in: .srgb, glyphOrange, (extreme, perc(20))))
+    customProperty("--box-shadow-color-orange-focus", glyphBlue)
+    customProperty("--outline-color-orange-focus", glyphBlue)
+    customProperty("--border-orange", (borderWidthBase, borderStyleBase, borderColorOrange))
 
-	// -- Yellow
-	customProperty("--color-yellow", glyphYellow)
-	customProperty("--color-yellow-hover", colorMix(in: .srgb, glyphYellow, (extreme, perc(10))))
-	customProperty("--color-yellow-active", colorMix(in: .srgb, glyphYellow, (extreme, perc(20))))
-	customProperty("--color-yellow-focus", glyphBlue)
-	customProperty("--background-color-yellow", fillYellow)
-	customProperty("--background-color-yellow-hover", colorMix(in: .srgb, fillYellow, (extreme, perc(10))))
-	customProperty("--background-color-yellow-active", colorMix(in: .srgb, fillYellow, (extreme, perc(20))))
-	customProperty("--background-color-yellow-focus", fillYellow)
-	customProperty("--background-color-yellow-subtle", colorMix(in: .srgb, fill, (fillYellow, perc(8))))
-	customProperty("--background-color-yellow-subtle-hover", colorMix(in: .srgb, fill, (fillYellow, perc(12))))
-	customProperty("--background-color-yellow-subtle-active", colorMix(in: .srgb, fill, (fillYellow, perc(16))))
-	customProperty("--border-color-yellow", glyphYellow)
-	customProperty("--border-color-yellow-hover", colorMix(in: .srgb, glyphYellow, (extreme, perc(10))))
-	customProperty("--border-color-yellow-active", colorMix(in: .srgb, glyphYellow, (extreme, perc(20))))
-	customProperty("--border-color-yellow-focus", glyphBlue)
-	customProperty("--box-shadow-color-yellow-active", colorMix(in: .srgb, glyphYellow, (extreme, perc(20))))
-	customProperty("--box-shadow-color-yellow-focus", glyphBlue)
-	customProperty("--outline-color-yellow-focus", glyphBlue)
-	customProperty("--border-yellow", (borderWidthBase, borderStyleBase, borderColorYellow))
+    // -- Yellow
+    customProperty("--color-yellow", glyphYellow)
+    customProperty("--color-yellow-hover", colorMix(in: .srgb, glyphYellow, (extreme, perc(10))))
+    customProperty("--color-yellow-active", colorMix(in: .srgb, glyphYellow, (extreme, perc(20))))
+    customProperty("--color-yellow-focus", glyphBlue)
+    customProperty("--background-color-yellow", fillYellow)
+    customProperty(
+      "--background-color-yellow-hover", colorMix(in: .srgb, fillYellow, (extreme, perc(10))))
+    customProperty(
+      "--background-color-yellow-active", colorMix(in: .srgb, fillYellow, (extreme, perc(20))))
+    customProperty("--background-color-yellow-focus", fillYellow)
+    customProperty(
+      "--background-color-yellow-subtle", colorMix(in: .srgb, fill, (fillYellow, perc(8))))
+    customProperty(
+      "--background-color-yellow-subtle-hover", colorMix(in: .srgb, fill, (fillYellow, perc(12))))
+    customProperty(
+      "--background-color-yellow-subtle-active", colorMix(in: .srgb, fill, (fillYellow, perc(16))))
+    customProperty("--border-color-yellow", glyphYellow)
+    customProperty(
+      "--border-color-yellow-hover", colorMix(in: .srgb, glyphYellow, (extreme, perc(10))))
+    customProperty(
+      "--border-color-yellow-active", colorMix(in: .srgb, glyphYellow, (extreme, perc(20))))
+    customProperty("--border-color-yellow-focus", glyphBlue)
+    customProperty(
+      "--box-shadow-color-yellow-active", colorMix(in: .srgb, glyphYellow, (extreme, perc(20))))
+    customProperty("--box-shadow-color-yellow-focus", glyphBlue)
+    customProperty("--outline-color-yellow-focus", glyphBlue)
+    customProperty("--border-yellow", (borderWidthBase, borderStyleBase, borderColorYellow))
 
-	// -- Green
-	customProperty("--color-green", glyphGreen)
-	customProperty("--color-green-hover", colorMix(in: .srgb, glyphGreen, (extreme, perc(10))))
-	customProperty("--color-green-active", colorMix(in: .srgb, glyphGreen, (extreme, perc(20))))
-	customProperty("--color-green-focus", glyphBlue)
-	customProperty("--background-color-green", fillGreen)
-	customProperty("--background-color-green-hover", colorMix(in: .srgb, fillGreen, (extreme, perc(10))))
-	customProperty("--background-color-green-active", colorMix(in: .srgb, fillGreen, (extreme, perc(20))))
-	customProperty("--background-color-green-focus", fillGreen)
-	customProperty("--background-color-green-subtle", colorMix(in: .srgb, fill, (fillGreen, perc(8))))
-	customProperty("--background-color-green-subtle-hover", colorMix(in: .srgb, fill, (fillGreen, perc(12))))
-	customProperty("--background-color-green-subtle-active", colorMix(in: .srgb, fill, (fillGreen, perc(16))))
-	customProperty("--border-color-green", glyphGreen)
-	customProperty("--border-color-green-hover", colorMix(in: .srgb, glyphGreen, (extreme, perc(10))))
-	customProperty("--border-color-green-active", colorMix(in: .srgb, glyphGreen, (extreme, perc(20))))
-	customProperty("--border-color-green-focus", glyphBlue)
-	customProperty("--box-shadow-color-green-active", colorMix(in: .srgb, glyphGreen, (extreme, perc(20))))
-	customProperty("--box-shadow-color-green-focus", glyphBlue)
-	customProperty("--outline-color-green-focus", glyphBlue)
-	customProperty("--border-green", (borderWidthBase, borderStyleBase, borderColorGreen))
+    // -- Green
+    customProperty("--color-green", glyphGreen)
+    customProperty("--color-green-hover", colorMix(in: .srgb, glyphGreen, (extreme, perc(10))))
+    customProperty("--color-green-active", colorMix(in: .srgb, glyphGreen, (extreme, perc(20))))
+    customProperty("--color-green-focus", glyphBlue)
+    customProperty("--background-color-green", fillGreen)
+    customProperty(
+      "--background-color-green-hover", colorMix(in: .srgb, fillGreen, (extreme, perc(10))))
+    customProperty(
+      "--background-color-green-active", colorMix(in: .srgb, fillGreen, (extreme, perc(20))))
+    customProperty("--background-color-green-focus", fillGreen)
+    customProperty(
+      "--background-color-green-subtle", colorMix(in: .srgb, fill, (fillGreen, perc(8))))
+    customProperty(
+      "--background-color-green-subtle-hover", colorMix(in: .srgb, fill, (fillGreen, perc(12))))
+    customProperty(
+      "--background-color-green-subtle-active", colorMix(in: .srgb, fill, (fillGreen, perc(16))))
+    customProperty("--border-color-green", glyphGreen)
+    customProperty(
+      "--border-color-green-hover", colorMix(in: .srgb, glyphGreen, (extreme, perc(10))))
+    customProperty(
+      "--border-color-green-active", colorMix(in: .srgb, glyphGreen, (extreme, perc(20))))
+    customProperty("--border-color-green-focus", glyphBlue)
+    customProperty(
+      "--box-shadow-color-green-active", colorMix(in: .srgb, glyphGreen, (extreme, perc(20))))
+    customProperty("--box-shadow-color-green-focus", glyphBlue)
+    customProperty("--outline-color-green-focus", glyphBlue)
+    customProperty("--border-green", (borderWidthBase, borderStyleBase, borderColorGreen))
 
-	// -- Mint
-	customProperty("--color-mint", glyphMint)
-	customProperty("--color-mint-hover", colorMix(in: .srgb, glyphMint, (extreme, perc(10))))
-	customProperty("--color-mint-active", colorMix(in: .srgb, glyphMint, (extreme, perc(20))))
-	customProperty("--color-mint-focus", glyphBlue)
-	customProperty("--background-color-mint", fillMint)
-	customProperty("--background-color-mint-hover", colorMix(in: .srgb, fillMint, (extreme, perc(10))))
-	customProperty("--background-color-mint-active", colorMix(in: .srgb, fillMint, (extreme, perc(20))))
-	customProperty("--background-color-mint-focus", fillMint)
-	customProperty("--background-color-mint-subtle", colorMix(in: .srgb, fill, (fillMint, perc(8))))
-	customProperty("--background-color-mint-subtle-hover", colorMix(in: .srgb, fill, (fillMint, perc(12))))
-	customProperty("--background-color-mint-subtle-active", colorMix(in: .srgb, fill, (fillMint, perc(16))))
-	customProperty("--border-color-mint", glyphMint)
-	customProperty("--border-color-mint-hover", colorMix(in: .srgb, glyphMint, (extreme, perc(10))))
-	customProperty("--border-color-mint-active", colorMix(in: .srgb, glyphMint, (extreme, perc(20))))
-	customProperty("--border-color-mint-focus", glyphBlue)
-	customProperty("--box-shadow-color-mint-active", colorMix(in: .srgb, glyphMint, (extreme, perc(20))))
-	customProperty("--box-shadow-color-mint-focus", glyphBlue)
-	customProperty("--outline-color-mint-focus", glyphBlue)
-	customProperty("--border-mint", (borderWidthBase, borderStyleBase, borderColorMint))
+    // -- Mint
+    customProperty("--color-mint", glyphMint)
+    customProperty("--color-mint-hover", colorMix(in: .srgb, glyphMint, (extreme, perc(10))))
+    customProperty("--color-mint-active", colorMix(in: .srgb, glyphMint, (extreme, perc(20))))
+    customProperty("--color-mint-focus", glyphBlue)
+    customProperty("--background-color-mint", fillMint)
+    customProperty(
+      "--background-color-mint-hover", colorMix(in: .srgb, fillMint, (extreme, perc(10))))
+    customProperty(
+      "--background-color-mint-active", colorMix(in: .srgb, fillMint, (extreme, perc(20))))
+    customProperty("--background-color-mint-focus", fillMint)
+    customProperty("--background-color-mint-subtle", colorMix(in: .srgb, fill, (fillMint, perc(8))))
+    customProperty(
+      "--background-color-mint-subtle-hover", colorMix(in: .srgb, fill, (fillMint, perc(12))))
+    customProperty(
+      "--background-color-mint-subtle-active", colorMix(in: .srgb, fill, (fillMint, perc(16))))
+    customProperty("--border-color-mint", glyphMint)
+    customProperty("--border-color-mint-hover", colorMix(in: .srgb, glyphMint, (extreme, perc(10))))
+    customProperty(
+      "--border-color-mint-active", colorMix(in: .srgb, glyphMint, (extreme, perc(20))))
+    customProperty("--border-color-mint-focus", glyphBlue)
+    customProperty(
+      "--box-shadow-color-mint-active", colorMix(in: .srgb, glyphMint, (extreme, perc(20))))
+    customProperty("--box-shadow-color-mint-focus", glyphBlue)
+    customProperty("--outline-color-mint-focus", glyphBlue)
+    customProperty("--border-mint", (borderWidthBase, borderStyleBase, borderColorMint))
 
-	// -- Teal
-	customProperty("--color-teal", glyphTeal)
-	customProperty("--color-teal-hover", colorMix(in: .srgb, glyphTeal, (extreme, perc(10))))
-	customProperty("--color-teal-active", colorMix(in: .srgb, glyphTeal, (extreme, perc(20))))
-	customProperty("--color-teal-focus", glyphBlue)
-	customProperty("--background-color-teal", fillTeal)
-	customProperty("--background-color-teal-hover", colorMix(in: .srgb, fillTeal, (extreme, perc(10))))
-	customProperty("--background-color-teal-active", colorMix(in: .srgb, fillTeal, (extreme, perc(20))))
-	customProperty("--background-color-teal-focus", fillTeal)
-	customProperty("--background-color-teal-subtle", colorMix(in: .srgb, fill, (fillTeal, perc(8))))
-	customProperty("--background-color-teal-subtle-hover", colorMix(in: .srgb, fill, (fillTeal, perc(12))))
-	customProperty("--background-color-teal-subtle-active", colorMix(in: .srgb, fill, (fillTeal, perc(16))))
-	customProperty("--border-color-teal", glyphTeal)
-	customProperty("--border-color-teal-hover", colorMix(in: .srgb, glyphTeal, (extreme, perc(10))))
-	customProperty("--border-color-teal-active", colorMix(in: .srgb, glyphTeal, (extreme, perc(20))))
-	customProperty("--border-color-teal-focus", glyphBlue)
-	customProperty("--box-shadow-color-teal-active", colorMix(in: .srgb, glyphTeal, (extreme, perc(20))))
-	customProperty("--box-shadow-color-teal-focus", glyphBlue)
-	customProperty("--outline-color-teal-focus", glyphBlue)
-	customProperty("--border-teal", (borderWidthBase, borderStyleBase, borderColorTeal))
+    // -- Teal
+    customProperty("--color-teal", glyphTeal)
+    customProperty("--color-teal-hover", colorMix(in: .srgb, glyphTeal, (extreme, perc(10))))
+    customProperty("--color-teal-active", colorMix(in: .srgb, glyphTeal, (extreme, perc(20))))
+    customProperty("--color-teal-focus", glyphBlue)
+    customProperty("--background-color-teal", fillTeal)
+    customProperty(
+      "--background-color-teal-hover", colorMix(in: .srgb, fillTeal, (extreme, perc(10))))
+    customProperty(
+      "--background-color-teal-active", colorMix(in: .srgb, fillTeal, (extreme, perc(20))))
+    customProperty("--background-color-teal-focus", fillTeal)
+    customProperty("--background-color-teal-subtle", colorMix(in: .srgb, fill, (fillTeal, perc(8))))
+    customProperty(
+      "--background-color-teal-subtle-hover", colorMix(in: .srgb, fill, (fillTeal, perc(12))))
+    customProperty(
+      "--background-color-teal-subtle-active", colorMix(in: .srgb, fill, (fillTeal, perc(16))))
+    customProperty("--border-color-teal", glyphTeal)
+    customProperty("--border-color-teal-hover", colorMix(in: .srgb, glyphTeal, (extreme, perc(10))))
+    customProperty(
+      "--border-color-teal-active", colorMix(in: .srgb, glyphTeal, (extreme, perc(20))))
+    customProperty("--border-color-teal-focus", glyphBlue)
+    customProperty(
+      "--box-shadow-color-teal-active", colorMix(in: .srgb, glyphTeal, (extreme, perc(20))))
+    customProperty("--box-shadow-color-teal-focus", glyphBlue)
+    customProperty("--outline-color-teal-focus", glyphBlue)
+    customProperty("--border-teal", (borderWidthBase, borderStyleBase, borderColorTeal))
 
-	// -- Cyan
-	customProperty("--color-cyan", glyphCyan)
-	customProperty("--color-cyan-hover", colorMix(in: .srgb, glyphCyan, (extreme, perc(10))))
-	customProperty("--color-cyan-active", colorMix(in: .srgb, glyphCyan, (extreme, perc(20))))
-	customProperty("--color-cyan-focus", glyphBlue)
-	customProperty("--background-color-cyan", fillCyan)
-	customProperty("--background-color-cyan-hover", colorMix(in: .srgb, fillCyan, (extreme, perc(10))))
-	customProperty("--background-color-cyan-active", colorMix(in: .srgb, fillCyan, (extreme, perc(20))))
-	customProperty("--background-color-cyan-focus", fillCyan)
-	customProperty("--background-color-cyan-subtle", colorMix(in: .srgb, fill, (fillCyan, perc(8))))
-	customProperty("--background-color-cyan-subtle-hover", colorMix(in: .srgb, fill, (fillCyan, perc(12))))
-	customProperty("--background-color-cyan-subtle-active", colorMix(in: .srgb, fill, (fillCyan, perc(16))))
-	customProperty("--border-color-cyan", glyphCyan)
-	customProperty("--border-color-cyan-hover", colorMix(in: .srgb, glyphCyan, (extreme, perc(10))))
-	customProperty("--border-color-cyan-active", colorMix(in: .srgb, glyphCyan, (extreme, perc(20))))
-	customProperty("--border-color-cyan-focus", glyphBlue)
-	customProperty("--box-shadow-color-cyan-active", colorMix(in: .srgb, glyphCyan, (extreme, perc(20))))
-	customProperty("--box-shadow-color-cyan-focus", glyphBlue)
-	customProperty("--outline-color-cyan-focus", glyphBlue)
-	customProperty("--border-cyan", (borderWidthBase, borderStyleBase, borderColorCyan))
+    // -- Cyan
+    customProperty("--color-cyan", glyphCyan)
+    customProperty("--color-cyan-hover", colorMix(in: .srgb, glyphCyan, (extreme, perc(10))))
+    customProperty("--color-cyan-active", colorMix(in: .srgb, glyphCyan, (extreme, perc(20))))
+    customProperty("--color-cyan-focus", glyphBlue)
+    customProperty("--background-color-cyan", fillCyan)
+    customProperty(
+      "--background-color-cyan-hover", colorMix(in: .srgb, fillCyan, (extreme, perc(10))))
+    customProperty(
+      "--background-color-cyan-active", colorMix(in: .srgb, fillCyan, (extreme, perc(20))))
+    customProperty("--background-color-cyan-focus", fillCyan)
+    customProperty("--background-color-cyan-subtle", colorMix(in: .srgb, fill, (fillCyan, perc(8))))
+    customProperty(
+      "--background-color-cyan-subtle-hover", colorMix(in: .srgb, fill, (fillCyan, perc(12))))
+    customProperty(
+      "--background-color-cyan-subtle-active", colorMix(in: .srgb, fill, (fillCyan, perc(16))))
+    customProperty("--border-color-cyan", glyphCyan)
+    customProperty("--border-color-cyan-hover", colorMix(in: .srgb, glyphCyan, (extreme, perc(10))))
+    customProperty(
+      "--border-color-cyan-active", colorMix(in: .srgb, glyphCyan, (extreme, perc(20))))
+    customProperty("--border-color-cyan-focus", glyphBlue)
+    customProperty(
+      "--box-shadow-color-cyan-active", colorMix(in: .srgb, glyphCyan, (extreme, perc(20))))
+    customProperty("--box-shadow-color-cyan-focus", glyphBlue)
+    customProperty("--outline-color-cyan-focus", glyphBlue)
+    customProperty("--border-cyan", (borderWidthBase, borderStyleBase, borderColorCyan))
 
-	// -- Blue
-	customProperty("--color-blue", glyphBlue)
-	customProperty("--color-blue-hover", colorMix(in: .srgb, glyphBlue, (extreme, perc(10))))
-	customProperty("--color-blue-active", colorMix(in: .srgb, glyphBlue, (extreme, perc(20))))
-	customProperty("--color-blue-focus", glyphBlue)
-	customProperty("--background-color-blue", fillBlue)
-	customProperty("--background-color-blue-hover", colorMix(in: .srgb, fillBlue, (extreme, perc(10))))
-	customProperty("--background-color-blue-active", colorMix(in: .srgb, fillBlue, (extreme, perc(20))))
-	customProperty("--background-color-blue-focus", fillBlue)
-	customProperty("--background-color-blue-subtle", colorMix(in: .srgb, fill, (fillBlue, perc(8))))
-	customProperty("--background-color-blue-subtle-hover", colorMix(in: .srgb, fill, (fillBlue, perc(12))))
-	customProperty("--background-color-blue-subtle-active", colorMix(in: .srgb, fill, (fillBlue, perc(16))))
-	customProperty("--border-color-blue", glyphBlue)
-	customProperty("--border-color-blue-hover", colorMix(in: .srgb, glyphBlue, (extreme, perc(10))))
-	customProperty("--border-color-blue-active", colorMix(in: .srgb, glyphBlue, (extreme, perc(20))))
-	customProperty("--border-color-blue-focus", glyphBlue)
-	customProperty("--box-shadow-color-blue-active", colorMix(in: .srgb, glyphBlue, (extreme, perc(20))))
-	customProperty("--box-shadow-color-blue-focus", glyphBlue)
-	customProperty("--outline-color-blue-focus", glyphBlue)
-	customProperty("--border-blue", (borderWidthBase, borderStyleBase, borderColorBlue))
+    // -- Blue
+    customProperty("--color-blue", glyphBlue)
+    customProperty("--color-blue-hover", colorMix(in: .srgb, glyphBlue, (extreme, perc(10))))
+    customProperty("--color-blue-active", colorMix(in: .srgb, glyphBlue, (extreme, perc(20))))
+    customProperty("--color-blue-focus", glyphBlue)
+    customProperty("--background-color-blue", fillBlue)
+    customProperty(
+      "--background-color-blue-hover", colorMix(in: .srgb, fillBlue, (extreme, perc(10))))
+    customProperty(
+      "--background-color-blue-active", colorMix(in: .srgb, fillBlue, (extreme, perc(20))))
+    customProperty("--background-color-blue-focus", fillBlue)
+    customProperty("--background-color-blue-subtle", colorMix(in: .srgb, fill, (fillBlue, perc(8))))
+    customProperty(
+      "--background-color-blue-subtle-hover", colorMix(in: .srgb, fill, (fillBlue, perc(12))))
+    customProperty(
+      "--background-color-blue-subtle-active", colorMix(in: .srgb, fill, (fillBlue, perc(16))))
+    customProperty("--border-color-blue", glyphBlue)
+    customProperty("--border-color-blue-hover", colorMix(in: .srgb, glyphBlue, (extreme, perc(10))))
+    customProperty(
+      "--border-color-blue-active", colorMix(in: .srgb, glyphBlue, (extreme, perc(20))))
+    customProperty("--border-color-blue-focus", glyphBlue)
+    customProperty(
+      "--box-shadow-color-blue-active", colorMix(in: .srgb, glyphBlue, (extreme, perc(20))))
+    customProperty("--box-shadow-color-blue-focus", glyphBlue)
+    customProperty("--outline-color-blue-focus", glyphBlue)
+    customProperty("--border-blue", (borderWidthBase, borderStyleBase, borderColorBlue))
 
-	// -- Indigo (includes selected box-shadow variants)
-	customProperty("--color-indigo", glyphIndigo)
-	customProperty("--color-indigo-hover", colorMix(in: .srgb, glyphIndigo, (extreme, perc(10))))
-	customProperty("--color-indigo-active", colorMix(in: .srgb, glyphIndigo, (extreme, perc(20))))
-	customProperty("--color-indigo-focus", glyphIndigo)
-	customProperty("--background-color-indigo", fillIndigo)
-	customProperty("--background-color-indigo-hover", colorMix(in: .srgb, fillIndigo, (extreme, perc(10))))
-	customProperty("--background-color-indigo-active", colorMix(in: .srgb, fillIndigo, (extreme, perc(20))))
-	customProperty("--background-color-indigo-focus", fillIndigo)
-	customProperty("--background-color-indigo-subtle", colorMix(in: .srgb, fill, (fillIndigo, perc(8))))
-	customProperty("--background-color-indigo-subtle-hover", colorMix(in: .srgb, fill, (fillIndigo, perc(12))))
-	customProperty("--background-color-indigo-subtle-active", colorMix(in: .srgb, fill, (fillIndigo, perc(16))))
-	customProperty("--border-color-indigo", glyphIndigo)
-	customProperty("--border-color-indigo-hover", colorMix(in: .srgb, glyphIndigo, (extreme, perc(10))))
-	customProperty("--border-color-indigo-active", colorMix(in: .srgb, glyphIndigo, (extreme, perc(20))))
-	customProperty("--border-color-indigo-focus", glyphIndigo)
-	customProperty("--box-shadow-color-indigo-active", colorMix(in: .srgb, glyphIndigo, (extreme, perc(20))))
-	customProperty("--box-shadow-color-indigo-focus", glyphIndigo)
-	customProperty("--box-shadow-color-indigo-selected", glyphIndigo)
-	customProperty("--box-shadow-color-indigo-selected-hover", colorMix(in: .srgb, glyphIndigo, (extreme, perc(10))))
-	customProperty("--box-shadow-color-indigo-selected-active", colorMix(in: .srgb, glyphIndigo, (extreme, perc(20))))
-	customProperty("--outline-color-indigo-focus", glyphIndigo)
-	customProperty("--border-indigo", (borderWidthBase, borderStyleBase, borderColorIndigo))
+    // -- Indigo (includes selected box-shadow variants)
+    customProperty("--color-indigo", glyphIndigo)
+    customProperty("--color-indigo-hover", colorMix(in: .srgb, glyphIndigo, (extreme, perc(10))))
+    customProperty("--color-indigo-active", colorMix(in: .srgb, glyphIndigo, (extreme, perc(20))))
+    customProperty("--color-indigo-focus", glyphIndigo)
+    customProperty("--background-color-indigo", fillIndigo)
+    customProperty(
+      "--background-color-indigo-hover", colorMix(in: .srgb, fillIndigo, (extreme, perc(10))))
+    customProperty(
+      "--background-color-indigo-active", colorMix(in: .srgb, fillIndigo, (extreme, perc(20))))
+    customProperty("--background-color-indigo-focus", fillIndigo)
+    customProperty(
+      "--background-color-indigo-subtle", colorMix(in: .srgb, fill, (fillIndigo, perc(8))))
+    customProperty(
+      "--background-color-indigo-subtle-hover", colorMix(in: .srgb, fill, (fillIndigo, perc(12))))
+    customProperty(
+      "--background-color-indigo-subtle-active", colorMix(in: .srgb, fill, (fillIndigo, perc(16))))
+    customProperty("--border-color-indigo", glyphIndigo)
+    customProperty(
+      "--border-color-indigo-hover", colorMix(in: .srgb, glyphIndigo, (extreme, perc(10))))
+    customProperty(
+      "--border-color-indigo-active", colorMix(in: .srgb, glyphIndigo, (extreme, perc(20))))
+    customProperty("--border-color-indigo-focus", glyphIndigo)
+    customProperty(
+      "--box-shadow-color-indigo-active", colorMix(in: .srgb, glyphIndigo, (extreme, perc(20))))
+    customProperty("--box-shadow-color-indigo-focus", glyphIndigo)
+    customProperty("--box-shadow-color-indigo-selected", glyphIndigo)
+    customProperty(
+      "--box-shadow-color-indigo-selected-hover",
+      colorMix(in: .srgb, glyphIndigo, (extreme, perc(10))))
+    customProperty(
+      "--box-shadow-color-indigo-selected-active",
+      colorMix(in: .srgb, glyphIndigo, (extreme, perc(20))))
+    customProperty("--outline-color-indigo-focus", glyphIndigo)
+    customProperty("--border-indigo", (borderWidthBase, borderStyleBase, borderColorIndigo))
 
-	// -- Purple
-	customProperty("--color-purple", glyphPurple)
-	customProperty("--color-purple-hover", colorMix(in: .srgb, glyphPurple, (extreme, perc(10))))
-	customProperty("--color-purple-active", colorMix(in: .srgb, glyphPurple, (extreme, perc(20))))
-	customProperty("--color-purple-focus", glyphBlue)
-	customProperty("--background-color-purple", fillPurple)
-	customProperty("--background-color-purple-hover", colorMix(in: .srgb, fillPurple, (extreme, perc(10))))
-	customProperty("--background-color-purple-active", colorMix(in: .srgb, fillPurple, (extreme, perc(20))))
-	customProperty("--background-color-purple-focus", fillPurple)
-	customProperty("--background-color-purple-subtle", colorMix(in: .srgb, fill, (fillPurple, perc(8))))
-	customProperty("--background-color-purple-subtle-hover", colorMix(in: .srgb, fill, (fillPurple, perc(12))))
-	customProperty("--background-color-purple-subtle-active", colorMix(in: .srgb, fill, (fillPurple, perc(16))))
-	customProperty("--border-color-purple", glyphPurple)
-	customProperty("--border-color-purple-hover", colorMix(in: .srgb, glyphPurple, (extreme, perc(10))))
-	customProperty("--border-color-purple-active", colorMix(in: .srgb, glyphPurple, (extreme, perc(20))))
-	customProperty("--border-color-purple-focus", glyphBlue)
-	customProperty("--box-shadow-color-purple-active", colorMix(in: .srgb, glyphPurple, (extreme, perc(20))))
-	customProperty("--box-shadow-color-purple-focus", glyphBlue)
-	customProperty("--outline-color-purple-focus", glyphBlue)
-	customProperty("--border-purple", (borderWidthBase, borderStyleBase, borderColorPurple))
+    // -- Purple
+    customProperty("--color-purple", glyphPurple)
+    customProperty("--color-purple-hover", colorMix(in: .srgb, glyphPurple, (extreme, perc(10))))
+    customProperty("--color-purple-active", colorMix(in: .srgb, glyphPurple, (extreme, perc(20))))
+    customProperty("--color-purple-focus", glyphBlue)
+    customProperty("--background-color-purple", fillPurple)
+    customProperty(
+      "--background-color-purple-hover", colorMix(in: .srgb, fillPurple, (extreme, perc(10))))
+    customProperty(
+      "--background-color-purple-active", colorMix(in: .srgb, fillPurple, (extreme, perc(20))))
+    customProperty("--background-color-purple-focus", fillPurple)
+    customProperty(
+      "--background-color-purple-subtle", colorMix(in: .srgb, fill, (fillPurple, perc(8))))
+    customProperty(
+      "--background-color-purple-subtle-hover", colorMix(in: .srgb, fill, (fillPurple, perc(12))))
+    customProperty(
+      "--background-color-purple-subtle-active", colorMix(in: .srgb, fill, (fillPurple, perc(16))))
+    customProperty("--border-color-purple", glyphPurple)
+    customProperty(
+      "--border-color-purple-hover", colorMix(in: .srgb, glyphPurple, (extreme, perc(10))))
+    customProperty(
+      "--border-color-purple-active", colorMix(in: .srgb, glyphPurple, (extreme, perc(20))))
+    customProperty("--border-color-purple-focus", glyphBlue)
+    customProperty(
+      "--box-shadow-color-purple-active", colorMix(in: .srgb, glyphPurple, (extreme, perc(20))))
+    customProperty("--box-shadow-color-purple-focus", glyphBlue)
+    customProperty("--outline-color-purple-focus", glyphBlue)
+    customProperty("--border-purple", (borderWidthBase, borderStyleBase, borderColorPurple))
 
-	// -- Pink
-	customProperty("--color-pink", glyphPink)
-	customProperty("--color-pink-hover", colorMix(in: .srgb, glyphPink, (extreme, perc(10))))
-	customProperty("--color-pink-active", colorMix(in: .srgb, glyphPink, (extreme, perc(20))))
-	customProperty("--color-pink-focus", glyphBlue)
-	customProperty("--background-color-pink", fillPink)
-	customProperty("--background-color-pink-hover", colorMix(in: .srgb, fillPink, (extreme, perc(10))))
-	customProperty("--background-color-pink-active", colorMix(in: .srgb, fillPink, (extreme, perc(20))))
-	customProperty("--background-color-pink-focus", fillPink)
-	customProperty("--background-color-pink-subtle", colorMix(in: .srgb, fill, (fillPink, perc(8))))
-	customProperty("--background-color-pink-subtle-hover", colorMix(in: .srgb, fill, (fillPink, perc(12))))
-	customProperty("--background-color-pink-subtle-active", colorMix(in: .srgb, fill, (fillPink, perc(16))))
-	customProperty("--border-color-pink", glyphPink)
-	customProperty("--border-color-pink-hover", colorMix(in: .srgb, glyphPink, (extreme, perc(10))))
-	customProperty("--border-color-pink-active", colorMix(in: .srgb, glyphPink, (extreme, perc(20))))
-	customProperty("--border-color-pink-focus", glyphBlue)
-	customProperty("--box-shadow-color-pink-active", colorMix(in: .srgb, glyphPink, (extreme, perc(20))))
-	customProperty("--box-shadow-color-pink-focus", glyphBlue)
-	customProperty("--outline-color-pink-focus", glyphBlue)
-	customProperty("--border-pink", (borderWidthBase, borderStyleBase, borderColorPink))
+    // -- Pink
+    customProperty("--color-pink", glyphPink)
+    customProperty("--color-pink-hover", colorMix(in: .srgb, glyphPink, (extreme, perc(10))))
+    customProperty("--color-pink-active", colorMix(in: .srgb, glyphPink, (extreme, perc(20))))
+    customProperty("--color-pink-focus", glyphBlue)
+    customProperty("--background-color-pink", fillPink)
+    customProperty(
+      "--background-color-pink-hover", colorMix(in: .srgb, fillPink, (extreme, perc(10))))
+    customProperty(
+      "--background-color-pink-active", colorMix(in: .srgb, fillPink, (extreme, perc(20))))
+    customProperty("--background-color-pink-focus", fillPink)
+    customProperty("--background-color-pink-subtle", colorMix(in: .srgb, fill, (fillPink, perc(8))))
+    customProperty(
+      "--background-color-pink-subtle-hover", colorMix(in: .srgb, fill, (fillPink, perc(12))))
+    customProperty(
+      "--background-color-pink-subtle-active", colorMix(in: .srgb, fill, (fillPink, perc(16))))
+    customProperty("--border-color-pink", glyphPink)
+    customProperty("--border-color-pink-hover", colorMix(in: .srgb, glyphPink, (extreme, perc(10))))
+    customProperty(
+      "--border-color-pink-active", colorMix(in: .srgb, glyphPink, (extreme, perc(20))))
+    customProperty("--border-color-pink-focus", glyphBlue)
+    customProperty(
+      "--box-shadow-color-pink-active", colorMix(in: .srgb, glyphPink, (extreme, perc(20))))
+    customProperty("--box-shadow-color-pink-focus", glyphBlue)
+    customProperty("--outline-color-pink-focus", glyphBlue)
+    customProperty("--border-pink", (borderWidthBase, borderStyleBase, borderColorPink))
 
-	// -- Brown
-	customProperty("--color-brown", glyphBrown)
-	customProperty("--color-brown-hover", colorMix(in: .srgb, glyphBrown, (extreme, perc(10))))
-	customProperty("--color-brown-active", colorMix(in: .srgb, glyphBrown, (extreme, perc(20))))
-	customProperty("--color-brown-focus", glyphBlue)
-	customProperty("--background-color-brown", fillBrown)
-	customProperty("--background-color-brown-hover", colorMix(in: .srgb, fillBrown, (extreme, perc(10))))
-	customProperty("--background-color-brown-active", colorMix(in: .srgb, fillBrown, (extreme, perc(20))))
-	customProperty("--background-color-brown-focus", fillBrown)
-	customProperty("--background-color-brown-subtle", colorMix(in: .srgb, fill, (fillBrown, perc(8))))
-	customProperty("--background-color-brown-subtle-hover", colorMix(in: .srgb, fill, (fillBrown, perc(12))))
-	customProperty("--background-color-brown-subtle-active", colorMix(in: .srgb, fill, (fillBrown, perc(16))))
-	customProperty("--border-color-brown", glyphBrown)
-	customProperty("--border-color-brown-hover", colorMix(in: .srgb, glyphBrown, (extreme, perc(10))))
-	customProperty("--border-color-brown-active", colorMix(in: .srgb, glyphBrown, (extreme, perc(20))))
-	customProperty("--border-color-brown-focus", glyphBlue)
-	customProperty("--box-shadow-color-brown-active", colorMix(in: .srgb, glyphBrown, (extreme, perc(20))))
-	customProperty("--box-shadow-color-brown-focus", glyphBlue)
-	customProperty("--outline-color-brown-focus", glyphBlue)
-	customProperty("--border-brown", (borderWidthBase, borderStyleBase, borderColorBrown))
+    // -- Brown
+    customProperty("--color-brown", glyphBrown)
+    customProperty("--color-brown-hover", colorMix(in: .srgb, glyphBrown, (extreme, perc(10))))
+    customProperty("--color-brown-active", colorMix(in: .srgb, glyphBrown, (extreme, perc(20))))
+    customProperty("--color-brown-focus", glyphBlue)
+    customProperty("--background-color-brown", fillBrown)
+    customProperty(
+      "--background-color-brown-hover", colorMix(in: .srgb, fillBrown, (extreme, perc(10))))
+    customProperty(
+      "--background-color-brown-active", colorMix(in: .srgb, fillBrown, (extreme, perc(20))))
+    customProperty("--background-color-brown-focus", fillBrown)
+    customProperty(
+      "--background-color-brown-subtle", colorMix(in: .srgb, fill, (fillBrown, perc(8))))
+    customProperty(
+      "--background-color-brown-subtle-hover", colorMix(in: .srgb, fill, (fillBrown, perc(12))))
+    customProperty(
+      "--background-color-brown-subtle-active", colorMix(in: .srgb, fill, (fillBrown, perc(16))))
+    customProperty("--border-color-brown", glyphBrown)
+    customProperty(
+      "--border-color-brown-hover", colorMix(in: .srgb, glyphBrown, (extreme, perc(10))))
+    customProperty(
+      "--border-color-brown-active", colorMix(in: .srgb, glyphBrown, (extreme, perc(20))))
+    customProperty("--border-color-brown-focus", glyphBlue)
+    customProperty(
+      "--box-shadow-color-brown-active", colorMix(in: .srgb, glyphBrown, (extreme, perc(20))))
+    customProperty("--box-shadow-color-brown-focus", glyphBlue)
+    customProperty("--outline-color-brown-focus", glyphBlue)
+    customProperty("--border-brown", (borderWidthBase, borderStyleBase, borderColorBrown))
 
-	// -- Gray
-	customProperty("--color-gray", grayGlyph)
-	customProperty("--color-gray-hover", colorMix(in: .srgb, grayGlyph, (extreme, perc(10))))
-	customProperty("--color-gray-active", colorMix(in: .srgb, grayGlyph, (extreme, perc(20))))
-	customProperty("--color-gray-focus", glyphBlue)
-	customProperty("--background-color-gray", grayFill)
-	customProperty("--background-color-gray-hover", colorMix(in: .srgb, grayFill, (extreme, perc(10))))
-	customProperty("--background-color-gray-active", colorMix(in: .srgb, grayFill, (extreme, perc(20))))
-	customProperty("--background-color-gray-focus", grayFill)
-	customProperty("--background-color-gray-subtle", colorMix(in: .srgb, fill, (grayFill, perc(8))))
-	customProperty("--background-color-gray-subtle-hover", colorMix(in: .srgb, fill, (grayFill, perc(12))))
-	customProperty("--background-color-gray-subtle-active", colorMix(in: .srgb, fill, (grayFill, perc(16))))
-	customProperty("--border-color-gray", grayGlyph)
-	customProperty("--border-color-gray-hover", colorMix(in: .srgb, grayGlyph, (extreme, perc(10))))
-	customProperty("--border-color-gray-active", colorMix(in: .srgb, grayGlyph, (extreme, perc(20))))
-	customProperty("--border-color-gray-focus", glyphBlue)
-	customProperty("--box-shadow-color-gray-active", colorMix(in: .srgb, grayGlyph, (extreme, perc(20))))
-	customProperty("--box-shadow-color-gray-focus", glyphBlue)
-	customProperty("--outline-color-gray-focus", glyphBlue)
-	customProperty("--border-gray", (borderWidthBase, borderStyleBase, borderColorGray))
-}
-
+    // -- Gray
+    customProperty("--color-gray", grayGlyph)
+    customProperty("--color-gray-hover", colorMix(in: .srgb, grayGlyph, (extreme, perc(10))))
+    customProperty("--color-gray-active", colorMix(in: .srgb, grayGlyph, (extreme, perc(20))))
+    customProperty("--color-gray-focus", glyphBlue)
+    customProperty("--background-color-gray", grayFill)
+    customProperty(
+      "--background-color-gray-hover", colorMix(in: .srgb, grayFill, (extreme, perc(10))))
+    customProperty(
+      "--background-color-gray-active", colorMix(in: .srgb, grayFill, (extreme, perc(20))))
+    customProperty("--background-color-gray-focus", grayFill)
+    customProperty("--background-color-gray-subtle", colorMix(in: .srgb, fill, (grayFill, perc(8))))
+    customProperty(
+      "--background-color-gray-subtle-hover", colorMix(in: .srgb, fill, (grayFill, perc(12))))
+    customProperty(
+      "--background-color-gray-subtle-active", colorMix(in: .srgb, fill, (grayFill, perc(16))))
+    customProperty("--border-color-gray", grayGlyph)
+    customProperty("--border-color-gray-hover", colorMix(in: .srgb, grayGlyph, (extreme, perc(10))))
+    customProperty(
+      "--border-color-gray-active", colorMix(in: .srgb, grayGlyph, (extreme, perc(20))))
+    customProperty("--border-color-gray-focus", glyphBlue)
+    customProperty(
+      "--box-shadow-color-gray-active", colorMix(in: .srgb, grayGlyph, (extreme, perc(20))))
+    customProperty("--box-shadow-color-gray-focus", glyphBlue)
+    customProperty("--outline-color-gray-focus", glyphBlue)
+    customProperty("--border-gray", (borderWidthBase, borderStyleBase, borderColorGray))
+  }
 #endif

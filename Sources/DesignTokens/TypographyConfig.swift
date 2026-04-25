@@ -2,23 +2,23 @@ import WebTypes
 
 // MARK: - Typography Configuration
 public struct TypographyConfig {
-	public let fontSans: String
-	public let fontSansItalic: String
-	public let fontSerif: String
-	public let fontSerifItalic: String
-	public let fontMono: String
+  public let fontSans: CSSFontFamily
+  public let fontSansItalic: CSSFontFamily
+  public let fontSerif: CSSFontFamily
+  public let fontSerifItalic: CSSFontFamily
+  public let fontMono: CSSFontFamily
 
-	public init(
-		fontSans: String,
-		fontSansItalic: String,
-		fontSerif: String,
-		fontSerifItalic: String,
-		fontMono: String
-	) {
-		self.fontSans = fontSans
-		self.fontSansItalic = fontSansItalic
-		self.fontSerif = fontSerif
-		self.fontSerifItalic = fontSerifItalic
-		self.fontMono = fontMono
-	}
+  public init(
+    fontSans: CSSFontFamily,
+    fontSansItalic: CSSFontFamily,
+    fontSerif: CSSFontFamily,
+    fontSerifItalic: CSSFontFamily,
+    fontMono: CSSFontFamily
+  ) {
+    self.fontSans = fontSans
+    self.fontSansItalic = fontSansItalic
+    self.fontSerif = fontSerif
+    self.fontSerifItalic = fontSerifItalic
+    self.fontMono = fontMono
+  }
 }
