@@ -782,11 +782,11 @@
     customProperty(
       "--background-color-red-active", colorMix(in: .srgb, fillRed, (extreme, perc(20))))
     customProperty("--background-color-red-focus", fillRed)
-    customProperty("--background-color-red-subtle", colorMix(in: .srgb, fill, (fillRed, perc(8))))
+    customProperty("--background-color-red-subtle", colorMix(in: .srgb, fill, (fillRed, perc(20))))
     customProperty(
-      "--background-color-red-subtle-hover", colorMix(in: .srgb, fill, (fillRed, perc(12))))
+      "--background-color-red-subtle-hover", colorMix(in: .srgb, fill, (fillRed, perc(30))))
     customProperty(
-      "--background-color-red-subtle-active", colorMix(in: .srgb, fill, (fillRed, perc(16))))
+      "--background-color-red-subtle-active", colorMix(in: .srgb, fill, (fillRed, perc(40))))
     customProperty("--border-color-red", glyphRed)
     customProperty("--border-color-red-hover", colorMix(in: .srgb, glyphRed, (extreme, perc(10))))
     customProperty("--border-color-red-active", colorMix(in: .srgb, glyphRed, (extreme, perc(20))))
@@ -809,11 +809,11 @@
       "--background-color-orange-active", colorMix(in: .srgb, fillOrange, (extreme, perc(20))))
     customProperty("--background-color-orange-focus", fillOrange)
     customProperty(
-      "--background-color-orange-subtle", colorMix(in: .srgb, fill, (fillOrange, perc(8))))
+      "--background-color-orange-subtle", colorMix(in: .srgb, fill, (fillOrange, perc(20))))
     customProperty(
-      "--background-color-orange-subtle-hover", colorMix(in: .srgb, fill, (fillOrange, perc(12))))
+      "--background-color-orange-subtle-hover", colorMix(in: .srgb, fill, (fillOrange, perc(30))))
     customProperty(
-      "--background-color-orange-subtle-active", colorMix(in: .srgb, fill, (fillOrange, perc(16))))
+      "--background-color-orange-subtle-active", colorMix(in: .srgb, fill, (fillOrange, perc(40))))
     customProperty("--border-color-orange", glyphOrange)
     customProperty(
       "--border-color-orange-hover", colorMix(in: .srgb, glyphOrange, (extreme, perc(10))))
@@ -838,11 +838,11 @@
       "--background-color-yellow-active", colorMix(in: .srgb, fillYellow, (extreme, perc(20))))
     customProperty("--background-color-yellow-focus", fillYellow)
     customProperty(
-      "--background-color-yellow-subtle", colorMix(in: .srgb, fill, (fillYellow, perc(8))))
+      "--background-color-yellow-subtle", colorMix(in: .srgb, fill, (fillYellow, perc(20))))
     customProperty(
-      "--background-color-yellow-subtle-hover", colorMix(in: .srgb, fill, (fillYellow, perc(12))))
+      "--background-color-yellow-subtle-hover", colorMix(in: .srgb, fill, (fillYellow, perc(30))))
     customProperty(
-      "--background-color-yellow-subtle-active", colorMix(in: .srgb, fill, (fillYellow, perc(16))))
+      "--background-color-yellow-subtle-active", colorMix(in: .srgb, fill, (fillYellow, perc(40))))
     customProperty("--border-color-yellow", glyphYellow)
     customProperty(
       "--border-color-yellow-hover", colorMix(in: .srgb, glyphYellow, (extreme, perc(10))))
@@ -867,11 +867,11 @@
       "--background-color-green-active", colorMix(in: .srgb, fillGreen, (extreme, perc(20))))
     customProperty("--background-color-green-focus", fillGreen)
     customProperty(
-      "--background-color-green-subtle", colorMix(in: .srgb, fill, (fillGreen, perc(8))))
+      "--background-color-green-subtle", colorMix(in: .srgb, fill, (fillGreen, perc(20))))
     customProperty(
-      "--background-color-green-subtle-hover", colorMix(in: .srgb, fill, (fillGreen, perc(12))))
+      "--background-color-green-subtle-hover", colorMix(in: .srgb, fill, (fillGreen, perc(30))))
     customProperty(
-      "--background-color-green-subtle-active", colorMix(in: .srgb, fill, (fillGreen, perc(16))))
+      "--background-color-green-subtle-active", colorMix(in: .srgb, fill, (fillGreen, perc(40))))
     customProperty("--border-color-green", glyphGreen)
     customProperty(
       "--border-color-green-hover", colorMix(in: .srgb, glyphGreen, (extreme, perc(10))))
@@ -895,11 +895,11 @@
     customProperty(
       "--background-color-mint-active", colorMix(in: .srgb, fillMint, (extreme, perc(20))))
     customProperty("--background-color-mint-focus", fillMint)
-    customProperty("--background-color-mint-subtle", colorMix(in: .srgb, fill, (fillMint, perc(8))))
+    customProperty("--background-color-mint-subtle", colorMix(in: .srgb, fill, (fillMint, perc(20))))
     customProperty(
-      "--background-color-mint-subtle-hover", colorMix(in: .srgb, fill, (fillMint, perc(12))))
+      "--background-color-mint-subtle-hover", colorMix(in: .srgb, fill, (fillMint, perc(30))))
     customProperty(
-      "--background-color-mint-subtle-active", colorMix(in: .srgb, fill, (fillMint, perc(16))))
+      "--background-color-mint-subtle-active", colorMix(in: .srgb, fill, (fillMint, perc(40))))
     customProperty("--border-color-mint", glyphMint)
     customProperty("--border-color-mint-hover", colorMix(in: .srgb, glyphMint, (extreme, perc(10))))
     customProperty(
@@ -922,11 +922,11 @@
     customProperty(
       "--background-color-teal-active", colorMix(in: .srgb, fillTeal, (extreme, perc(20))))
     customProperty("--background-color-teal-focus", fillTeal)
-    customProperty("--background-color-teal-subtle", colorMix(in: .srgb, fill, (fillTeal, perc(8))))
+    customProperty("--background-color-teal-subtle", colorMix(in: .srgb, fill, (fillTeal, perc(20))))
     customProperty(
-      "--background-color-teal-subtle-hover", colorMix(in: .srgb, fill, (fillTeal, perc(12))))
+      "--background-color-teal-subtle-hover", colorMix(in: .srgb, fill, (fillTeal, perc(30))))
     customProperty(
-      "--background-color-teal-subtle-active", colorMix(in: .srgb, fill, (fillTeal, perc(16))))
+      "--background-color-teal-subtle-active", colorMix(in: .srgb, fill, (fillTeal, perc(40))))
     customProperty("--border-color-teal", glyphTeal)
     customProperty("--border-color-teal-hover", colorMix(in: .srgb, glyphTeal, (extreme, perc(10))))
     customProperty(
@@ -949,11 +949,11 @@
     customProperty(
       "--background-color-cyan-active", colorMix(in: .srgb, fillCyan, (extreme, perc(20))))
     customProperty("--background-color-cyan-focus", fillCyan)
-    customProperty("--background-color-cyan-subtle", colorMix(in: .srgb, fill, (fillCyan, perc(8))))
+    customProperty("--background-color-cyan-subtle", colorMix(in: .srgb, fill, (fillCyan, perc(20))))
     customProperty(
-      "--background-color-cyan-subtle-hover", colorMix(in: .srgb, fill, (fillCyan, perc(12))))
+      "--background-color-cyan-subtle-hover", colorMix(in: .srgb, fill, (fillCyan, perc(30))))
     customProperty(
-      "--background-color-cyan-subtle-active", colorMix(in: .srgb, fill, (fillCyan, perc(16))))
+      "--background-color-cyan-subtle-active", colorMix(in: .srgb, fill, (fillCyan, perc(40))))
     customProperty("--border-color-cyan", glyphCyan)
     customProperty("--border-color-cyan-hover", colorMix(in: .srgb, glyphCyan, (extreme, perc(10))))
     customProperty(
@@ -976,11 +976,11 @@
     customProperty(
       "--background-color-blue-active", colorMix(in: .srgb, fillBlue, (extreme, perc(20))))
     customProperty("--background-color-blue-focus", fillBlue)
-    customProperty("--background-color-blue-subtle", colorMix(in: .srgb, fill, (fillBlue, perc(8))))
+    customProperty("--background-color-blue-subtle", colorMix(in: .srgb, fill, (fillBlue, perc(20))))
     customProperty(
-      "--background-color-blue-subtle-hover", colorMix(in: .srgb, fill, (fillBlue, perc(12))))
+      "--background-color-blue-subtle-hover", colorMix(in: .srgb, fill, (fillBlue, perc(30))))
     customProperty(
-      "--background-color-blue-subtle-active", colorMix(in: .srgb, fill, (fillBlue, perc(16))))
+      "--background-color-blue-subtle-active", colorMix(in: .srgb, fill, (fillBlue, perc(40))))
     customProperty("--border-color-blue", glyphBlue)
     customProperty("--border-color-blue-hover", colorMix(in: .srgb, glyphBlue, (extreme, perc(10))))
     customProperty(
@@ -1004,11 +1004,11 @@
       "--background-color-indigo-active", colorMix(in: .srgb, fillIndigo, (extreme, perc(20))))
     customProperty("--background-color-indigo-focus", fillIndigo)
     customProperty(
-      "--background-color-indigo-subtle", colorMix(in: .srgb, fill, (fillIndigo, perc(8))))
+      "--background-color-indigo-subtle", colorMix(in: .srgb, fill, (fillIndigo, perc(20))))
     customProperty(
-      "--background-color-indigo-subtle-hover", colorMix(in: .srgb, fill, (fillIndigo, perc(12))))
+      "--background-color-indigo-subtle-hover", colorMix(in: .srgb, fill, (fillIndigo, perc(30))))
     customProperty(
-      "--background-color-indigo-subtle-active", colorMix(in: .srgb, fill, (fillIndigo, perc(16))))
+      "--background-color-indigo-subtle-active", colorMix(in: .srgb, fill, (fillIndigo, perc(40))))
     customProperty("--border-color-indigo", glyphIndigo)
     customProperty(
       "--border-color-indigo-hover", colorMix(in: .srgb, glyphIndigo, (extreme, perc(10))))
@@ -1040,11 +1040,11 @@
       "--background-color-purple-active", colorMix(in: .srgb, fillPurple, (extreme, perc(20))))
     customProperty("--background-color-purple-focus", fillPurple)
     customProperty(
-      "--background-color-purple-subtle", colorMix(in: .srgb, fill, (fillPurple, perc(8))))
+      "--background-color-purple-subtle", colorMix(in: .srgb, fill, (fillPurple, perc(20))))
     customProperty(
-      "--background-color-purple-subtle-hover", colorMix(in: .srgb, fill, (fillPurple, perc(12))))
+      "--background-color-purple-subtle-hover", colorMix(in: .srgb, fill, (fillPurple, perc(30))))
     customProperty(
-      "--background-color-purple-subtle-active", colorMix(in: .srgb, fill, (fillPurple, perc(16))))
+      "--background-color-purple-subtle-active", colorMix(in: .srgb, fill, (fillPurple, perc(40))))
     customProperty("--border-color-purple", glyphPurple)
     customProperty(
       "--border-color-purple-hover", colorMix(in: .srgb, glyphPurple, (extreme, perc(10))))
@@ -1068,11 +1068,11 @@
     customProperty(
       "--background-color-pink-active", colorMix(in: .srgb, fillPink, (extreme, perc(20))))
     customProperty("--background-color-pink-focus", fillPink)
-    customProperty("--background-color-pink-subtle", colorMix(in: .srgb, fill, (fillPink, perc(8))))
+    customProperty("--background-color-pink-subtle", colorMix(in: .srgb, fill, (fillPink, perc(20))))
     customProperty(
-      "--background-color-pink-subtle-hover", colorMix(in: .srgb, fill, (fillPink, perc(12))))
+      "--background-color-pink-subtle-hover", colorMix(in: .srgb, fill, (fillPink, perc(30))))
     customProperty(
-      "--background-color-pink-subtle-active", colorMix(in: .srgb, fill, (fillPink, perc(16))))
+      "--background-color-pink-subtle-active", colorMix(in: .srgb, fill, (fillPink, perc(40))))
     customProperty("--border-color-pink", glyphPink)
     customProperty("--border-color-pink-hover", colorMix(in: .srgb, glyphPink, (extreme, perc(10))))
     customProperty(
@@ -1096,11 +1096,11 @@
       "--background-color-brown-active", colorMix(in: .srgb, fillBrown, (extreme, perc(20))))
     customProperty("--background-color-brown-focus", fillBrown)
     customProperty(
-      "--background-color-brown-subtle", colorMix(in: .srgb, fill, (fillBrown, perc(8))))
+      "--background-color-brown-subtle", colorMix(in: .srgb, fill, (fillBrown, perc(20))))
     customProperty(
-      "--background-color-brown-subtle-hover", colorMix(in: .srgb, fill, (fillBrown, perc(12))))
+      "--background-color-brown-subtle-hover", colorMix(in: .srgb, fill, (fillBrown, perc(30))))
     customProperty(
-      "--background-color-brown-subtle-active", colorMix(in: .srgb, fill, (fillBrown, perc(16))))
+      "--background-color-brown-subtle-active", colorMix(in: .srgb, fill, (fillBrown, perc(40))))
     customProperty("--border-color-brown", glyphBrown)
     customProperty(
       "--border-color-brown-hover", colorMix(in: .srgb, glyphBrown, (extreme, perc(10))))
@@ -1124,11 +1124,11 @@
     customProperty(
       "--background-color-gray-active", colorMix(in: .srgb, grayFill, (extreme, perc(20))))
     customProperty("--background-color-gray-focus", grayFill)
-    customProperty("--background-color-gray-subtle", colorMix(in: .srgb, fill, (grayFill, perc(8))))
+    customProperty("--background-color-gray-subtle", colorMix(in: .srgb, fill, (grayFill, perc(20))))
     customProperty(
-      "--background-color-gray-subtle-hover", colorMix(in: .srgb, fill, (grayFill, perc(12))))
+      "--background-color-gray-subtle-hover", colorMix(in: .srgb, fill, (grayFill, perc(30))))
     customProperty(
-      "--background-color-gray-subtle-active", colorMix(in: .srgb, fill, (grayFill, perc(16))))
+      "--background-color-gray-subtle-active", colorMix(in: .srgb, fill, (grayFill, perc(40))))
     customProperty("--border-color-gray", grayGlyph)
     customProperty("--border-color-gray-hover", colorMix(in: .srgb, grayGlyph, (extreme, perc(10))))
     customProperty(
