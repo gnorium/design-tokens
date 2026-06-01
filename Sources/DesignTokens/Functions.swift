@@ -12,7 +12,7 @@
 
   // MARK: - Typography Tokens
   @CSSBuilder
-  public func TypographyTokensCSS(config: TypographyConfig) -> [CSSRule] {
+  public func TypographyTokensCSS(config: TypographyConfig) -> [CSSOM.CSSRule] {
     customProperty("--typography-font-sans", config.fontSans)
     customProperty("--typography-font-sans-italic", config.fontSansItalic)
     customProperty("--typography-font-serif", config.fontSerif)
@@ -21,7 +21,7 @@
   }
 
   @CSSBuilder
-  public func ColorTokensCSS() -> [CSSRule] {
+  public func ColorTokensCSS() -> [CSSOM.CSSRule] {
     // Traffic Lights (macOS style)
     customProperty("--traffic-light-red", oklch(l: 0.6776, c: 0.1655, h: 23.38))
     customProperty("--traffic-light-yellow", oklch(l: 0.8509, c: 0.152, h: 91.79))
@@ -30,7 +30,7 @@
 
   // MARK: - Color Tokens - Light Mode
   @CSSBuilder
-  public func ColorTokensLightModeCSS() -> [CSSRule] {
+  public func ColorTokensLightModeCSS() -> [CSSOM.CSSRule] {
     colorScheme(.light).important()
 
     customProperty("--extreme", .black)
@@ -40,7 +40,7 @@
 
   // MARK: - Color Tokens - Dark Mode
   @CSSBuilder
-  public func ColorTokensDarkModeCSS() -> [CSSRule] {
+  public func ColorTokensDarkModeCSS() -> [CSSOM.CSSRule] {
     colorScheme(.dark).important()
 
     customProperty("--extreme", .white)
@@ -50,53 +50,53 @@
 
   // MARK: - Color Strategy Helpers
   /// Derive a solid fill color variant (hover/active/subtle) from a base color.
-  public func fillColor(from base: CSSColor, l: CSSValue? = nil, isSubtle: Bool = false) -> CSSColor {
-    let scale: CSSValue = fillCScale
-    let mult: CSSValue = fillCMult
+  public func fillColor(from base: CSS.Color, l: CSS.Value? = nil, isSubtle: Bool = false) -> CSS.Color {
+    let scale: CSS.Value = fillCScale
+    let mult: CSS.Value = fillCMult
     
-    let baseL: CSSValue = l ?? .custom("l")
-    let finalL = isSubtle ? CSSValue(calc(baseL + fillLOffset)) : baseL
-    let cScale = isSubtle ? CSSValue(calc(scale * mult)) : scale
+    let baseL: CSS.Value = l ?? .custom("l")
+    let finalL = isSubtle ? CSS.Value(calc(baseL + fillLOffset)) : baseL
+    let cScale = isSubtle ? CSS.Value(calc(scale * mult)) : scale
     
-    return WebTypes.oklch(from: base, l: finalL, c: CSSValue(calc(CSSValue.custom("c") * cScale)), h: .custom("h"))
+    return WebTypes.oklch(from: base, l: finalL, c: CSS.Value(calc(CSS.Value.custom("c") * cScale)), h: .custom("h"))
   }
 
-  public func fillColor(from base: CSSColor, l: Double, isSubtle: Bool = false) -> CSSColor {
-    fillColor(from: base, l: CSSValue(l), isSubtle: isSubtle)
+  public func fillColor(from base: CSS.Color, l: Double, isSubtle: Bool = false) -> CSS.Color {
+    fillColor(from: base, l: CSS.Value(l), isSubtle: isSubtle)
   }
 
   /// Derive a glyph variant (hover/active) by shifting the lightness of a base color.
-  public func glyphColor(from base: CSSColor, lShift: CSSValue? = nil) -> CSSColor {
-    let lValue: CSSValue = lShift != nil ? CSSValue(calc(CSSValue.custom("l") + lShift!)) : .custom("l")
+  public func glyphColor(from base: CSS.Color, lShift: CSS.Value? = nil) -> CSS.Color {
+    let lValue: CSS.Value = lShift != nil ? CSS.Value(calc(CSS.Value.custom("l") + lShift!)) : .custom("l")
     return oklch(from: base, l: lValue, c: .custom("c"), h: .custom("h"))
   }
 
-  public func glyphColor(from base: CSSColor, lShift: Double) -> CSSColor {
-    glyphColor(from: base, lShift: CSSValue(lShift))
+  public func glyphColor(from base: CSS.Color, lShift: Double) -> CSS.Color {
+    glyphColor(from: base, lShift: CSS.Value(lShift))
   }
 
   // MARK: - Parametric Fill Overloads
-  public func fillColor(l: CSSValue? = nil, c: CSSValue, h: CSSValue, isSubtle: Bool = false) -> CSSColor {
-    let baseL: CSSValue = l ?? fillL
-    let finalL = isSubtle ? CSSValue(calc(baseL + fillLOffset)) : baseL
+  public func fillColor(l: CSS.Value? = nil, c: CSS.Value, h: CSS.Value, isSubtle: Bool = false) -> CSS.Color {
+    let baseL: CSS.Value = l ?? fillL
+    let finalL = isSubtle ? CSS.Value(calc(baseL + fillLOffset)) : baseL
     
-    let scale: CSSValue = fillCScale
-    let mult: CSSValue = fillCMult
-    let cScale = isSubtle ? CSSValue(calc(scale * mult)) : scale
+    let scale: CSS.Value = fillCScale
+    let mult: CSS.Value = fillCMult
+    let cScale = isSubtle ? CSS.Value(calc(scale * mult)) : scale
     
-    return oklch(l: finalL, c: CSSValue(calc(c * cScale)), h: h)
+    return oklch(l: finalL, c: CSS.Value(calc(c * cScale)), h: h)
   }
 
-  public func fillColor(l: CSSValue? = nil, c: Double, h: Double, isSubtle: Bool = false) -> CSSColor {
-    fillColor(l: l, c: CSSValue(c), h: CSSValue("\(h)"), isSubtle: isSubtle)
+  public func fillColor(l: CSS.Value? = nil, c: Double, h: Double, isSubtle: Bool = false) -> CSS.Color {
+    fillColor(l: l, c: CSS.Value(c), h: CSS.Value("\(h)"), isSubtle: isSubtle)
   }
 
-  public func fillColor(l: CSSValue? = nil, c: Double, h: CSSValue, isSubtle: Bool = false) -> CSSColor {
-    fillColor(l: l, c: CSSValue(c), h: h, isSubtle: isSubtle)
+  public func fillColor(l: CSS.Value? = nil, c: Double, h: CSS.Value, isSubtle: Bool = false) -> CSS.Color {
+    fillColor(l: l, c: CSS.Value(c), h: h, isSubtle: isSubtle)
   }
 
-  public func fillColor(l: Percentage, c: Double, h: CSSValue, isSubtle: Bool = false) -> CSSColor {
-    fillColor(l: CSSValue(l), c: CSSValue(c), h: h, isSubtle: isSubtle)
+  public func fillColor(l: CSS.Percentage, c: Double, h: CSS.Value, isSubtle: Bool = false) -> CSS.Color {
+    fillColor(l: CSS.Value(l), c: CSS.Value(c), h: h, isSubtle: isSubtle)
   }
 
   /// Convert OKLCH to linear sRGB.
@@ -154,7 +154,7 @@
   }
 
   @CSSBuilder
-  public func SourceTokensLightModeLessContrastCSS() -> [CSSRule] {
+  public func SourceTokensLightModeLessContrastCSS() -> [CSSOM.CSSRule] {
     // Fill (surface hierarchy)
     customProperty("--fill", .white)
     customProperty("--fill-alpha", rgba(120, 120, 128, 0.2))
@@ -274,7 +274,7 @@
     customProperty("--fill-brown", oklch(l: lightnessBrown, c: chromaBrown, h: hueBrown))
 
     customProperty("--gray-glyph", oklch(l: lightnessGray, c: chromaGray, h: hueGray))
-    customProperty("--gray-fill", oklch(l: CSSValue(calc(lightnessGray + 0.1)), c: chromaGray, h: hueGray))
+    customProperty("--gray-fill", oklch(l: CSS.Value(calc(lightnessGray + 0.1)), c: chromaGray, h: hueGray))
 
     // MARK: - Apple HIG Syntax Tokens (Light Mode)
     customProperty("--color-syntax-addition", glyphGreen)
@@ -310,7 +310,7 @@
   }
 
   @CSSBuilder
-  public func SourceTokensLightModeMoreContrastCSS() -> [CSSRule] {
+  public func SourceTokensLightModeMoreContrastCSS() -> [CSSOM.CSSRule] {
     // Fill (surface hierarchy — increased contrast)
     customProperty("--fill", .white)
     customProperty("--fill-alpha", rgba(120, 120, 128, 0.24))
@@ -428,11 +428,11 @@
     customProperty("--fill-brown", oklch(l: lightnessBrown, c: chromaBrown, h: hueBrown))
 
     customProperty("--gray-glyph", oklch(l: lightnessGray, c: chromaGray, h: hueGray))
-    customProperty("--gray-fill", oklch(l: CSSValue(calc(lightnessGray + 0.1)), c: chromaGray, h: hueGray))
+    customProperty("--gray-fill", oklch(l: CSS.Value(calc(lightnessGray + 0.1)), c: chromaGray, h: hueGray))
   }
 
   @CSSBuilder
-  public func SourceTokensDarkModeLessContrastCSS() -> [CSSRule] {
+  public func SourceTokensDarkModeLessContrastCSS() -> [CSSOM.CSSRule] {
     // Fill (surface hierarchy)
     customProperty("--fill", .black)
     customProperty("--fill-alpha", rgba(182, 182, 182, 0.3))
@@ -561,7 +561,7 @@
     customProperty("--fill-brown", oklch(l: lightnessBrown, c: chromaBrown, h: hueBrown))
 
     customProperty("--gray-glyph", oklch(l: lightnessGray, c: chromaGray, h: hueGray))
-    customProperty("--gray-fill", oklch(l: CSSValue(calc(lightnessGray - 0.1)), c: chromaGray, h: hueGray))
+    customProperty("--gray-fill", oklch(l: CSS.Value(calc(lightnessGray - 0.1)), c: chromaGray, h: hueGray))
 
     // MARK: - Apple HIG Syntax Tokens (Dark Mode)
     customProperty("--color-syntax-attributes", hex(0xCC9768))
@@ -595,7 +595,7 @@
   }
 
   @CSSBuilder
-  public func SourceTokensDarkModeMoreContrastCSS() -> [CSSRule] {
+  public func SourceTokensDarkModeMoreContrastCSS() -> [CSSOM.CSSRule] {
     // Fill (surface hierarchy — increased contrast)
     customProperty("--fill", .black)
     customProperty("--fill-alpha", rgba(182, 182, 182, 0.34))
@@ -722,7 +722,7 @@
     customProperty("--fill-brown", oklch(l: lightnessBrown, c: chromaBrown, h: hueBrown))
 
     customProperty("--gray-glyph", oklch(l: lightnessGray, c: chromaGray, h: hueGray))
-    customProperty("--gray-fill", oklch(l: CSSValue(calc(lightnessGray - 0.1)), c: chromaGray, h: hueGray))
+    customProperty("--gray-fill", oklch(l: CSS.Value(calc(lightnessGray - 0.1)), c: chromaGray, h: hueGray))
   }
 
   // MARK: - Unified Applied Tokens
@@ -733,7 +733,7 @@
   // Interactive hover/active: `borderInteractive`. Shadows: `shadowAlpha`.
   // Backdrops: `backdropLight`/`backdropDark`.
   @CSSBuilder
-  public func AppliedTokensCSS() -> [CSSRule] {
+  public func AppliedTokensCSS() -> [CSSOM.CSSRule] {
     // MARK: Text / Foreground
     customProperty("--color-base", glyphGray)
     customProperty("--color-base-fixed", glyphGrayFixed)
@@ -753,7 +753,7 @@
     customProperty("--opacity-transparent", 0)
     customProperty("--filter-invert-icon", 0)
     customProperty("--filter-invert-primary-button-icon", 1)
-    customProperty("--background-position-base", CSSBackgroundPosition.center)
+    customProperty("--background-position-base", CSS.BackgroundPosition.center)
     customProperty("--background-size-search-figure", .cover)
     customProperty("--z-index-bottom", -100)
     customProperty("--z-index-base", 0)
@@ -809,14 +809,14 @@
     customProperty("--size-full", perc(100))
     customProperty("--size-double", perc(200))
     customProperty("--size-search-figure", rem(2.5))
-    customProperty("--max-width-base", CSSKeyword.None.none)
+    customProperty("--max-width-base", CSS.Keyword.None.none)
     customProperty("--max-width-breakpoint-phone-narrow", px(479))  // NEW
     customProperty("--max-width-breakpoint-mobile", px(768))
     customProperty("--max-width-breakpoint-tablet", px(1024))
     customProperty("--max-width-breakpoint-desktop", px(1279))
     customProperty("--max-width-button", rem(28))
-    customProperty("--border-style-base", CSSBorder.LineStyle.solid)
-    customProperty("--border-style-dashed", CSSBorder.LineStyle.dashed)
+    customProperty("--border-style-base", CSS.Border.LineStyle.solid)
+    customProperty("--border-style-dashed", CSS.Border.LineStyle.dashed)
     customProperty("--box-shadow-inset-small", (.inset, 0, 0, 0, px(1)))
     customProperty("--box-shadow-inset-medium", (.inset, 0, 0, 0, px(2)))
     customProperty("--box-shadow-inset-medium-vertical", (.inset, 0, -2, 0, 0))
@@ -832,36 +832,36 @@
     customProperty("--box-shadow-color-inverted", extremeInverted)
     customProperty("--box-shadow-color-alpha-base", shadowAlpha)
     customProperty("--box-shadow-color-transparent", .transparent)
-    customProperty("--font-family-base", CSSFontFamily.GenericFamily.GenericComplete.sansSerif)
+    customProperty("--font-family-base", CSS.FontFamily.GenericFamily.GenericComplete.sansSerif)
     customProperty(
       "--font-family-system-sans",
       (
         "\"-apple-system\"", "\"BlinkMacSystemFont\"", "\"Segoe UI\"", "\"Roboto\"", "\"Inter\"",
-        "\"Helvetica\"", "\"Arial\"", CSSFontFamily.GenericFamily.GenericComplete.sansSerif
+        "\"Helvetica\"", "\"Arial\"", CSS.FontFamily.GenericFamily.GenericComplete.sansSerif
       ))
     customProperty(
-      "--font-family-sans--fallback", CSSFontFamily.GenericFamily.GenericComplete.sansSerif)
+      "--font-family-sans--fallback", CSS.FontFamily.GenericFamily.GenericComplete.sansSerif)
     customProperty(
       "--font-family-serif",
       (
         "\"Linux Libertine\"", "\"Georgia\"", "\"Times\"", "\"Source Serif 4\"",
-        CSSFontFamily.GenericFamily.GenericComplete.serif
+        CSS.FontFamily.GenericFamily.GenericComplete.serif
       ))
     customProperty(
-      "--font-family-serif--fallback", CSSFontFamily.GenericFamily.GenericComplete.serif)
+      "--font-family-serif--fallback", CSS.FontFamily.GenericFamily.GenericComplete.serif)
     customProperty(
       "--font-family-monospace",
       (
         "\"Menlo\"", "\"Consolas\"", "\"Liberation Mono\"", "\"Fira Code\"", "\"Courier New\"",
-        CSSFontFamily.GenericFamily.GenericComplete.monospace
+        CSS.FontFamily.GenericFamily.GenericComplete.monospace
       ))
     customProperty(
-      "--font-family-monospace--fallback", CSSFontFamily.GenericFamily.GenericComplete.monospace)
+      "--font-family-monospace--fallback", CSS.FontFamily.GenericFamily.GenericComplete.monospace)
     customProperty(
       "--font-family-heading-main",
       (
         "\"Linux Libertine\"", "\"Georgia\"", "\"Times\"", "\"Source Serif 4\"",
-        CSSFontFamily.GenericFamily.GenericComplete.monospace
+        CSS.FontFamily.GenericFamily.GenericComplete.monospace
       ))
     customProperty("--font-size-x-small-12", rem(0.75))
     customProperty("--font-size-small-14", rem(0.875))
@@ -883,7 +883,7 @@
     customProperty("--line-height-xx-large-34", rem(2.125))
     customProperty("--line-height-xxx-large-38", rem(2.375))
     customProperty("--line-height-content", 1.625)
-    customProperty("--text-decoration-none", CSSKeyword.None.none)
+    customProperty("--text-decoration-none", CSS.Keyword.None.none)
     customProperty("--text-decoration-line-through", .lineThrough)
     customProperty("--text-decoration-underline", .underline)
     customProperty("--text-overflow-clip", .clip)
@@ -897,7 +897,7 @@
     customProperty(
       "--transition-property-base", (.backgroundColor, .color, .borderColor, .boxShadow))
     customProperty("--transition-property-fade", .opacity)
-    customProperty("--transition-property-icon", CSSSingleTransitionProperty.color)
+    customProperty("--transition-property-icon", CSS.SingleTransitionProperty.color)
     customProperty("--transition-property-icon-css-only", .backgroundColor)
     customProperty(
       "--transition-property-toggle-switch-grip", (.backgroundColor, .borderColor, .transform))
