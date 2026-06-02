@@ -184,9 +184,13 @@
     customProperty("--glyph-gray-secondary-alt-alpha", rgba(0, 0, 0, 0.72))
     customProperty("--glyph-gray-tertiary", oklch(0.60, 0.005, 260))
     customProperty("--glyph-gray-tertiary-alpha", rgba(0, 0, 0, 0.48))
+    customProperty("--glyph-gray-quaternary", oklch(0.68, 0.005, 260))
+    customProperty("--glyph-gray-quaternary-alpha", rgba(0, 0, 0, 0.36))
 
     // Semantic bridge for unified applied function
-    customProperty("--border-neutral", oklch(0.86, 0.005, 260))
+    customProperty("--border", oklch(0.86, 0.005, 260))
+    customProperty("--border-secondary", oklch(0.91, 0.003, 260))
+    customProperty("--border-muted", oklch(0.95, 0.002, 260))
     customProperty("--border-emphasis", oklch(0.20, 0.003, 260))
     customProperty("--border-interactive", oklch(0.20, 0.003, 260))
     customProperty("--shadow-alpha", rgba(0, 0, 0, 0.06))
@@ -340,9 +344,13 @@
     customProperty("--glyph-gray-secondary-alt-alpha", rgba(0, 0, 0, 0.8))
     customProperty("--glyph-gray-tertiary", oklch(0.50, 0.006, 260))
     customProperty("--glyph-gray-tertiary-alpha", rgba(0, 0, 0, 0.56))
+    customProperty("--glyph-gray-quaternary", oklch(0.60, 0.006, 260))
+    customProperty("--glyph-gray-quaternary-alpha", rgba(0, 0, 0, 0.44))
 
     // Semantic bridge for unified applied function
-    customProperty("--border-neutral", oklch(0.80, 0.006, 260))
+    customProperty("--border", oklch(0.80, 0.006, 260))
+    customProperty("--border-secondary", oklch(0.86, 0.005, 260))
+    customProperty("--border-muted", oklch(0.92, 0.003, 260))
     customProperty("--border-emphasis", oklch(0.12, 0.004, 260))
     customProperty("--border-interactive", oklch(0.12, 0.004, 260))
     customProperty("--shadow-alpha", rgba(0, 0, 0, 0.08))
@@ -463,6 +471,8 @@
     customProperty("--glyph-gray-secondary-alt-alpha", rgba(255, 255, 255, 0.8))
     customProperty("--glyph-gray-tertiary", oklch(0.50, 0.005, 260))
     customProperty("--glyph-gray-tertiary-alpha", rgba(255, 255, 255, 0.4))
+    customProperty("--glyph-gray-quaternary", oklch(0.40, 0.005, 260))
+    customProperty("--glyph-gray-quaternary-alpha", rgba(255, 255, 255, 0.28))
 
     // Background Layers
     customProperty("--background-primary", oklch(0.17, 0.003, 260))
@@ -473,7 +483,9 @@
     customProperty("--separator", oklch(0.28, 0.004, 260))
 
     // Semantic bridge for unified applied function
-    customProperty("--border-neutral", oklch(0.50, 0.005, 260))
+    customProperty("--border", oklch(0.50, 0.005, 260))
+    customProperty("--border-secondary", oklch(0.33, 0.004, 260))
+    customProperty("--border-muted", oklch(0.17, 0.003, 260))
     customProperty("--border-emphasis", oklch(0.96, 0.003, 260))
     customProperty("--border-interactive", oklch(0.62, 0.005, 260))
     customProperty("--shadow-alpha", rgba(0, 0, 0, 0.87))
@@ -626,6 +638,8 @@
     customProperty("--glyph-gray-secondary-alt-alpha", rgba(255, 255, 255, 0.86))
     customProperty("--glyph-gray-tertiary", oklch(0.58, 0.006, 260))
     customProperty("--glyph-gray-tertiary-alpha", rgba(255, 255, 255, 0.48))
+    customProperty("--glyph-gray-quaternary", oklch(0.46, 0.005, 260))
+    customProperty("--glyph-gray-quaternary-alpha", rgba(255, 255, 255, 0.36))
 
     // Background Layers
     customProperty("--background-primary", oklch(0.17, 0.003, 260))
@@ -636,7 +650,9 @@
     customProperty("--separator", oklch(0.28, 0.004, 260))
 
     // Semantic bridge for unified applied function
-    customProperty("--border-neutral", oklch(0.58, 0.006, 260))
+    customProperty("--border", oklch(0.58, 0.006, 260))
+    customProperty("--border-secondary", oklch(0.39, 0.005, 260))
+    customProperty("--border-muted", oklch(0.20, 0.004, 260))
     customProperty("--border-emphasis", oklch(0.98, 0.002, 260))
     customProperty("--border-interactive", oklch(0.70, 0.005, 260))
     customProperty("--shadow-alpha", rgba(0, 0, 0, 0.90))
@@ -729,7 +745,7 @@
   // Single function for all modes. Source tokens + semantic bridge handle light/dark/contrast differences.
   // Hover/active direction: `extreme` (black in light, white in dark).
   // Inverted: `extremeInverted` (white in light, black in dark).
-  // Neutral borders/disabled: `borderNeutral`. Emphasized: `borderEmphasis`.
+  // Neutral borders/disabled: `border`. Emphasized: `borderEmphasis`.
   // Interactive hover/active: `borderInteractive`. Shadows: `shadowAlpha`.
   // Backdrops: `backdropLight`/`backdropDark`.
   @CSSBuilder
@@ -741,8 +757,8 @@
     customProperty("--color-emphasized", glyph)
     customProperty("--color-subtle", glyphGraySecondary)
     customProperty("--color-placeholder", glyphGrayTertiary)
-    customProperty("--color-disabled", borderNeutral)
-    customProperty("--color-disabled-emphasized", borderNeutral)
+    customProperty("--color-disabled", glyphGrayQuaternary)
+    customProperty("--color-disabled-emphasized", glyphGrayQuaternary)
     customProperty("--color-inverted", fill)
     customProperty("--color-inverted-fixed", .white)
     customProperty("--color-content-added", glyphGreen)
@@ -828,7 +844,7 @@
     customProperty("--box-shadow-outset-medium-around", (0, 0, px(8), 0))
     customProperty("--box-shadow-outset-large-below", (0, px(4), px(8), 0))
     customProperty("--box-shadow-outset-large-around", (0, 0, px(16), 0))
-    customProperty("--box-shadow-color-base", borderNeutral)
+    customProperty("--box-shadow-color-base", border)
     customProperty("--box-shadow-color-inverted", extremeInverted)
     customProperty("--box-shadow-color-alpha-base", shadowAlpha)
     customProperty("--box-shadow-color-transparent", .transparent)
@@ -930,15 +946,17 @@
     // MARK: Background Colors
     customProperty("--background-color-base", fill)
     customProperty("--background-color-base-fixed", .white)
+    customProperty("--background-color-base-hover", fillSecondary)
+    customProperty("--background-color-base-active", fillTertiary)
     customProperty("--background-color-neutral", fillTertiary)
     customProperty("--background-color-neutral-subtle", fillSecondary)
     customProperty("--background-color-interactive", fillTertiary)
-    customProperty("--background-color-interactive-hover", fillGrayTertiary)
-    customProperty("--background-color-interactive-active", fillGraySecondary)
+    customProperty("--background-color-interactive-hover", fillGrayQuaternary)
+    customProperty("--background-color-interactive-active", fillGrayTertiary)
     customProperty("--background-color-interactive-subtle", fillSecondary)
     customProperty("--background-color-interactive-subtle-hover", fillTertiary)
-    customProperty("--background-color-interactive-subtle-active", fillGrayTertiary)
-    customProperty("--background-color-disabled", fillGrayTertiary)
+    customProperty("--background-color-interactive-subtle-active", fillGrayQuaternary)
+    customProperty("--background-color-disabled", fillGrayQuaternary)
     customProperty("--background-color-disabled-subtle", fillTertiary)
     customProperty("--background-color-inverted", glyph)
     customProperty("--background-color-content-added", fillColor(c: 0.1944, h: hueGreen, isSubtle: true))
@@ -994,22 +1012,24 @@
     customProperty("--border-width-thick", px(2))
     customProperty("--border-width-input-radio-checked", px(6))
     // MARK: Border Colors
-    customProperty("--border-color-base", borderNeutral)
+    customProperty("--border-color-base", border)
+    customProperty("--border-color-base-hover", glyphColor(from: borderColorBase, lShift: glyphLHoverOffset))
+    customProperty("--border-color-base-active", glyphColor(from: borderColorBase, lShift: glyphLActiveOffset))
     customProperty("--border-color-emphasized", borderEmphasis)
-    customProperty("--border-color-subtle", borderNeutral)
-    customProperty("--border-color-muted", borderNeutral)
-    customProperty("--border-color-interactive", glyphGrayTertiary)
-    customProperty("--border-color-interactive-hover", borderInteractive)
-    customProperty("--border-color-interactive-active", borderInteractive)
-    customProperty("--border-color-disabled", borderNeutral)
+    customProperty("--border-color-subtle", borderSecondary)
+    customProperty("--border-color-muted", borderMuted)
+    customProperty("--border-color-interactive", borderInteractive)
+    customProperty("--border-color-interactive-hover", glyphColor(from: borderColorInteractive, lShift: glyphLHoverOffset))
+    customProperty("--border-color-interactive-active", glyphColor(from: borderColorInteractive, lShift: glyphLActiveOffset))
+    customProperty("--border-color-disabled", borderMuted)
     customProperty("--border-color-inverted", fill)
     customProperty("--border-color-inverted-fixed", .white)
     customProperty("--border-color-content-added", glyphGreen)
     customProperty("--border-color-content-removed", glyphRed)
     customProperty("--border-color-transparent", .transparent)
-    customProperty("--border-color-divider", borderNeutral)
-    customProperty("--border-radius-minimal", px(2))  // NEW
-    customProperty("--border-radius-base", px(8))
+    customProperty("--border-color-divider", borderMuted)
+    customProperty("--border-radius-minimal", px(4))  // NEW
+    customProperty("--border-radius-base", px(16))
     customProperty("--border-radius-sharp", 0)
     customProperty("--border-radius-pill", px(9999))
     customProperty("--border-radius-circle", perc(50))
@@ -1065,9 +1085,9 @@
     customProperty("--spacing-toggle-switch-grip-start", calc(fontSizeMedium16 * 0.375))
     customProperty("--spacing-toggle-switch-grip-end", calc(fontSizeMedium16 * 1.25))
     customProperty("--border-color-input-hover", borderColorInteractive)
-    customProperty("--border-color-input-binary", borderColorInteractive)
-    customProperty("--border-color-input-binary-hover", borderColorInteractiveHover)
-    customProperty("--border-color-input-binary-active", borderColorInteractiveActive)
+    customProperty("--border-color-input-binary", borderColorBase)
+    customProperty("--border-color-input-binary-hover", borderColorBaseHover)
+    customProperty("--border-color-input-binary-active", borderColorBaseActive)
     customProperty("--border-color-input-binary-focus", borderColorBlue)
     customProperty("--border-color-input-binary-checked", borderColorBlue)
     customProperty("--border-color-input-binary-checked-hover", borderColorBlueHover)
