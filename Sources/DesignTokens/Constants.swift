@@ -146,9 +146,9 @@ public let colorBaseFixed: CSS.Color = `var`("--color-base-fixed")
 public let colorBaseHover: CSS.Color = `var`("--color-base-hover")
 public let colorEmphasized: CSS.Color = `var`("--color-emphasized")
 public let colorSubtle: CSS.Color = `var`("--color-subtle")
-public let colorPlaceholder: CSS.Color = `var`("--color-placeholder")
 public let colorDisabled: CSS.Color = `var`("--color-disabled")
 public let colorDisabledEmphasized: CSS.Color = `var`("--color-disabled-emphasized")
+public let colorPlaceholder: CSS.Color = `var`("--color-placeholder")
 public let colorInverted: CSS.Color = `var`("--color-inverted")
 public let colorInvertedFixed: CSS.Color = `var`("--color-inverted-fixed")
 
@@ -386,7 +386,6 @@ public let animationIterationCountBase: CSS.Number = `var`("--animation-iteratio
 
 // MARK: - Applied: Cursors & Blend Modes
 public let cursorBase: CSS.Cursor = `var`("--cursor-base")
-public let cursorBaseDisabled: CSS.Cursor = `var`("--cursor-base-disabled")
 public let cursorBaseHover: CSS.Cursor = `var`("--cursor-base-hover")
 public let cursorGrab: CSS.Cursor = `var`("--cursor-grab")
 public let cursorGrabbing: CSS.Cursor = `var`("--cursor-grabbing")
