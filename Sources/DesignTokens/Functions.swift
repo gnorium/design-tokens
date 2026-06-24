@@ -765,7 +765,7 @@
     customProperty("--color-content-removed", glyphRed)
     customProperty("--opacity-base", 1)
     customProperty("--opacity-medium", 0.65)
-    customProperty("--opacity-low", 0.3)
+    customProperty("--opacity-low", 0.2)
     customProperty("--opacity-transparent", 0)
     customProperty("--filter-invert-icon", 0)
     customProperty("--filter-invert-primary-button-icon", 1)
