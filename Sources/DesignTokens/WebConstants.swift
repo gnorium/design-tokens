@@ -144,6 +144,7 @@ public let separator: CSS.Color = `var`("--separator")
 public let colorBase: CSS.Color = `var`("--color-base")
 public let colorBaseFixed: CSS.Color = `var`("--color-base-fixed")
 public let colorBaseHover: CSS.Color = `var`("--color-base-hover")
+public let colorBaseActive: CSS.Color = `var`("--color-base-active")
 public let colorEmphasized: CSS.Color = `var`("--color-emphasized")
 public let colorSubtle: CSS.Color = `var`("--color-subtle")
 public let colorDisabled: CSS.Color = `var`("--color-disabled")
@@ -353,10 +354,10 @@ public let textOverflowEllipsis: CSS.TextOverflow = `var`("--text-overflow-ellip
 public let tabSizeBase: CSS.Number = `var`("--tab-size-base")
 public let transformCheckboxTickChecked: CSS.TransformFunction = `var`(
   "--transform-checkbox-tick-checked")
-public let transformProgressIndicatorSpinnerStart: CSS.TransformFunction = `var`(
-  "--transform-progress-indicator-spinner-start")
-public let transformProgressIndicatorSpinnerEnd: CSS.TransformFunction = `var`(
-  "--transform-progress-indicator-spinner-end")
+public let transformRotatingSectorStart: CSS.TransformFunction = `var`(
+  "--transform-rotating-sector-start")
+public let transformRotatingSectorEnd: CSS.TransformFunction = `var`(
+  "--transform-rotating-sector-end")
 public let transitionDurationBase: CSS.Time = `var`("--transition-duration-base")
 public let transitionDurationMedium: CSS.Time = `var`("--transition-duration-medium")
 public let transitionPropertyBase: CSS.SingleTransitionProperty = `var`("--transition-property-base")
