@@ -976,7 +976,7 @@
     customProperty("--opacity-icon-placeholder", 0.51)
     customProperty("--opacity-icon-subtle", 0.67)
     customProperty("--min-size-interactive-pointer", px(32))
-    customProperty("--min-size-interactive-touch", px(44))
+    customProperty("--min-size-interactive-touch", px(40))
     customProperty("--min-size-search-figure", px(40))
     customProperty("--min-size-icon-x-small", px(10))
     customProperty("--min-size-icon-small", px(14))
