@@ -320,6 +320,7 @@ public let boxShadowColorTransparent: CSS.Color = `var`("--box-shadow-color-tran
 // MARK: - Applied: Typography
 public let fontFamilyBase: CSS.FontFamily = `var`("--font-family-base")
 public let fontFamilySystemSans: CSS.FontFamily = `var`("--font-family-system-sans")
+public let fontFamilyEmoji: CSS.FontFamily = `var`("--font-family-emoji")
 public let fontFamilySansFallback: CSS.FontFamily = `var`("--font-family-sans--fallback")
 public let fontFamilySerif: CSS.FontFamily = `var`("--font-family-serif")
 public let fontFamilySerifFallback: CSS.FontFamily = `var`("--font-family-serif--fallback")

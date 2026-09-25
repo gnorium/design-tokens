@@ -858,6 +858,15 @@
       ))
     customProperty(
       "--font-family-sans--fallback", CSS.FontFamily.GenericFamily.GenericComplete.sansSerif)
+    // Emoji in colour wherever they sit: a text stack that carries symbol
+    // fonts (Noto Sans Symbols 2 has a black-and-white 👍) would otherwise
+    // draw them as outlines.
+    customProperty(
+      "--font-family-emoji",
+      (
+        "\"Apple Color Emoji\"", "\"Segoe UI Emoji\"", "\"Noto Color Emoji\"",
+        CSS.FontFamily.GenericFamily.GenericComplete.sansSerif
+      ))
     customProperty(
       "--font-family-serif",
       (
