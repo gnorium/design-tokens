@@ -900,7 +900,6 @@
     customProperty("--font-weight-light", 300)
     customProperty("--font-weight-normal", 400)
     customProperty("--font-weight-semi-bold", 600)
-    customProperty("--font-weight-bold", 700)
     customProperty("--line-height-x-small-20", rem(1.25))
     customProperty("--line-height-small-22", rem(1.375))
     customProperty("--line-height-medium-26", rem(1.625))
