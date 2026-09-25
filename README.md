@@ -98,3 +98,4 @@ Apache License 2.0 - See [LICENSE](LICENSE) for details
 - [web-security](https://github.com/gnorium/web-security) - Portable security utilities for web applications
 - [web-tests](https://github.com/gnorium/web-tests) - Swift browser testing across Chrome and Safari
 - [web-types](https://github.com/gnorium/web-types) - Shared web types for web applications
+- [xml-utilities](https://github.com/gnorium/xml-utilities) - XML and TEI rendering utilities
