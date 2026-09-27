@@ -1066,6 +1066,7 @@
     customProperty("--size-icon-small", fontSizeMedium16)
     customProperty("--size-icon-medium", calc(fontSizeMedium16 + px(4)))
     customProperty("--size-toggle-switch-grip", calc(fontSizeMedium16 * 1.25))
+    customProperty("--size-edge-fade", em(2))
     customProperty("--box-shadow-small", (boxShadowOutsetSmall, boxShadowColorBase))
     customProperty("--box-shadow-small-top", (boxShadowOutsetSmallTop, boxShadowColorBase))
     customProperty("--box-shadow-small-bottom", (boxShadowOutsetSmallBottom, boxShadowColorBase))

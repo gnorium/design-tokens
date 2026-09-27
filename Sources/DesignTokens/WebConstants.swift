@@ -763,6 +763,11 @@ public let sizeIconSmall: CSS.Length = `var`("--size-icon-small")
 public let sizeIconMedium: CSS.Length = `var`("--size-icon-medium")
 public let sizeToggleSwitchGrip: CSS.Length = `var`("--size-toggle-switch-grip")
 
+// MARK: - Applied: Edge Fade
+/// How far a clipped line fades out before its edge — the reading-direction
+/// end of a value too long for its box. In `em`, so it scales with the text.
+public let sizeEdgeFade: CSS.Length = `var`("--size-edge-fade")
+
 // MARK: - Applied: Box Shadows
 public let boxShadowSmall: CSS.SpreadShadow = `var`("--box-shadow-small")
 public let boxShadowSmallTop: CSS.SpreadShadow = `var`("--box-shadow-small-top")
