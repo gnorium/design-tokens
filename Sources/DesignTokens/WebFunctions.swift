@@ -858,7 +858,7 @@
       ))
     customProperty(
       "--font-family-sans--fallback", CSS.FontFamily.GenericFamily.GenericComplete.sansSerif)
-    // Emoji in colour wherever they sit: a text stack that carries symbol
+    // Emoji in color wherever they sit: a text stack that carries symbol
     // fonts (Noto Sans Symbols 2 has a black-and-white 👍) would otherwise
     // draw them as outlines.
     customProperty(
