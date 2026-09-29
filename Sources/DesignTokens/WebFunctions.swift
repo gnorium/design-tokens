@@ -994,6 +994,7 @@
     customProperty("--min-size-input-chip-clear-button", px(20))
     customProperty("--min-size-toggle-switch-grip", px(18))
     customProperty("--min-width-medium", px(256))
+    customProperty("--min-width-tree-node", rem(14))
     customProperty("--min-width-breakpoint-mobile", px(480))
     customProperty("--min-width-breakpoint-tablet", px(769))
     customProperty("--min-width-breakpoint-desktop", px(1025))

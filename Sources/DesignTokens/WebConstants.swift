@@ -581,6 +581,15 @@ public let minSizeInputBinary: CSS.Length = `var`("--min-size-input-binary")
 public let minSizeInputChipClearButton: CSS.Length = `var`("--min-size-input-chip-clear-button")
 public let minSizeToggleSwitchGrip: CSS.Length = `var`("--min-size-toggle-switch-grip")
 public let minWidthMedium: CSS.Length = `var`("--min-width-medium")
+/// The narrowest a node of a tree is drawn, however deep it sits: an
+/// indented tree gives each level a step of its width, and past this the
+/// tree scrolls sideways instead of squeezing the node. 14rem (224px): on a
+/// 375px phone the record column's tree is 329px wide inside its scrollport,
+/// and a node at depth 4 stands behind three levels and its own toggle
+/// (4 × 24px), leaving it 233px, so depth 4 still fits without scrolling
+/// and depth 5 scrolls; about 32 characters of 14px text a line. In rem, so
+/// it grows with the reader's text size.
+public let minWidthTreeNode: CSS.Length = `var`("--min-width-tree-node")
 // Breakpoints use raw px() values, not CSSContent variables — media queries don't support var()
 public let minWidthBreakpointMobile: CSS.Length = px(480)
 public let minWidthBreakpointTablet: CSS.Length = px(769)
