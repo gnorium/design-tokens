@@ -58,7 +58,7 @@ public let hueBrown: CSS.Value = `var`("--hue-brown")
 public let hueGray: CSS.Value = `var`("--hue-gray")
 
 // MARK: - Source: Hue Colors (glyph = foreground, fill = background)
-// Pattern: {tier}{Hue} — e.g. glyphRed, fillIndigo (gray remains grayGlyph/grayFill to avoid collision)
+// Pattern: {tier}{Hue}—e.g. glyphRed, fillIndigo (gray remains grayGlyph/grayFill to avoid collision)
 public let glyphRed: CSS.Color = `var`("--glyph-red")
 public let fillRed: CSS.Color = `var`("--fill-red")
 public let glyphOrange: CSS.Color = `var`("--glyph-orange")
@@ -290,7 +290,7 @@ public let sizeFull: CSS.Percentage = `var`("--size-full")
 public let sizeDouble: CSS.Percentage = `var`("--size-double")
 public let sizeSearchFigure: CSS.Length = `var`("--size-search-figure")
 public let maxWidthBase: CSS.Length = `var`("--max-width-base")
-// Breakpoints use raw px() values, not CSSContent variables — media queries don't support var()
+// Breakpoints use raw px() values, not CSSContent variables—media queries don't support var()
 public let maxWidthBreakpointPhoneNarrow: CSS.Length = px(479)  // NEW
 public let maxWidthBreakpointMobile: CSS.Length = px(768)
 public let maxWidthBreakpointTablet: CSS.Length = px(1024)
@@ -590,7 +590,7 @@ public let minWidthMedium: CSS.Length = `var`("--min-width-medium")
 /// and depth 5 scrolls; about 32 characters of 14px text a line. In rem, so
 /// it grows with the reader's text size.
 public let minWidthTreeNode: CSS.Length = `var`("--min-width-tree-node")
-// Breakpoints use raw px() values, not CSSContent variables — media queries don't support var()
+// Breakpoints use raw px() values, not CSSContent variables—media queries don't support var()
 public let minWidthBreakpointMobile: CSS.Length = px(480)
 public let minWidthBreakpointTablet: CSS.Length = px(769)
 public let minWidthBreakpointDesktop: CSS.Length = px(1025)
@@ -773,7 +773,7 @@ public let sizeIconMedium: CSS.Length = `var`("--size-icon-medium")
 public let sizeToggleSwitchGrip: CSS.Length = `var`("--size-toggle-switch-grip")
 
 // MARK: - Applied: Edge Fade
-/// How far a clipped line fades out before its edge — the reading-direction
+/// How far a clipped line fades out before its edge—the reading-direction
 /// end of a value too long for its box. In `em`, so it scales with the text.
 public let sizeEdgeFade: CSS.Length = `var`("--size-edge-fade")
 

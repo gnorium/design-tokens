@@ -315,7 +315,7 @@
 
   @CSSBuilder
   public func SourceTokensLightModeMoreContrastCSS() -> [CSSOM.CSSRule] {
-    // Fill (surface hierarchy — increased contrast)
+    // Fill (surface hierarchy—increased contrast)
     customProperty("--fill", .white)
     customProperty("--fill-alpha", rgba(120, 120, 128, 0.24))
     customProperty("--fill-secondary", oklch(0.97, 0.005, 260))
@@ -332,7 +332,7 @@
     customProperty("--fill-gray-quaternary", oklch(0.88, 0.006, 260))
     customProperty("--fill-gray-quaternary-alpha", rgba(0, 0, 0, 0.12))
 
-    // Glyph (text hierarchy — increased contrast)
+    // Glyph (text hierarchy—increased contrast)
     customProperty("--glyph", .black)
     customProperty("--glyph-fixed", .black)
     customProperty("--glyph-gray", oklch(0.12, 0.004, 260))
@@ -608,7 +608,7 @@
 
   @CSSBuilder
   public func SourceTokensDarkModeMoreContrastCSS() -> [CSSOM.CSSRule] {
-    // Fill (surface hierarchy — increased contrast)
+    // Fill (surface hierarchy—increased contrast)
     customProperty("--fill", .black)
     customProperty("--fill-alpha", rgba(182, 182, 182, 0.34))
     customProperty("--fill-secondary", oklch(0.14, 0.004, 260))
@@ -626,7 +626,7 @@
     customProperty("--fill-gray-quaternary", oklch(0.32, 0.006, 260))
     customProperty("--fill-gray-quaternary-alpha", rgba(255, 255, 255, 0.24))
 
-    // Glyph (text hierarchy — increased contrast)
+    // Glyph (text hierarchy—increased contrast)
     customProperty("--glyph", .white)
     customProperty("--glyph-fixed", .black)
     customProperty("--glyph-gray", oklch(0.98, 0.002, 260))
@@ -1118,7 +1118,7 @@
       calc(
         (spacingStartTypeaheadSearchFigure + minSizeSearchFigure) - (minSizeIconMedium + spacing8)))
 
-    // MARK: HIG Component Color Aliases — Uniform 19-token block per hue
+    // MARK: HIG Component Color Aliases—Uniform 19-token block per hue
     // All 12 hues use glyph{Hue} (fg) + fill{Hue} (bg) + extreme (hover/active direction)
     // Hue order: red, orange, yellow, green, mint, teal, cyan, blue, indigo, purple, pink, brown, gray
 
