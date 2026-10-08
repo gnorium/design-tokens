@@ -1090,7 +1090,8 @@
     customProperty("--spacing-horizontal-button", calc(spacing12 - borderWidthBase))
     customProperty("--spacing-horizontal-button-icon-only", calc(spacing6 - borderWidthBase))
     customProperty("--spacing-horizontal-button-small-icon-only", calc(spacing2 - borderWidthBase))
-    customProperty("--spacing-horizontal-button-small", calc(spacing6 - borderWidthBase))
+    // Small labels are 16px: 8px from the pill's edge to the text.
+    customProperty("--spacing-horizontal-button-small", calc(spacing8 - borderWidthBase))
     customProperty("--spacing-horizontal-button-large", calc(spacing16 - borderWidthBase))
     customProperty(
       "--spacing-horizontal-input-text-two-end-icons", calc(spacing8 * 2 + sizeIconSmall))
