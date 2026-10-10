@@ -374,8 +374,6 @@ public let transitionTimingFunctionSystem: CSS.EasingFunction = `var`(
   "--transition-timing-function-system")
 public let transitionTimingFunctionUser: CSS.EasingFunction = `var`(
   "--transition-timing-function-user")
-public let transitionTimingFunctionDecelerate: CSS.EasingFunction = `var`(
-  "--transition-timing-function-decelerate")
 
 // MARK: - Applied: Animations
 public let animationDelayNone: CSS.Time = `var`("--animation-delay-none")
