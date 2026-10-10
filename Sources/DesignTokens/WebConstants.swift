@@ -429,6 +429,7 @@ public let backgroundColorContentRemoved: CSS.Color = `var`("--background-color-
 public let backgroundColorTransparent: CSS.Color = `var`("--background-color-transparent")
 public let backgroundColorBackdropLight: CSS.Color = `var`("--background-color-backdrop-light")
 public let backgroundColorBackdropDark: CSS.Color = `var`("--background-color-backdrop-dark")
+public let backgroundColorBackdropDarkFixed: CSS.Color = `var`("--background-color-backdrop-dark-fixed")
 public let backgroundColorButtonQuietHover: CSS.Color = `var`(
   "--background-color-button-quiet-hover")
 public let backgroundColorButtonQuietActive: CSS.Color = `var`(

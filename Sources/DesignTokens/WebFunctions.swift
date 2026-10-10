@@ -975,6 +975,9 @@
     customProperty("--background-color-transparent", .transparent)
     customProperty("--background-color-backdrop-light", backdropLight)
     customProperty("--background-color-backdrop-dark", backdropDark)
+    // The light theme's dark backdrop in every theme: a scrim that darkens
+    // whatever the theme (an image editor's dim outside a selection).
+    customProperty("--background-color-backdrop-dark-fixed", rgba(0, 0, 0, 0.65))
     customProperty("--background-color-button-quiet-hover", rgba(0, 24, 73, 0.027))
     customProperty("--background-color-button-quiet-active", rgba(0, 24, 73, 0.082))
     customProperty("--background-color-input-binary-checked", fillBlue)
