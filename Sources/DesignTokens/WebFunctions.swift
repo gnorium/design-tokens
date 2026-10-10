@@ -922,9 +922,6 @@
     customProperty("--transform-rotating-sector-end", rotate(deg(315)))
     customProperty("--transition-duration-base", ms(100))
     customProperty("--transition-duration-medium", ms(250))
-    // A selection indicator's slide (the tabs' and segmented controls'
-    // pill): a little slower than a fade, so the eye follows it.
-    customProperty("--transition-duration-slide", ms(300))
     customProperty(
       "--transition-property-base", (.backgroundColor, .color, .borderColor, .boxShadow))
     customProperty("--transition-property-fade", .opacity)
