@@ -922,6 +922,9 @@
     customProperty("--transform-rotating-sector-end", rotate(deg(315)))
     customProperty("--transition-duration-base", ms(100))
     customProperty("--transition-duration-medium", ms(250))
+    // A selection indicator's slide (the tabs' and segmented controls'
+    // pill): a little slower than a fade, so the eye follows it.
+    customProperty("--transition-duration-slide", ms(300))
     customProperty(
       "--transition-property-base", (.backgroundColor, .color, .borderColor, .boxShadow))
     customProperty("--transition-property-fade", .opacity)
@@ -931,6 +934,8 @@
       "--transition-property-toggle-switch-grip", (.backgroundColor, .borderColor, .transform))
     customProperty("--transition-timing-function-system", .ease)
     customProperty("--transition-timing-function-user", .easeOut)
+    // The standard decelerate curve: a quick start, a gentle settle.
+    customProperty("--transition-timing-function-decelerate", "cubic-bezier(0.2, 0, 0, 1)" as String)
     customProperty("--animation-delay-none", ms(0))
     customProperty("--animation-delay-medium", ms(-160))
     customProperty("--animation-delay-slow", ms(-320))

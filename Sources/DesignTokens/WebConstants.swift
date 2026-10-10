@@ -363,6 +363,7 @@ public let transformRotatingSectorEnd: CSS.TransformFunction = `var`(
   "--transform-rotating-sector-end")
 public let transitionDurationBase: CSS.Time = `var`("--transition-duration-base")
 public let transitionDurationMedium: CSS.Time = `var`("--transition-duration-medium")
+public let transitionDurationSlide: CSS.Time = `var`("--transition-duration-slide")
 public let transitionPropertyBase: CSS.SingleTransitionProperty = `var`("--transition-property-base")
 public let transitionPropertyFade: CSS.SingleTransitionProperty = `var`("--transition-property-fade")
 public let transitionPropertyIcon: CSS.SingleTransitionProperty = `var`("--transition-property-icon")
@@ -374,6 +375,8 @@ public let transitionTimingFunctionSystem: CSS.EasingFunction = `var`(
   "--transition-timing-function-system")
 public let transitionTimingFunctionUser: CSS.EasingFunction = `var`(
   "--transition-timing-function-user")
+public let transitionTimingFunctionDecelerate: CSS.EasingFunction = `var`(
+  "--transition-timing-function-decelerate")
 
 // MARK: - Applied: Animations
 public let animationDelayNone: CSS.Time = `var`("--animation-delay-none")
