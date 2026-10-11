@@ -49,22 +49,6 @@
   }
 
   // MARK: - Color Strategy Helpers
-  /// Derive a solid fill color variant (hover/active/subtle) from a base color.
-  public func fillColor(from base: CSS.Color, l: CSS.Value? = nil, isSubtle: Bool = false) -> CSS.Color {
-    let scale: CSS.Value = fillCScale
-    let mult: CSS.Value = fillCMult
-    
-    let baseL: CSS.Value = l ?? .custom("l")
-    let finalL = isSubtle ? CSS.Value(calc(baseL + fillLOffset)) : baseL
-    let cScale = isSubtle ? CSS.Value(calc(scale * mult)) : scale
-    
-    return WebTypes.oklch(from: base, l: finalL, c: CSS.Value(calc(CSS.Value.custom("c") * cScale)), h: .custom("h"))
-  }
-
-  public func fillColor(from base: CSS.Color, l: Double, isSubtle: Bool = false) -> CSS.Color {
-    fillColor(from: base, l: CSS.Value(l), isSubtle: isSubtle)
-  }
-
   /// Derive a glyph variant (hover/active) by shifting the lightness of a base color.
   public func glyphColor(from base: CSS.Color, lShift: CSS.Value? = nil) -> CSS.Color {
     let lValue: CSS.Value = lShift != nil ? CSS.Value(calc(CSS.Value.custom("l") + lShift!)) : .custom("l")
@@ -73,30 +57,6 @@
 
   public func glyphColor(from base: CSS.Color, lShift: Double) -> CSS.Color {
     glyphColor(from: base, lShift: CSS.Value(lShift))
-  }
-
-  // MARK: - Parametric Fill Overloads
-  public func fillColor(l: CSS.Value? = nil, c: CSS.Value, h: CSS.Value, isSubtle: Bool = false) -> CSS.Color {
-    let baseL: CSS.Value = l ?? fillL
-    let finalL = isSubtle ? CSS.Value(calc(baseL + fillLOffset)) : baseL
-    
-    let scale: CSS.Value = fillCScale
-    let mult: CSS.Value = fillCMult
-    let cScale = isSubtle ? CSS.Value(calc(scale * mult)) : scale
-    
-    return oklch(l: finalL, c: CSS.Value(calc(c * cScale)), h: h)
-  }
-
-  public func fillColor(l: CSS.Value? = nil, c: Double, h: Double, isSubtle: Bool = false) -> CSS.Color {
-    fillColor(l: l, c: CSS.Value(c), h: CSS.Value("\(h)"), isSubtle: isSubtle)
-  }
-
-  public func fillColor(l: CSS.Value? = nil, c: Double, h: CSS.Value, isSubtle: Bool = false) -> CSS.Color {
-    fillColor(l: l, c: CSS.Value(c), h: h, isSubtle: isSubtle)
-  }
-
-  public func fillColor(l: CSS.Percentage, c: Double, h: CSS.Value, isSubtle: Bool = false) -> CSS.Color {
-    fillColor(l: CSS.Value(l), c: CSS.Value(c), h: h, isSubtle: isSubtle)
   }
 
   /// Convert OKLCH to linear sRGB.
@@ -153,6 +113,28 @@
     return (bestL, bestC)
   }
 
+  /// A scheme's named colors (`NamedColors`): each name's color and solid
+  /// fill (`--glyph-{name}`, `--fill-{name}`; gray's `--gray-glyph`,
+  /// `--gray-fill`) and its subtle fill (`--fill-{name}-subtle`,
+  /// `--gray-fill-subtle`)—in the default schemes the color at `opacity-low`
+  /// over the page, in the increased-contrast ones solved to carry base text
+  /// at 7:1.
+  @CSSBuilder
+  public func NamedColorTokensCSS(_ scheme: NamedColors.Scheme) -> [CSSOM.CSSRule] {
+    for name in NamedColors.names {
+      let color = NamedColors.hex(NamedColors.color(name, scheme))
+      let prefix = name == "gray" ? "--gray" : "--glyph-\(name)"
+      let fillName = name == "gray" ? "--gray-fill" : "--fill-\(name)"
+      customProperty(prefix == "--gray" ? "--gray-glyph" : prefix, color)
+      customProperty(fillName, color)
+      customProperty(
+        "\(fillName)-subtle",
+        scheme.isMoreContrast
+          ? NamedColors.hex(NamedColors.moreContrastSubtle(name, scheme))
+          : "color-mix(in srgb, \(color) calc(var(--opacity-low) * 100%), var(--fill))")
+    }
+  }
+
   @CSSBuilder
   public func SourceTokensLightModeLessContrastCSS() -> [CSSOM.CSSRule] {
     // Fill (surface hierarchy)
@@ -197,82 +179,12 @@
     customProperty("--backdrop-light", rgba(255, 255, 255, 0.65))
     customProperty("--backdrop-dark", rgba(0, 0, 0, 0.65))
 
-    // Fill Tokens (Solid & Subtle Group) - Light Mode
-    customProperty("--fill-l", 0.68)
-    customProperty("--fill-l-offset", 0.29) // 0.68 + 0.29 = 0.97 (Subtle L)
-    customProperty("--fill-l-hover", 0.55)
-    customProperty("--fill-l-active", 0.50)
-    customProperty("--fill-c-scale", 1.0)
-    customProperty("--fill-c-mult", 0.4) // Subtle chroma is 40% of solid
     customProperty("--glyph-l-hover-offset", -0.1)
     customProperty("--glyph-l-active-offset", -0.2)
 
-    // Apple HIG Lightness (Default Light)
-    customProperty("--lightness-red", 0.6532)
-    customProperty("--lightness-orange", 0.7533)
-    customProperty("--lightness-yellow", 0.8652)
-    customProperty("--lightness-green", 0.7303)
-    customProperty("--lightness-mint", 0.7471)
-    customProperty("--lightness-teal", 0.7446)
-    customProperty("--lightness-cyan", 0.7471)
-    customProperty("--lightness-blue", 0.6321)
-    customProperty("--lightness-indigo", 0.5595)
-    customProperty("--lightness-purple", 0.6216)
-    customProperty("--lightness-pink", 0.6497)
-    customProperty("--lightness-brown", 0.6329)
-    customProperty("--lightness-gray", 0.55)
-
-    customProperty("--chroma-red", 0.2328)
-    customProperty("--chroma-orange", 0.1720)
-    customProperty("--chroma-yellow", 0.1768)
-    customProperty("--chroma-green", 0.1944)
-    customProperty("--chroma-mint", 0.1340)
-    customProperty("--chroma-teal", 0.1268)
-    customProperty("--chroma-cyan", 0.1360)
-    customProperty("--chroma-blue", 0.2018)
-    customProperty("--chroma-indigo", 0.2296)
-    customProperty("--chroma-purple", 0.2629)
-    customProperty("--chroma-pink", 0.2383)
-    customProperty("--chroma-brown", 0.0727)
-    customProperty("--chroma-gray", 0.015)
-
-    // Apple HIG Hues (Default Light)
-    customProperty("--hue-red", 25.74)
-    customProperty("--hue-orange", 55.72)
-    customProperty("--hue-yellow", 90.38)
-    customProperty("--hue-green", 147.44)
-    customProperty("--hue-mint", 181.77)
-    customProperty("--hue-teal", 203.30)
-    customProperty("--hue-cyan", 219.96)
-    customProperty("--hue-blue", 254.09)
-    customProperty("--hue-indigo", 279.31)
-    customProperty("--hue-purple", 322.51)
-    customProperty("--hue-pink", 17.90)
-    customProperty("--hue-brown", 57.23)
-    customProperty("--hue-gray", 260)
-
-    customProperty("--glyph-red", oklch(l: lightnessRed, c: chromaRed, h: hueRed))
-    customProperty("--glyph-orange", oklch(l: lightnessOrange, c: chromaOrange, h: hueOrange))
-    customProperty("--glyph-yellow", oklch(l: lightnessYellow, c: chromaYellow, h: hueYellow))
-    customProperty("--glyph-green", oklch(l: lightnessGreen, c: chromaGreen, h: hueGreen))
-    customProperty("--glyph-mint", oklch(l: lightnessMint, c: chromaMint, h: hueMint))
-    customProperty("--glyph-teal", oklch(l: lightnessTeal, c: chromaTeal, h: hueTeal))
-    customProperty("--glyph-cyan", oklch(l: lightnessCyan, c: chromaCyan, h: hueCyan))
-    customProperty("--glyph-blue", oklch(l: lightnessBlue, c: chromaBlue, h: hueBlue))
-    customProperty("--glyph-indigo", oklch(l: lightnessIndigo, c: chromaIndigo, h: hueIndigo))
-    customProperty("--glyph-purple", oklch(l: lightnessPurple, c: chromaPurple, h: huePurple))
-    customProperty("--glyph-pink", oklch(l: lightnessPink, c: chromaPink, h: huePink))
-    customProperty("--glyph-brown", oklch(l: lightnessBrown, c: chromaBrown, h: hueBrown))
-
-
-    // The solid fills, derived from this scheme's HIG colors to carry white
-    // text (`SolidFills`, user 2026-10-11).
-    for fill in SolidFills.fills(.light) {
-      customProperty(
-        fill.name == "gray" ? "--gray-fill" : "--fill-\(fill.name)",
-        oklch(l: fill.color.l, c: fill.color.c, h: fill.color.h))
-    }
-    customProperty("--gray-glyph", oklch(l: lightnessGray, c: chromaGray, h: hueGray))
+    // The named colors (`NamedColors`, user 2026-10-11): the ISCC–NBS
+    // vivid hues at the sRGB cusp, and gray.
+    NamedColorTokensCSS(.light)
 
     // MARK: - Apple HIG Syntax Tokens (Light Mode)
     customProperty("--color-syntax-addition", glyphGreen)
@@ -351,80 +263,10 @@
     customProperty("--backdrop-light", rgba(255, 255, 255, 0.65))
     customProperty("--backdrop-dark", rgba(0, 0, 0, 0.65))
  
-    // Solid Fill parameters (Light Mode - More Contrast)
-    customProperty("--fill-l", 0.58)
-    customProperty("--fill-l-hover", 0.45)
-    customProperty("--fill-l-active", 0.4)
-    customProperty("--fill-l-offset", 0.32) // Boosted offset for HC
-    customProperty("--fill-c-scale", 1.1)
-    customProperty("--fill-c-mult", 0.5)
 
-    // Apple HIG Lightness (High Contrast Light)
-    customProperty("--lightness-red", 0.5938)
-    customProperty("--lightness-orange", 0.5812)
-    customProperty("--lightness-yellow", 0.5689)
-    customProperty("--lightness-green", 0.5492)
-    customProperty("--lightness-mint", 0.5527)
-    customProperty("--lightness-teal", 0.5558)
-    customProperty("--lightness-cyan", 0.5590)
-    customProperty("--lightness-blue", 0.5734)
-    customProperty("--lightness-indigo", 0.5152)
-    customProperty("--lightness-purple", 0.5635)
-    customProperty("--lightness-pink", 0.5936)
-    customProperty("--lightness-brown", 0.5684)
-    customProperty("--lightness-gray", 0.45)
-
-    customProperty("--chroma-red", 0.2332)
-    customProperty("--chroma-orange", 0.1634)
-    customProperty("--chroma-yellow", 0.1209)
-    customProperty("--chroma-green", 0.1614)
-    customProperty("--chroma-mint", 0.1000)
-    customProperty("--chroma-teal", 0.0987)
-    customProperty("--chroma-cyan", 0.1172)
-    customProperty("--chroma-blue", 0.2150)
-    customProperty("--chroma-indigo", 0.2158)
-    customProperty("--chroma-purple", 0.2300)
-    customProperty("--chroma-pink", 0.2314)
-    customProperty("--chroma-brown", 0.0653)
-    customProperty("--chroma-gray", 0.02)
-
-    // Apple HIG Hues (High Contrast Light)
-    customProperty("--hue-red", 24.68)
-    customProperty("--hue-orange", 46.00)
-    customProperty("--hue-yellow", 73.51)
-    customProperty("--hue-green", 147.42)
-    customProperty("--hue-mint", 180.45)
-    customProperty("--hue-teal", 216.06)
-    customProperty("--hue-cyan", 234.14)
-    customProperty("--hue-blue", 260.57)
-    customProperty("--hue-indigo", 279.27)
-    customProperty("--hue-purple", 322.44)
-    customProperty("--hue-pink", 15.89)
-    customProperty("--hue-brown", 55.98)
-    customProperty("--hue-gray", 260)
-
-    customProperty("--glyph-red", oklch(l: lightnessRed, c: chromaRed, h: hueRed))
-    customProperty("--glyph-orange", oklch(l: lightnessOrange, c: chromaOrange, h: hueOrange))
-    customProperty("--glyph-yellow", oklch(l: lightnessYellow, c: chromaYellow, h: hueYellow))
-    customProperty("--glyph-green", oklch(l: lightnessGreen, c: chromaGreen, h: hueGreen))
-    customProperty("--glyph-mint", oklch(l: lightnessMint, c: chromaMint, h: hueMint))
-    customProperty("--glyph-teal", oklch(l: lightnessTeal, c: chromaTeal, h: hueTeal))
-    customProperty("--glyph-cyan", oklch(l: lightnessCyan, c: chromaCyan, h: hueCyan))
-    customProperty("--glyph-blue", oklch(l: lightnessBlue, c: chromaBlue, h: hueBlue))
-    customProperty("--glyph-indigo", oklch(l: lightnessIndigo, c: chromaIndigo, h: hueIndigo))
-    customProperty("--glyph-purple", oklch(l: lightnessPurple, c: chromaPurple, h: huePurple))
-    customProperty("--glyph-pink", oklch(l: lightnessPink, c: chromaPink, h: huePink))
-    customProperty("--glyph-brown", oklch(l: lightnessBrown, c: chromaBrown, h: hueBrown))
-
-
-    // The solid fills, derived from this scheme's HIG colors to carry white
-    // text (`SolidFills`, user 2026-10-11).
-    for fill in SolidFills.fills(.lightMoreContrast) {
-      customProperty(
-        fill.name == "gray" ? "--gray-fill" : "--fill-\(fill.name)",
-        oklch(l: fill.color.l, c: fill.color.c, h: fill.color.h))
-    }
-    customProperty("--gray-glyph", oklch(l: lightnessGray, c: chromaGray, h: hueGray))
+    // The named colors (`NamedColors`, user 2026-10-11): the ISCC–NBS
+    // vivid hues at the sRGB cusp, and gray.
+    NamedColorTokensCSS(.lightMoreContrast)
   }
 
   @CSSBuilder
@@ -480,82 +322,12 @@
     customProperty("--backdrop-light", rgba(0, 0, 0, 0.65))
     customProperty("--backdrop-dark", rgba(255, 255, 255, 0.65))
 
-    // Fill Tokens (Solid & Subtle Group) - Dark Mode
-    customProperty("--fill-l", 0.51)
-    customProperty("--fill-l-offset", -0.29) // 0.51 - 0.29 = 0.22 (Subtle L)
-    customProperty("--fill-l-hover", 0.50)
-    customProperty("--fill-l-active", 0.55)
-    customProperty("--fill-c-scale", 1.0)
-    customProperty("--fill-c-mult", 0.4)
     customProperty("--glyph-l-hover-offset", 0.025)
     customProperty("--glyph-l-active-offset", 0.05)
 
-    // Apple HIG Lightness (Default Dark)
-    customProperty("--lightness-red", 0.6620)
-    customProperty("--lightness-orange", 0.7619)
-    customProperty("--lightness-yellow", 0.8848)
-    customProperty("--lightness-green", 0.7556)
-    customProperty("--lightness-mint", 0.7969)
-    customProperty("--lightness-teal", 0.7871)
-    customProperty("--lightness-cyan", 0.8076)
-    customProperty("--lightness-blue", 0.6515)
-    customProperty("--lightness-indigo", 0.6413)
-    customProperty("--lightness-purple", 0.6579)
-    customProperty("--lightness-pink", 0.6577)
-    customProperty("--lightness-brown", 0.6681)
-    customProperty("--lightness-gray", 0.75)
-
-    customProperty("--chroma-red", 0.2246)
-    customProperty("--chroma-orange", 0.1670)
-    customProperty("--chroma-yellow", 0.1816)
-    customProperty("--chroma-green", 0.2082)
-    customProperty("--chroma-mint", 0.1431)
-    customProperty("--chroma-teal", 0.1341)
-    customProperty("--chroma-cyan", 0.1350)
-    customProperty("--chroma-blue", 0.1920)
-    customProperty("--chroma-indigo", 0.1928)
-    customProperty("--chroma-purple", 0.2791)
-    customProperty("--chroma-pink", 0.2317)
-    customProperty("--chroma-brown", 0.0743)
-    customProperty("--chroma-gray", 0.015)
-
-    // Apple HIG Hues (Default Dark)
-    customProperty("--hue-red", 25.12)
-    customProperty("--hue-orange", 57.05)
-    customProperty("--hue-yellow", 94.90)
-    customProperty("--hue-green", 146.98)
-    customProperty("--hue-mint", 181.65)
-    customProperty("--hue-teal", 203.34)
-    customProperty("--hue-cyan", 221.82)
-    customProperty("--hue-blue", 251.47)
-    customProperty("--hue-indigo", 274.69)
-    customProperty("--hue-purple", 322.41)
-    customProperty("--hue-pink", 16.02)
-    customProperty("--hue-brown", 59.71)
-    customProperty("--hue-gray", 260)
-
-    customProperty("--glyph-red", oklch(l: lightnessRed, c: chromaRed, h: hueRed))
-    customProperty("--glyph-orange", oklch(l: lightnessOrange, c: chromaOrange, h: hueOrange))
-    customProperty("--glyph-yellow", oklch(l: lightnessYellow, c: chromaYellow, h: hueYellow))
-    customProperty("--glyph-green", oklch(l: lightnessGreen, c: chromaGreen, h: hueGreen))
-    customProperty("--glyph-mint", oklch(l: lightnessMint, c: chromaMint, h: hueMint))
-    customProperty("--glyph-teal", oklch(l: lightnessTeal, c: chromaTeal, h: hueTeal))
-    customProperty("--glyph-cyan", oklch(l: lightnessCyan, c: chromaCyan, h: hueCyan))
-    customProperty("--glyph-blue", oklch(l: lightnessBlue, c: chromaBlue, h: hueBlue))
-    customProperty("--glyph-indigo", oklch(l: lightnessIndigo, c: chromaIndigo, h: hueIndigo))
-    customProperty("--glyph-purple", oklch(l: lightnessPurple, c: chromaPurple, h: huePurple))
-    customProperty("--glyph-pink", oklch(l: lightnessPink, c: chromaPink, h: huePink))
-    customProperty("--glyph-brown", oklch(l: lightnessBrown, c: chromaBrown, h: hueBrown))
-
-
-    // The solid fills, derived from this scheme's HIG colors to carry white
-    // text (`SolidFills`, user 2026-10-11).
-    for fill in SolidFills.fills(.dark) {
-      customProperty(
-        fill.name == "gray" ? "--gray-fill" : "--fill-\(fill.name)",
-        oklch(l: fill.color.l, c: fill.color.c, h: fill.color.h))
-    }
-    customProperty("--gray-glyph", oklch(l: lightnessGray, c: chromaGray, h: hueGray))
+    // The named colors (`NamedColors`, user 2026-10-11): the ISCC–NBS
+    // vivid hues at the sRGB cusp, and gray.
+    NamedColorTokensCSS(.dark)
 
     // MARK: - Apple HIG Syntax Tokens (Dark Mode)
     customProperty("--color-syntax-attributes", hex(0xCC9768))
@@ -641,80 +413,10 @@
     customProperty("--backdrop-light", rgba(0, 0, 0, 0.65))
     customProperty("--backdrop-dark", rgba(255, 255, 255, 0.65))
 
-    // Solid Fill parameters (Dark Mode - More Contrast)
-    customProperty("--fill-l", 0.61)
-    customProperty("--fill-l-hover", 0.6)
-    customProperty("--fill-l-active", 0.65)
-    customProperty("--fill-l-offset", -0.36) // Deeper offset for HC Dark
-    customProperty("--fill-c-scale", 1.1)
-    customProperty("--fill-c-mult", 0.5)
 
-    // Apple HIG Lightness (High Contrast Dark)
-    customProperty("--lightness-red", 0.6982)
-    customProperty("--lightness-orange", 0.7887)
-    customProperty("--lightness-yellow", 0.9039)
-    customProperty("--lightness-green", 0.7839)
-    customProperty("--lightness-mint", 0.8232)
-    customProperty("--lightness-teal", 0.8237)
-    customProperty("--lightness-cyan", 0.8355)
-    customProperty("--lightness-blue", 0.7559)
-    customProperty("--lightness-indigo", 0.7686)
-    customProperty("--lightness-purple", 0.7809)
-    customProperty("--lightness-pink", 0.7775)
-    customProperty("--lightness-brown", 0.7642)
-    customProperty("--lightness-gray", 0.85)
-
-    customProperty("--chroma-red", 0.1926)
-    customProperty("--chroma-orange", 0.1439)
-    customProperty("--chroma-yellow", 0.1673)
-    customProperty("--chroma-green", 0.1969)
-    customProperty("--chroma-mint", 0.1229)
-    customProperty("--chroma-teal", 0.1287)
-    customProperty("--chroma-cyan", 0.1124)
-    customProperty("--chroma-blue", 0.1350)
-    customProperty("--chroma-indigo", 0.1210)
-    customProperty("--chroma-purple", 0.1823)
-    customProperty("--chroma-pink", 0.1553)
-    customProperty("--chroma-brown", 0.0867)
-    customProperty("--chroma-gray", 0.015)
-
-    // Apple HIG Hues (High Contrast Dark)
-    customProperty("--hue-red", 22.11)
-    customProperty("--hue-orange", 56.51)
-    customProperty("--hue-yellow", 97.45)
-    customProperty("--hue-green", 147.19)
-    customProperty("--hue-mint", 181.96)
-    customProperty("--hue-teal", 204.41)
-    customProperty("--hue-cyan", 223.72)
-    customProperty("--hue-blue", 244.31)
-    customProperty("--hue-indigo", 281.60)
-    customProperty("--hue-purple", 320.04)
-    customProperty("--hue-pink", 350.26)
-    customProperty("--hue-brown", 61.31)
-    customProperty("--hue-gray", 260)
-
-    customProperty("--glyph-red", oklch(l: lightnessRed, c: chromaRed, h: hueRed))
-    customProperty("--glyph-orange", oklch(l: lightnessOrange, c: chromaOrange, h: hueOrange))
-    customProperty("--glyph-yellow", oklch(l: lightnessYellow, c: chromaYellow, h: hueYellow))
-    customProperty("--glyph-green", oklch(l: lightnessGreen, c: chromaGreen, h: hueGreen))
-    customProperty("--glyph-mint", oklch(l: lightnessMint, c: chromaMint, h: hueMint))
-    customProperty("--glyph-teal", oklch(l: lightnessTeal, c: chromaTeal, h: hueTeal))
-    customProperty("--glyph-cyan", oklch(l: lightnessCyan, c: chromaCyan, h: hueCyan))
-    customProperty("--glyph-blue", oklch(l: lightnessBlue, c: chromaBlue, h: hueBlue))
-    customProperty("--glyph-indigo", oklch(l: lightnessIndigo, c: chromaIndigo, h: hueIndigo))
-    customProperty("--glyph-purple", oklch(l: lightnessPurple, c: chromaPurple, h: huePurple))
-    customProperty("--glyph-pink", oklch(l: lightnessPink, c: chromaPink, h: huePink))
-    customProperty("--glyph-brown", oklch(l: lightnessBrown, c: chromaBrown, h: hueBrown))
-
-
-    // The solid fills, derived from this scheme's HIG colors to carry white
-    // text (`SolidFills`, user 2026-10-11).
-    for fill in SolidFills.fills(.darkMoreContrast) {
-      customProperty(
-        fill.name == "gray" ? "--gray-fill" : "--fill-\(fill.name)",
-        oklch(l: fill.color.l, c: fill.color.c, h: fill.color.h))
-    }
-    customProperty("--gray-glyph", oklch(l: lightnessGray, c: chromaGray, h: hueGray))
+    // The named colors (`NamedColors`, user 2026-10-11): the ISCC–NBS
+    // vivid hues at the sRGB cusp, and gray.
+    NamedColorTokensCSS(.darkMoreContrast)
   }
 
   // MARK: - Unified Applied Tokens
@@ -946,8 +648,8 @@
     customProperty("--background-color-disabled", fillGrayQuaternary)
     customProperty("--background-color-disabled-subtle", fillTertiary)
     customProperty("--background-color-inverted", glyph)
-    customProperty("--background-color-content-added", fillColor(c: 0.1944, h: hueGreen, isSubtle: true))
-    customProperty("--background-color-content-removed", fillColor(c: 0.2328, h: hueRed, isSubtle: true))
+    customProperty("--background-color-content-added", backgroundColorGreenSubtle)
+    customProperty("--background-color-content-removed", backgroundColorRedSubtle)
     customProperty("--background-color-transparent", .transparent)
     customProperty("--background-color-backdrop-light", backdropLight)
     customProperty("--background-color-backdrop-dark", backdropDark)
@@ -1034,9 +736,9 @@
     customProperty("--color-link-hover", glyphColor(from: glyphBlue, lShift: glyphLHoverOffset))
     customProperty("--color-link-active", glyphColor(from: glyphBlue, lShift: glyphLActiveOffset))
     customProperty("--color-link-focus", glyphBlue)
-    customProperty("--color-link-visited", glyphBrown)
-    customProperty("--color-link-visited-hover", glyphColor(from: glyphBrown, lShift: glyphLHoverOffset))
-    customProperty("--color-link-visited-active", glyphColor(from: glyphBrown, lShift: glyphLActiveOffset))
+    customProperty("--color-link-visited", glyphOrange)
+    customProperty("--color-link-visited-hover", glyphColor(from: glyphOrange, lShift: glyphLHoverOffset))
+    customProperty("--color-link-visited-active", glyphColor(from: glyphOrange, lShift: glyphLActiveOffset))
     customProperty("--color-link-red", glyphRed)
     customProperty("--color-link-red-hover", glyphColor(from: glyphRed, lShift: glyphLHoverOffset))
     customProperty("--color-link-red-active", glyphColor(from: glyphRed, lShift: glyphLActiveOffset))
@@ -1100,284 +802,33 @@
       calc(
         (spacingStartTypeaheadSearchFigure + minSizeSearchFigure) - (minSizeIconMedium + spacing8)))
 
-    // MARK: HIG Component Color Aliases—Uniform 19-token block per hue
-    // All 12 hues use glyph{Hue} (fg) + fill{Hue} (bg) + extreme (hover/active direction)
-    // Hue order: red, orange, yellow, green, mint, teal, cyan, blue, indigo, purple, pink, brown, gray
-
-    // -- Red
-    customProperty("--color-red", glyphRed)
-    customProperty("--color-red-hover", glyphColor(from: glyphRed, lShift: glyphLHoverOffset))
-    customProperty("--color-red-active", glyphColor(from: glyphRed, lShift: glyphLActiveOffset))
-    customProperty("--color-red-focus", glyphBlue)
-    customProperty("--background-color-red", fillRed)
-    customProperty("--background-color-red-hover", fillColor(from: fillRed, l: fillLHover))
-    customProperty("--background-color-red-active", fillColor(from: fillRed, l: fillLActive))
-    customProperty("--background-color-red-focus", fillRed)
-    customProperty("--background-color-red-subtle", fillColor(from: fillRed, isSubtle: true))
-    customProperty("--background-color-red-subtle-hover", fillColor(from: fillRed, l: fillLHover, isSubtle: true))
-    customProperty("--background-color-red-subtle-active", fillColor(from: fillRed, l: fillLActive, isSubtle: true))
-    customProperty("--border-color-red", fillRed)
-    customProperty("--border-color-red-hover", fillColor(from: fillRed, l: fillLHover))
-    customProperty("--border-color-red-active", fillColor(from: fillRed, l: fillLActive))
-    customProperty("--border-color-red-focus", glyphBlue)
-    customProperty("--box-shadow-color-red-active", glyphColor(from: glyphRed, lShift: glyphLActiveOffset))
-    customProperty("--box-shadow-color-red-focus", glyphBlue)
-    customProperty("--outline-color-red-focus", glyphBlue)
-    customProperty("--border-red", (borderWidthBase, borderStyleBase, borderColorRed))
-
-    // -- Orange
-    customProperty("--color-orange", glyphOrange)
-    customProperty("--color-orange-hover", glyphColor(from: glyphOrange, lShift: glyphLHoverOffset))
-    customProperty("--color-orange-active", glyphColor(from: glyphOrange, lShift: glyphLActiveOffset))
-    customProperty("--color-orange-focus", glyphBlue)
-    customProperty("--background-color-orange", fillOrange)
-    customProperty("--background-color-orange-hover", fillColor(from: fillOrange, l: fillLHover))
-    customProperty("--background-color-orange-active", fillColor(from: fillOrange, l: fillLActive))
-    customProperty("--background-color-orange-focus", fillOrange)
-    customProperty("--background-color-orange-subtle", fillColor(from: fillOrange, isSubtle: true))
-    customProperty("--background-color-orange-subtle-hover", fillColor(from: fillOrange, l: fillLHover, isSubtle: true))
-    customProperty("--background-color-orange-subtle-active", fillColor(from: fillOrange, l: fillLActive, isSubtle: true))
-    customProperty("--border-color-orange", fillOrange)
-    customProperty("--border-color-orange-hover", fillColor(from: fillOrange, l: fillLHover))
-    customProperty("--border-color-orange-active", fillColor(from: fillOrange, l: fillLActive))
-    customProperty("--border-color-orange-focus", glyphBlue)
-    customProperty("--box-shadow-color-orange-active", glyphColor(from: glyphOrange, lShift: glyphLActiveOffset))
-    customProperty("--box-shadow-color-orange-focus", glyphBlue)
-    customProperty("--outline-color-orange-focus", glyphBlue)
-    customProperty("--border-orange", (borderWidthBase, borderStyleBase, borderColorOrange))
-
-    // -- Yellow
-    customProperty("--color-yellow", glyphYellow)
-    customProperty("--color-yellow-hover", glyphColor(from: glyphYellow, lShift: glyphLHoverOffset))
-    customProperty("--color-yellow-active", glyphColor(from: glyphYellow, lShift: glyphLActiveOffset))
-    customProperty("--color-yellow-focus", glyphBlue)
-    customProperty("--background-color-yellow", fillYellow)
-    customProperty("--background-color-yellow-hover", fillColor(from: fillYellow, l: fillLHover))
-    customProperty("--background-color-yellow-active", fillColor(from: fillYellow, l: fillLActive))
-    customProperty("--background-color-yellow-focus", fillYellow)
-    customProperty("--background-color-yellow-subtle", fillColor(from: fillYellow, isSubtle: true))
-    customProperty("--background-color-yellow-subtle-hover", fillColor(from: fillYellow, l: fillLHover, isSubtle: true))
-    customProperty("--background-color-yellow-subtle-active", fillColor(from: fillYellow, l: fillLActive, isSubtle: true))
-    customProperty("--border-color-yellow", fillYellow)
-    customProperty("--border-color-yellow-hover", fillColor(from: fillYellow, l: fillLHover))
-    customProperty("--border-color-yellow-active", fillColor(from: fillYellow, l: fillLActive))
-    customProperty("--border-color-yellow-focus", glyphBlue)
-    customProperty("--box-shadow-color-yellow-active", glyphColor(from: glyphYellow, lShift: glyphLActiveOffset))
-    customProperty("--box-shadow-color-yellow-focus", glyphBlue)
-    customProperty("--outline-color-yellow-focus", glyphBlue)
-    customProperty("--border-yellow", (borderWidthBase, borderStyleBase, borderColorYellow))
-
-    // -- Green
-    customProperty("--color-green", glyphGreen)
-    customProperty("--color-green-hover", glyphColor(from: glyphGreen, lShift: glyphLHoverOffset))
-    customProperty("--color-green-active", glyphColor(from: glyphGreen, lShift: glyphLActiveOffset))
-    customProperty("--color-green-focus", glyphBlue)
-    customProperty("--background-color-green", fillGreen)
-    customProperty("--background-color-green-hover", fillColor(from: fillGreen, l: fillLHover))
-    customProperty("--background-color-green-active", fillColor(from: fillGreen, l: fillLActive))
-    customProperty("--background-color-green-focus", fillGreen)
-    customProperty("--background-color-green-subtle", fillColor(from: fillGreen, isSubtle: true))
-    customProperty("--background-color-green-subtle-hover", fillColor(from: fillGreen, l: fillLHover, isSubtle: true))
-    customProperty("--background-color-green-subtle-active", fillColor(from: fillGreen, l: fillLActive, isSubtle: true))
-    customProperty("--border-color-green", fillGreen)
-    customProperty("--border-color-green-hover", fillColor(from: fillGreen, l: fillLHover))
-    customProperty("--border-color-green-active", fillColor(from: fillGreen, l: fillLActive))
-    customProperty("--border-color-green-focus", glyphBlue)
-    customProperty("--box-shadow-color-green-active", glyphColor(from: glyphGreen, lShift: glyphLActiveOffset))
-    customProperty("--box-shadow-color-green-focus", glyphBlue)
-    customProperty("--outline-color-green-focus", glyphBlue)
-    customProperty("--border-green", (borderWidthBase, borderStyleBase, borderColorGreen))
-
-    // -- Mint
-    customProperty("--color-mint", glyphMint)
-    customProperty("--color-mint-hover", glyphColor(from: glyphMint, lShift: glyphLHoverOffset))
-    customProperty("--color-mint-active", glyphColor(from: glyphMint, lShift: glyphLActiveOffset))
-    customProperty("--color-mint-focus", glyphBlue)
-    customProperty("--background-color-mint", fillMint)
-    customProperty("--background-color-mint-hover", fillColor(from: fillMint, l: fillLHover))
-    customProperty("--background-color-mint-active", fillColor(from: fillMint, l: fillLActive))
-    customProperty("--background-color-mint-focus", fillMint)
-    customProperty("--background-color-mint-subtle", fillColor(from: fillMint, isSubtle: true))
-    customProperty("--background-color-mint-subtle-hover", fillColor(from: fillMint, l: fillLHover, isSubtle: true))
-    customProperty("--background-color-mint-subtle-active", fillColor(from: fillMint, l: fillLActive, isSubtle: true))
-    customProperty("--border-color-mint", fillMint)
-    customProperty("--border-color-mint-hover", fillColor(from: fillMint, l: fillLHover))
-    customProperty("--border-color-mint-active", fillColor(from: fillMint, l: fillLActive))
-    customProperty("--border-color-mint-focus", glyphBlue)
-    customProperty("--box-shadow-color-mint-active", glyphColor(from: glyphMint, lShift: glyphLActiveOffset))
-    customProperty("--box-shadow-color-mint-focus", glyphBlue)
-    customProperty("--outline-color-mint-focus", glyphBlue)
-    customProperty("--border-mint", (borderWidthBase, borderStyleBase, borderColorMint))
-
-    // -- Teal
-    customProperty("--color-teal", glyphTeal)
-    customProperty("--color-teal-hover", glyphColor(from: glyphTeal, lShift: glyphLHoverOffset))
-    customProperty("--color-teal-active", glyphColor(from: glyphTeal, lShift: glyphLActiveOffset))
-    customProperty("--color-teal-focus", glyphBlue)
-    customProperty("--background-color-teal", fillTeal)
-    customProperty("--background-color-teal-hover", fillColor(from: fillTeal, l: fillLHover))
-    customProperty("--background-color-teal-active", fillColor(from: fillTeal, l: fillLActive))
-    customProperty("--background-color-teal-focus", fillTeal)
-    customProperty("--background-color-teal-subtle", fillColor(from: fillTeal, isSubtle: true))
-    customProperty("--background-color-teal-subtle-hover", fillColor(from: fillTeal, l: fillLHover, isSubtle: true))
-    customProperty("--background-color-teal-subtle-active", fillColor(from: fillTeal, l: fillLActive, isSubtle: true))
-    customProperty("--border-color-teal", fillTeal)
-    customProperty("--border-color-teal-hover", fillColor(from: fillTeal, l: fillLHover))
-    customProperty("--border-color-teal-active", fillColor(from: fillTeal, l: fillLActive))
-    customProperty("--border-color-teal-focus", glyphBlue)
-    customProperty("--box-shadow-color-teal-active", glyphColor(from: glyphTeal, lShift: glyphLActiveOffset))
-    customProperty("--box-shadow-color-teal-focus", glyphBlue)
-    customProperty("--outline-color-teal-focus", glyphBlue)
-    customProperty("--border-teal", (borderWidthBase, borderStyleBase, borderColorTeal))
-
-    // -- Cyan
-    customProperty("--color-cyan", glyphCyan)
-    customProperty("--color-cyan-hover", glyphColor(from: glyphCyan, lShift: glyphLHoverOffset))
-    customProperty("--color-cyan-active", glyphColor(from: glyphCyan, lShift: glyphLActiveOffset))
-    customProperty("--color-cyan-focus", glyphBlue)
-    customProperty("--background-color-cyan", fillCyan)
-    customProperty("--background-color-cyan-hover", fillColor(from: fillCyan, l: fillLHover))
-    customProperty("--background-color-cyan-active", fillColor(from: fillCyan, l: fillLActive))
-    customProperty("--background-color-cyan-focus", fillCyan)
-    customProperty("--background-color-cyan-subtle", fillColor(from: fillCyan, isSubtle: true))
-    customProperty("--background-color-cyan-subtle-hover", fillColor(from: fillCyan, l: fillLHover, isSubtle: true))
-    customProperty("--background-color-cyan-subtle-active", fillColor(from: fillCyan, l: fillLActive, isSubtle: true))
-    customProperty("--border-color-cyan", fillCyan)
-    customProperty("--border-color-cyan-hover", fillColor(from: fillCyan, l: fillLHover))
-    customProperty("--border-color-cyan-active", fillColor(from: fillCyan, l: fillLActive))
-    customProperty("--border-color-cyan-focus", glyphBlue)
-    customProperty("--box-shadow-color-cyan-active", glyphColor(from: glyphCyan, lShift: glyphLActiveOffset))
-    customProperty("--box-shadow-color-cyan-focus", glyphBlue)
-    customProperty("--outline-color-cyan-focus", glyphBlue)
-    customProperty("--border-cyan", (borderWidthBase, borderStyleBase, borderColorCyan))
-
-    // -- Blue
-    customProperty("--color-blue", glyphBlue)
-    customProperty("--color-blue-hover", glyphColor(from: glyphBlue, lShift: glyphLHoverOffset))
-    customProperty("--color-blue-active", glyphColor(from: glyphBlue, lShift: glyphLActiveOffset))
-    customProperty("--color-blue-focus", glyphBlue)
-    customProperty("--background-color-blue", fillBlue)
-    customProperty("--background-color-blue-hover", fillColor(from: fillBlue, l: fillLHover))
-    customProperty("--background-color-blue-active", fillColor(from: fillBlue, l: fillLActive))
-    customProperty("--background-color-blue-focus", fillBlue)
-    customProperty("--background-color-blue-subtle", fillColor(from: fillBlue, isSubtle: true))
-    customProperty("--background-color-blue-subtle-hover", fillColor(from: fillBlue, l: fillLHover, isSubtle: true))
-    customProperty("--background-color-blue-subtle-active", fillColor(from: fillBlue, l: fillLActive, isSubtle: true))
-    customProperty("--border-color-blue", fillBlue)
-    customProperty("--border-color-blue-hover", fillColor(from: fillBlue, l: fillLHover))
-    customProperty("--border-color-blue-active", fillColor(from: fillBlue, l: fillLActive))
-    customProperty("--border-color-blue-focus", glyphBlue)
-    customProperty("--box-shadow-color-blue-active", glyphColor(from: glyphBlue, lShift: glyphLActiveOffset))
-    customProperty("--box-shadow-color-blue-focus", glyphBlue)
-    customProperty("--outline-color-blue-focus", glyphBlue)
-    customProperty("--border-blue", (borderWidthBase, borderStyleBase, borderColorBlue))
-
-    // -- Indigo
-    customProperty("--color-indigo", glyphIndigo)
-    customProperty("--color-indigo-hover", glyphColor(from: glyphIndigo, lShift: glyphLHoverOffset))
-    customProperty("--color-indigo-active", glyphColor(from: glyphIndigo, lShift: glyphLActiveOffset))
-    customProperty("--color-indigo-focus", glyphIndigo)
-    customProperty("--background-color-indigo", fillIndigo)
-    customProperty("--background-color-indigo-hover", fillColor(from: fillIndigo, l: fillLHover))
-    customProperty("--background-color-indigo-active", fillColor(from: fillIndigo, l: fillLActive))
-    customProperty("--background-color-indigo-focus", fillIndigo)
-    customProperty("--background-color-indigo-subtle", fillColor(from: fillIndigo, isSubtle: true))
-    customProperty("--background-color-indigo-subtle-hover", fillColor(from: fillIndigo, l: fillLHover, isSubtle: true))
-    customProperty("--background-color-indigo-subtle-active", fillColor(from: fillIndigo, l: fillLActive, isSubtle: true))
-    customProperty("--border-color-indigo", fillIndigo)
-    customProperty("--border-color-indigo-hover", fillColor(from: fillIndigo, l: fillLHover))
-    customProperty("--border-color-indigo-active", fillColor(from: fillIndigo, l: fillLActive))
-    customProperty("--border-color-indigo-focus", glyphIndigo)
-    customProperty("--box-shadow-color-indigo-active", glyphColor(from: glyphIndigo, lShift: glyphLActiveOffset))
-    customProperty("--box-shadow-color-indigo-focus", glyphIndigo)
-    customProperty("--box-shadow-color-indigo-selected", glyphIndigo)
-    customProperty("--box-shadow-color-indigo-selected-hover", glyphColor(from: glyphIndigo, lShift: glyphLHoverOffset))
-    customProperty("--box-shadow-color-indigo-selected-active", glyphColor(from: glyphIndigo, lShift: glyphLActiveOffset))
-    customProperty("--outline-color-indigo-focus", glyphIndigo)
-    customProperty("--border-indigo", (borderWidthBase, borderStyleBase, borderColorIndigo))
-
-    // -- Purple
-    customProperty("--color-purple", glyphPurple)
-    customProperty("--color-purple-hover", glyphColor(from: glyphPurple, lShift: glyphLHoverOffset))
-    customProperty("--color-purple-active", glyphColor(from: glyphPurple, lShift: glyphLActiveOffset))
-    customProperty("--color-purple-focus", glyphBlue)
-    customProperty("--background-color-purple", fillPurple)
-    customProperty("--background-color-purple-hover", fillColor(from: fillPurple, l: fillLHover))
-    customProperty("--background-color-purple-active", fillColor(from: fillPurple, l: fillLActive))
-    customProperty("--background-color-purple-focus", fillPurple)
-    customProperty("--background-color-purple-subtle", fillColor(from: fillPurple, isSubtle: true))
-    customProperty("--background-color-purple-subtle-hover", fillColor(from: fillPurple, l: fillLHover, isSubtle: true))
-    customProperty("--background-color-purple-subtle-active", fillColor(from: fillPurple, l: fillLActive, isSubtle: true))
-    customProperty("--border-color-purple", fillPurple)
-    customProperty("--border-color-purple-hover", fillColor(from: fillPurple, l: fillLHover))
-    customProperty("--border-color-purple-active", fillColor(from: fillPurple, l: fillLActive))
-    customProperty("--border-color-purple-focus", glyphBlue)
-    customProperty("--box-shadow-color-purple-active", glyphColor(from: glyphPurple, lShift: glyphLActiveOffset))
-    customProperty("--box-shadow-color-purple-focus", glyphBlue)
-    customProperty("--outline-color-purple-focus", glyphBlue)
-    customProperty("--border-purple", (borderWidthBase, borderStyleBase, borderColorPurple))
-
-    // -- Pink
-    customProperty("--color-pink", glyphPink)
-    customProperty("--color-pink-hover", glyphColor(from: glyphPink, lShift: glyphLHoverOffset))
-    customProperty("--color-pink-active", glyphColor(from: glyphPink, lShift: glyphLActiveOffset))
-    customProperty("--color-pink-focus", glyphBlue)
-    customProperty("--background-color-pink", fillPink)
-    customProperty("--background-color-pink-hover", fillColor(from: fillPink, l: fillLHover))
-    customProperty("--background-color-pink-active", fillColor(from: fillPink, l: fillLActive))
-    customProperty("--background-color-pink-focus", fillPink)
-    customProperty("--background-color-pink-subtle", fillColor(from: fillPink, isSubtle: true))
-    customProperty("--background-color-pink-subtle-hover", fillColor(from: fillPink, l: fillLHover, isSubtle: true))
-    customProperty("--background-color-pink-subtle-active", fillColor(from: fillPink, l: fillLActive, isSubtle: true))
-    customProperty("--border-color-pink", fillPink)
-    customProperty("--border-color-pink-hover", fillColor(from: fillPink, l: fillLHover))
-    customProperty("--border-color-pink-active", fillColor(from: fillPink, l: fillLActive))
-    customProperty("--border-color-pink-focus", glyphBlue)
-    customProperty("--box-shadow-color-pink-active", glyphColor(from: glyphPink, lShift: glyphLActiveOffset))
-    customProperty("--box-shadow-color-pink-focus", glyphBlue)
-    customProperty("--outline-color-pink-focus", glyphBlue)
-    customProperty("--border-pink", (borderWidthBase, borderStyleBase, borderColorPink))
-
-    // -- Brown
-    customProperty("--color-brown", glyphBrown)
-    customProperty("--color-brown-hover", glyphColor(from: glyphBrown, lShift: glyphLHoverOffset))
-    customProperty("--color-brown-active", glyphColor(from: glyphBrown, lShift: glyphLActiveOffset))
-    customProperty("--color-brown-focus", glyphBlue)
-    customProperty("--background-color-brown", fillBrown)
-    customProperty("--background-color-brown-hover", fillColor(from: fillBrown, l: fillLHover))
-    customProperty("--background-color-brown-active", fillColor(from: fillBrown, l: fillLActive))
-    customProperty("--background-color-brown-focus", fillBrown)
-    customProperty("--background-color-brown-subtle", fillColor(from: fillBrown, isSubtle: true))
-    customProperty("--background-color-brown-subtle-hover", fillColor(from: fillBrown, l: fillLHover, isSubtle: true))
-    customProperty("--background-color-brown-subtle-active", fillColor(from: fillBrown, l: fillLActive, isSubtle: true))
-    customProperty("--border-color-brown", fillBrown)
-    customProperty("--border-color-brown-hover", fillColor(from: fillBrown, l: fillLHover))
-    customProperty("--border-color-brown-active", fillColor(from: fillBrown, l: fillLActive))
-    customProperty("--border-color-brown-focus", glyphBlue)
-    customProperty("--box-shadow-color-brown-active", glyphColor(from: glyphBrown, lShift: glyphLActiveOffset))
-    customProperty("--box-shadow-color-brown-focus", glyphBlue)
-    customProperty("--outline-color-brown-focus", glyphBlue)
-    customProperty("--border-brown", (borderWidthBase, borderStyleBase, borderColorBrown))
-
-    // -- Gray
-    customProperty("--color-gray", grayGlyph)
-    customProperty("--color-gray-hover", glyphColor(from: grayGlyph, lShift: glyphLHoverOffset))
-    customProperty("--color-gray-active", glyphColor(from: grayGlyph, lShift: glyphLActiveOffset))
-    customProperty("--color-gray-focus", glyphBlue)
-    customProperty("--background-color-gray", grayFill)
-    customProperty("--background-color-gray-hover", fillColor(from: grayFill, l: fillLHover))
-    customProperty("--background-color-gray-active", fillColor(from: grayFill, l: fillLActive))
-    customProperty("--background-color-gray-focus", grayFill)
-    customProperty("--background-color-gray-subtle", fillColor(from: grayFill, isSubtle: true))
-    customProperty("--background-color-gray-subtle-hover", fillColor(from: grayFill, l: fillLHover, isSubtle: true))
-    customProperty("--background-color-gray-subtle-active", fillColor(from: grayFill, l: fillLActive, isSubtle: true))
-    customProperty("--border-color-gray", fillColor(from: grayFill, l: 0.55))
-    customProperty("--border-color-gray-hover", fillColor(from: grayFill, l: 0.60))
-    customProperty("--border-color-gray-active", fillColor(from: grayFill, l: 0.65))
-    customProperty("--border-color-gray-focus", glyphBlue)
-    customProperty("--box-shadow-color-gray-active", glyphColor(from: grayGlyph, lShift: glyphLActiveOffset))
-    customProperty("--box-shadow-color-gray-focus", glyphBlue)
-    customProperty("--outline-color-gray-focus", glyphBlue)
-    customProperty("--border-gray", (borderWidthBase, borderStyleBase, borderColorGray))
+    // MARK: Named colors—one 19-token block per name (`NamedColors`)
+    // The color and its solid fill are one token; states mix toward `extreme`
+    // (black in light, white in dark); the subtle fill is the scheme's.
+    for name in NamedColors.names {
+      let glyph = name == "gray" ? "var(--gray-glyph)" : "var(--glyph-\(name))"
+      let fill = name == "gray" ? "var(--gray-fill)" : "var(--fill-\(name))"
+      let subtle = name == "gray" ? "var(--gray-fill-subtle)" : "var(--fill-\(name)-subtle)"
+      let mix = { (color: String, share: Int) in "color-mix(in oklab, \(color) \(share)%, var(--extreme))" }
+      customProperty("--color-\(name)", glyph)
+      customProperty("--color-\(name)-hover", mix(glyph, 80))
+      customProperty("--color-\(name)-active", mix(glyph, 65))
+      customProperty("--color-\(name)-focus", glyphBlue)
+      customProperty("--background-color-\(name)", fill)
+      customProperty("--background-color-\(name)-hover", mix(fill, 85))
+      customProperty("--background-color-\(name)-active", mix(fill, 70))
+      customProperty("--background-color-\(name)-focus", fill)
+      customProperty("--background-color-\(name)-subtle", subtle)
+      customProperty("--background-color-\(name)-subtle-hover", mix(subtle, 92))
+      customProperty("--background-color-\(name)-subtle-active", mix(subtle, 84))
+      customProperty("--border-color-\(name)", fill)
+      customProperty("--border-color-\(name)-hover", mix(fill, 85))
+      customProperty("--border-color-\(name)-active", mix(fill, 70))
+      customProperty("--border-color-\(name)-focus", glyphBlue)
+      customProperty("--box-shadow-color-\(name)-active", mix(glyph, 65))
+      customProperty("--box-shadow-color-\(name)-focus", glyphBlue)
+      customProperty("--outline-color-\(name)-focus", glyphBlue)
+      customProperty("--border-\(name)", "\(borderWidthBase.value) solid var(--border-color-\(name))")
+    }
   }
 #endif
