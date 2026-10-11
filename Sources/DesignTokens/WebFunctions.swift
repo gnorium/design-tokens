@@ -122,7 +122,8 @@
   @CSSBuilder
   public func NamedColorTokensCSS(_ scheme: NamedColors.Scheme) -> [CSSOM.CSSRule] {
     for name in NamedColors.names {
-      let color = NamedColors.hex(name, scheme)
+      // As oklch(), so transitions interpolate in Oklab (`NamedColors.css`).
+      let color = NamedColors.css(name, scheme)
       let prefix = name == "gray" ? "--gray" : "--glyph-\(name)"
       let fillName = name == "gray" ? "--gray-fill" : "--fill-\(name)"
       customProperty(prefix == "--gray" ? "--gray-glyph" : prefix, color)
@@ -130,7 +131,10 @@
       customProperty(
         "\(fillName)-subtle",
         scheme.isMoreContrast
-          ? NamedColors.hex(NamedColors.moreContrastSubtle(name, scheme))
+          ? NamedColors.css(NamedColors.moreContrastSubtle(name, scheme))
+          // In sRGB: a subtle fill models the color at an opacity over the
+          // page, and opacity composites in sRGB (hover and active mixes,
+          // which move a color toward black or white, mix in Oklab).
           : "color-mix(in srgb, \(color) calc(var(--opacity-low) * 100%), var(--fill))")
     }
   }

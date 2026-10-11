@@ -2,18 +2,22 @@
   import Foundation
 
   /// Gnorium's named colors (user, 2026-10-11): twelve hues 30° apart in
-  /// OKLCH, starting at pure red's (#FF0000, 29.23°), each at the sRGB gamut
-  /// cusp—the most chromatic color sRGB reaches at that hue—and white, gray
-  /// and black.
+  /// OKLCH, starting at pure red's (#FF0000, 29.23°), and gray.
   ///
-  /// Light uses each cusp as it is; dark mirrors it—the same hue at the
-  /// lightness that contrasts with black as the cusp does with white. Each
-  /// is a color, its solid fill (the same token) under a white label (white
-  /// on every hue for now), and its subtle fill, the color at `opacity-low`
-  /// over the page. The increased-contrast schemes start from their
-  /// scheme's default, keep its OKLCH hue and move only lightness, to the
-  /// nearest at which it reads at 7:1 on the page, with the most chroma sRGB
-  /// allows there; their subtle fills carry base text at 7:1.
+  /// Each color's lightness is set so its WCAG contrast with the page is
+  /// exactly the scheme's target, with the most chroma sRGB allows at that
+  /// lightness, its hue kept: 3:1 in the default schemes (light against
+  /// white, dark against black), 7:1 in the increased-contrast ones. A
+  /// color's contrasts with white and with black multiply to 21, so 3:1
+  /// against white is 7:1 against black (relative luminance 0.3, set A) and
+  /// 7:1 against white is 3:1 against black (luminance 0.1, set B): light's
+  /// default and dark's increased contrast are set A; dark's default and
+  /// light's increased contrast are set B.
+  ///
+  /// Each is a color, its solid fill (the same token) under a white label,
+  /// and its subtle fill: the color at `opacity-low` over the page in the
+  /// default schemes; in the increased-contrast ones, the hue's lightness
+  /// nearest the color's at which base text reads at 7:1.
   public enum NamedColors {
     public struct OKLCH: Sendable, Equatable {
       public let l: Double
@@ -53,10 +57,6 @@
       return OKLCH(L, (A * A + B * B).squareRoot(), h)
     }
 
-    /// Gray: middle gray, Munsell value 5.5 (ISCC–NBS 265 medium gray),
-    /// achromatic.
-    public static let grayValue = 5.5
-
     /// Every name the tokens carry, in order.
     public static var names: [String] { hueNames + ["gray"] }
 
@@ -94,9 +94,9 @@
       )
     }
 
-    public static func inGamut(_ c: OKLCH) -> Bool {
+    public static func inGamut(_ c: OKLCH, tolerance: Double = 1e-7) -> Bool {
       let r = linearSRGB(c)
-      return [r.r, r.g, r.b].allSatisfy { $0 >= -1e-7 && $0 <= 1 + 1e-7 }
+      return [r.r, r.g, r.b].allSatisfy { $0 >= -tolerance && $0 <= 1 + tolerance }
     }
 
     /// The most chroma sRGB allows at a lightness and hue.
@@ -108,17 +108,6 @@
         if inGamut(OKLCH(l, mid, h)) { low = mid } else { high = mid }
       }
       return low
-    }
-
-    /// The gamut cusp at a hue: the lightness of most chroma, and that chroma.
-    public static func cusp(h: Double) -> OKLCH {
-      var a = 0.0, b = 1.0
-      for _ in 0..<90 {
-        let m1 = a + (b - a) / 3, m2 = b - (b - a) / 3
-        if maxChroma(l: m1, h: h) < maxChroma(l: m2, h: h) { a = m1 } else { b = m2 }
-      }
-      let l = (a + b) / 2
-      return OKLCH(l, maxChroma(l: l, h: h), h)
     }
 
     /// 8-bit sRGB, channels clamped.
@@ -151,56 +140,74 @@
       return (max(x, y) + 0.05) / (min(x, y) + 0.05)
     }
 
-    /// Gray's lightness: Munsell value 5.5 by the ASTM D1535 value function
-    /// (Y relative to the renotation's MgO reference, as its tables give it).
-    public static var gray: OKLCH {
-      let v = grayValue
-      let y = (1.1914 * v - 0.22533 * v * v + 0.23352 * pow(v, 3) - 0.020484 * pow(v, 4) + 0.00081939 * pow(v, 5)) / 100
-      return OKLCH(cbrt(y), 0, 0)
-    }
-
     // MARK: The rule
 
-    /// A name's color in light: the cusp at its hue (gray its own).
-    static func base(_ name: String) -> OKLCH {
-      name == "gray" ? gray : cusp(h: hue(name))
+    /// Set A's relative luminance: 3:1 against white, 7:1 against black.
+    public static let luminanceA = 0.3
+    /// Set B's: 7:1 against white, 3:1 against black.
+    public static let luminanceB = 0.1
+
+    /// The luminance a scheme's colors stand at: set A in light and in
+    /// dark's increased contrast, set B in dark and in light's.
+    public static func luminance(of scheme: Scheme) -> Double {
+      switch scheme {
+      case .light, .darkMoreContrast: return luminanceA
+      case .dark, .lightMoreContrast: return luminanceB
+      }
     }
 
-    /// A name's color in dark: light's mirrored (user, 2026-10-11)—the same
-    /// hue, the lightness at which it contrasts with black as light's does
-    /// with white, with the most chroma sRGB allows there. Each color then
-    /// reads alike in both schemes. Of the written colors around that
-    /// lightness, the one whose contrast is nearest light's.
-    static func mirrored(_ name: String) -> OKLCH {
-      let light = base(name)
-      let target = contrast(light, OKLCH(1, 0, 0))
-      func at(_ l: Double) -> OKLCH {
-        light.c == 0 ? OKLCH(l, 0, 0) : OKLCH(l, maxChroma(l: l, h: light.h), light.h)
-      }
-      func onBlack(_ c: OKLCH) -> Double {
+    /// A name's color at a relative luminance: its hue (gray none), the
+    /// lightness at which it stands there, the most chroma sRGB allows at
+    /// that lightness: found by bisection on the exact (unrounded)
+    /// luminance, then written in 8-bit sRGB.
+    public static func color(_ name: String, luminance target: Double) -> OKLCH {
+      let gray = name == "gray"
+      let h = gray ? 0 : hue(name)
+      func at(_ l: Double) -> OKLCH { gray ? OKLCH(l, 0, 0) : OKLCH(l, maxChroma(l: l, h: h), h) }
+      func exact(_ c: OKLCH) -> Double {
         let r = linearSRGB(c)
         let clamp = { (x: Double) in min(1, max(0, x)) }
-        let y = 0.2126 * clamp(r.r) + 0.7152 * clamp(r.g) + 0.0722 * clamp(r.b)
-        return (y + 0.05) / 0.05
+        return 0.2126 * clamp(r.r) + 0.7152 * clamp(r.g) + 0.0722 * clamp(r.b)
       }
       var low = 0.0, high = 1.0
       for _ in 0..<60 {
         let mid = (low + high) / 2
-        if onBlack(at(mid)) < target { low = mid } else { high = mid }
+        if exact(at(mid)) < target { low = mid } else { high = mid }
       }
-      var best = at(high)
-      for step in -20...20 {
-        let candidate = at(min(1, max(0, high + Double(step) * 0.0005)))
-        if abs(contrast(candidate, OKLCH(0, 0, 0)) - target) < abs(contrast(best, OKLCH(0, 0, 0)) - target) {
-          best = candidate
-        }
-      }
-      return best
+      return at(high)
     }
 
-    /// A scheme's default color: light's own, or dark's mirrored.
-    static func start(_ name: String, _ scheme: Scheme) -> OKLCH {
-      scheme.isDark ? mirrored(name) : base(name)
+    /// A name's color written for CSS as `oklch(L C h)` (user, 2026-10-11),
+    /// so browsers interpolate its transitions in Oklab: the OKLCH of its
+    /// 8-bit sRGB color, at the fewest decimals (4 to 8) at which the value
+    /// stays inside sRGB—each channel in [0, 1]—and renders that same 8-bit
+    /// color; on the gamut's edge, its chroma rounded down until it does.
+    public static func css(_ name: String, _ scheme: Scheme) -> String {
+      css(color(name, scheme))
+    }
+
+    /// Any color written so (`css(_:_:)`).
+    public static func css(_ color: OKLCH) -> String {
+      let bytes = rgb(color)
+      let exact = oklch(bytes)
+      for digits in 4...8 {
+        let scale = pow(10, Double(digits))
+        let l = (exact.l * scale).rounded() / scale
+        let h = (exact.h * scale).rounded() / scale
+        var c = (exact.c * scale).rounded() / scale
+        for _ in 0..<20 {
+          let candidate = OKLCH(l, c, h)
+          if inGamut(candidate, tolerance: 1e-12), rgb(candidate) == bytes {
+            return "oklch(\(format(l, digits)) \(format(c, digits)) \(format(h, digits)))"
+          }
+          c = max(0, c - 1 / scale)
+        }
+      }
+      return hex(color)
+    }
+
+    static func format(_ value: Double, _ digits: Int) -> String {
+      String(format: "%.\(digits)f", value)
     }
 
     /// The hex a name is written as in a scheme.
@@ -210,16 +217,13 @@
 
     /// The color of a name in a scheme.
     public static func color(_ name: String, _ scheme: Scheme) -> OKLCH {
-      let base = start(name, scheme)
-      guard scheme.isMoreContrast else { return base }
-      // Lighter or darker toward more contrast with the page.
-      return nearest(from: base, darker: !scheme.isDark) { contrast($0, scheme.page) >= moreContrastMinimum }
+      color(name, luminance: luminance(of: scheme))
     }
 
     /// The subtle fill of the increased-contrast schemes: the color's hue,
     /// base text on it at 7:1, the lightness nearest the color's.
     public static func moreContrastSubtle(_ name: String, _ scheme: Scheme) -> OKLCH {
-      let base = start(name, scheme)
+      let base = color(name, scheme)
       return nearest(from: base, darker: scheme.isDark) { contrast($0, scheme.baseText) >= moreContrastMinimum }
     }
 

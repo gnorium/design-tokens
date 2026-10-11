@@ -8,7 +8,7 @@ DesignTokens provides CSS custom property definitions and Swift constants for co
 
 ## Features
 
-- **Rule-generated colors**: twelve hues, evenly spaced in perceived hue, each at the most saturated color sRGB can show.
+- **Rule-generated colors**: twelve hues, evenly spaced in perceived hue, each at exactly its scheme's contrast with the page and the most saturated sRGB allows there.
 - **Layered Architecture**: **Source Tokens** (primitives) and **Applied Tokens** (semantic mappings).
 - **Light and dark, default and increased contrast**: four schemes, each derived from the same rule.
 - **CSS Generation**: functions that generate the CSS custom property definitions.
@@ -17,23 +17,22 @@ DesignTokens provides CSS custom property definitions and Swift constants for co
 ## The color rule
 
 1. **Hue.** Start at the OKLCH hue of pure red (`#FF0000`, h ≈ 29.23°) and step 30° around the circle: twelve hues, evenly spaced in perceived hue. OKLab/OKLCH is a perceptual color space, so equal steps look like equal differences (the HSV/RGB wheel, by contrast, bunches greens and blues).
-2. **Saturation.** At each hue, take the sRGB *cusp*: the most chromatic color sRGB can display at that hue (Ottosson's `find_cusp`).
-3. **Names.** One word each, chosen by appearance:
+2. **Lightness by contrast.** At each hue, the lightness is set so the color's WCAG contrast with the page is *exactly* the scheme's target, with the most chroma sRGB allows at that lightness: **3:1** in the default schemes (light against white, dark against black), **7:1** in the increased-contrast schemes (`prefers-contrast: more`).
+3. **Two sets, four schemes.** A color's contrasts with white and with black multiply to 21, so 3:1 against white is 7:1 against black. Set A (relative luminance 0.3) is light's default and dark's increased contrast; set B (luminance 0.1) is dark's default and light's increased contrast.
+4. **Names.** One word each, chosen by appearance:
 
-   | Name | Hex | Name | Hex | Name | Hex |
+   | Name | Set A | Set B | Name | Set A | Set B |
    |---|---|---|---|---|---|
-   | Red | `#FF0000` | Green | `#00FF73` | Indigo | `#2C00FF` |
-   | Orange | `#FF8E00` | Mint | `#00FFDF` | Violet | `#9000FF` |
-   | Yellow | `#FFCA00` | Cyan | `#00E5FF` | Magenta | `#FF00FB` |
-   | Lime | `#DCFF00` | Blue | `#00B0FF` | Pink | `#FF008A` |
+   | Red | `#FF5F4E` | `#B60000` | Cyan | `#00A4B7` | `#00636F` |
+   | Orange | `#DF7C00` | `#884900` | Blue | `#009EE5` | `#005F8C` |
+   | Yellow | `#B79000` | `#6F5600` | Indigo | `#6E8EFF` | `#2F31FF` |
+   | Lime | `#889F00` | `#515F00` | Violet | `#AD7AFF` | `#7F00E2` |
+   | Green | `#00AC4B` | `#00682A` | Magenta | `#FF2CFA` | `#A1009E` |
+   | Mint | `#00A892` | `#006557` | Pink | `#FF549A` | `#B0005D` |
 
-4. **Schemes.** These cusps are the light-mode default (on a white page). Every other scheme keeps each color's OKLCH hue and moves only lightness, with the most chroma sRGB allows at that lightness:
-   - **Dark, default:** lightness set so the color's contrast against black equals the light default's contrast against white, so each color reads the same in both modes.
-   - **Light, increased contrast** (`prefers-contrast: more`): at least 7:1 against white.
-   - **Dark, increased contrast:** at least 7:1 against black.
-5. **Fills.** A solid fill is the color itself; a subtle fill is the color at the `opacity-low` token over the page background.
+5. **Fills.** A solid fill is the color itself, under a white label; a subtle fill is the color at the `opacity-low` token over the page background (in the increased-contrast schemes, the hue's lightness nearest the color's at which base text reads at 7:1).
 
-Gray (Munsell N5.5), white and black are achromatic. `NamedColors` implements the rule; its tests reproduce every value above.
+Gray follows the same rule achromatically (`#959595` / `#595959`); white and black are the pages. `NamedColors` implements the rule; its tests reproduce every value above.
 
 ## Architecture
 
