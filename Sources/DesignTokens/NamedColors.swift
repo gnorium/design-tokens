@@ -38,7 +38,9 @@
     }
 
     public static let hues: [Hue] = [
-      Hue(name: "pink", centroid: 1, notation: "1.5R 7/13", h: 14.462),
+      // Pink is vivid reddish purple's (user, 2026-10-11): vivid pink's own
+      // cusp (#FF0059) read as a second red beside red's.
+      Hue(name: "pink", centroid: 236, notation: "1.0RP 4/19", h: 337.4921),
       Hue(name: "red", centroid: 11, notation: "5R 4/15", h: 20.2664),
       Hue(name: "orange", centroid: 48, notation: "4.5YR 6.6/16", h: 58.5412),
       Hue(name: "yellow", centroid: 82, notation: "4.0Y 7.8/14.5", h: 92.9164),
