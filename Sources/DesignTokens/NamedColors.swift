@@ -1,24 +1,17 @@
 #if SERVER
   import Foundation
 
-  /// Gnorium's named colors (user, 2026-10-11; design-notes/iscc-nbs-vivid-cusps.html):
-  /// the ISCC–NBS names, each at the sRGB gamut cusp—the most chromatic color
-  /// sRGB reaches—of its vivid centroid's hue, and white, gray and black.
+  /// Gnorium's named colors (user, 2026-10-11): the twelve pure hues of the
+  /// RGB color wheel—HSV hue in 30° steps at full saturation and value,
+  /// "they are the definition"—and white, gray and black. Each sits on the sRGB
+  /// gamut's edge: one channel full, one empty.
   ///
-  /// Each hue is the OKLCH hue of the name's "vivid" ISCC–NBS centroid (Kelly,
-  /// "Central Notations for the Revised ISCC-NBS Color-Name Blocks", J. Res.
-  /// NBS 61(5), 1958), its Munsell notation converted through the Munsell
-  /// renotation (Newhall, Nickerson & Judd, JOSA 33, 1943; xyY under
-  /// Illuminant C, linear in xy between the tabulated hues, values and
-  /// chromas), adapted to D65 by Bradford, then to OKLab. The tests derive the
-  /// hues from those renotation entries and reproduce every hex here.
-  ///
-  /// The default schemes use each cusp as it is, light and dark alike: a
-  /// color, its solid fill (the same token) under a white label (user,
-  /// 2026-10-11: white on all eight for now), and its subtle fill, the color
-  /// at `opacity-low` over the page. The increased-contrast schemes move only lightness, to
-  /// the nearest at which the color reads at 7:1 on the page, with the most
-  /// chroma sRGB allows there; their subtle fills carry base text at 7:1.
+  /// The default schemes use each as it is, light and dark alike: a color,
+  /// its solid fill (the same token) under a white label (white on every hue
+  /// for now), and its subtle fill, the color at `opacity-low` over the page.
+  /// The increased-contrast schemes keep each color's OKLCH hue and move only
+  /// lightness, to the nearest at which it reads at 7:1 on the page, with the
+  /// most chroma sRGB allows there; their subtle fills carry base text at 7:1.
   public enum NamedColors {
     public struct OKLCH: Sendable, Equatable {
       public let l: Double
@@ -27,30 +20,57 @@
       public init(_ l: Double, _ c: Double, _ h: Double) { self.l = l; self.c = c; self.h = h }
     }
 
-    /// A hue name and the vivid centroid its hue is taken from.
+    /// A hue name—the RGB wheel's own, kebab-cased as the tokens are—and
+    /// its HSV hue, in degrees.
     public struct Hue: Sendable {
       public let name: String
-      /// ISCC–NBS centroid number and Munsell notation.
-      public let centroid: Int
-      public let notation: String
-      /// Its OKLCH hue via the renotation, in degrees.
-      public let h: Double
+      public let hsv: Double
     }
 
+    /// All twelve wheel hues, 30° apart (user, 2026-10-11).
     public static let hues: [Hue] = [
-      // Pink is vivid reddish purple's (user, 2026-10-11): vivid pink's own
-      // cusp (#FF0059) read as a second red beside red's.
-      Hue(name: "pink", centroid: 236, notation: "1.0RP 4/19", h: 337.4921),
-      Hue(name: "red", centroid: 11, notation: "5R 4/15", h: 20.2664),
-      Hue(name: "orange", centroid: 48, notation: "4.5YR 6.6/16", h: 58.5412),
-      Hue(name: "yellow", centroid: 82, notation: "4.0Y 7.8/14.5", h: 92.9164),
-      Hue(name: "green", centroid: 139, notation: "6.5G 5.2/18", h: 170.5929),
-      Hue(name: "blue", centroid: 176, notation: "3.0PB 4.2/15", h: 235.7221),
-      Hue(name: "violet", centroid: 205, notation: "1.0P 2.7/21", h: 302.7675),
-      Hue(name: "purple", centroid: 216, notation: "6.0P 3.5/20", h: 321.005),
-    ]
+      ("red", 0), ("orange", 30), ("yellow", 60), ("chartreuse", 90), ("green", 120), ("spring-green", 150),
+      ("cyan", 180), ("azure", 210), ("blue", 240), ("violet", 270), ("magenta", 300), ("rose", 330),
+    ].map { Hue(name: $0.0, hsv: $0.1) }
 
-    /// Gray: ISCC–NBS 265 medium gray, Munsell value 5.5, achromatic.
+    /// 8-bit sRGB of an HSV hue at full saturation and value.
+    public static func wheel(_ degrees: Double) -> (Int, Int, Int) {
+      let h = (degrees.truncatingRemainder(dividingBy: 360) + 360).truncatingRemainder(dividingBy: 360) / 60
+      let x = 1 - abs(h.truncatingRemainder(dividingBy: 2) - 1)
+      let (r, g, b): (Double, Double, Double)
+      switch Int(h) {
+      case 0: (r, g, b) = (1, x, 0)
+      case 1: (r, g, b) = (x, 1, 0)
+      case 2: (r, g, b) = (0, 1, x)
+      case 3: (r, g, b) = (0, x, 1)
+      case 4: (r, g, b) = (x, 0, 1)
+      default: (r, g, b) = (1, 0, x)
+      }
+      // Half a step rounds up, as #FF8000 writes 0.5.
+      func byte(_ v: Double) -> Int { Int((v * 255).rounded(.toNearestOrAwayFromZero)) }
+      return (byte(r), byte(g), byte(b))
+    }
+
+    /// OKLCH of an 8-bit sRGB color.
+    public static func oklch(_ rgb: (Int, Int, Int)) -> OKLCH {
+      func lin(_ v: Int) -> Double {
+        let x = Double(v) / 255
+        return x <= 0.04045 ? x / 12.92 : pow((x + 0.055) / 1.055, 2.4)
+      }
+      let (r, g, b) = (lin(rgb.0), lin(rgb.1), lin(rgb.2))
+      let l = cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b)
+      let m = cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b)
+      let s = cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b)
+      let L = 0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s
+      let A = 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s
+      let B = 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s
+      var h = atan2(B, A) * 180 / .pi
+      if h < 0 { h += 360 }
+      return OKLCH(L, (A * A + B * B).squareRoot(), h)
+    }
+
+    /// Gray: middle gray, Munsell value 5.5 (ISCC–NBS 265 medium gray),
+    /// achromatic.
     public static let grayValue = 5.5
 
     /// Every name the tokens carry, in order.
@@ -106,17 +126,6 @@
       return low
     }
 
-    /// The gamut cusp at a hue: the lightness of most chroma, and that chroma.
-    public static func cusp(h: Double) -> OKLCH {
-      var a = 0.0, b = 1.0
-      for _ in 0..<90 {
-        let m1 = a + (b - a) / 3, m2 = b - (b - a) / 3
-        if maxChroma(l: m1, h: h) < maxChroma(l: m2, h: h) { a = m1 } else { b = m2 }
-      }
-      let l = (a + b) / 2
-      return OKLCH(l, maxChroma(l: l, h: h), h)
-    }
-
     /// 8-bit sRGB, channels clamped.
     public static func rgb(_ c: OKLCH) -> (Int, Int, Int) {
       let r = linearSRGB(c)
@@ -158,8 +167,23 @@
     // MARK: The rule
 
     /// The color of a name in a scheme.
+    /// A hue's color on the wheel.
+    static func base(_ name: String) -> OKLCH {
+      name == "gray" ? gray : oklch(wheel(hues.first { $0.name == name }!.hsv))
+    }
+
+    /// The hex a name is written as in a scheme: the wheel's own bytes in
+    /// the default schemes.
+    public static func hex(_ name: String, _ scheme: Scheme) -> String {
+      if !scheme.isMoreContrast, let hue = hues.first(where: { $0.name == name }) {
+        let (r, g, b) = wheel(hue.hsv)
+        return String(format: "#%02X%02X%02X", r, g, b)
+      }
+      return hex(color(name, scheme))
+    }
+
     public static func color(_ name: String, _ scheme: Scheme) -> OKLCH {
-      let base = name == "gray" ? gray : cusp(h: hues.first { $0.name == name }!.h)
+      let base = base(name)
       guard scheme.isMoreContrast else { return base }
       // Lighter or darker toward more contrast with the page.
       return nearest(from: base, darker: !scheme.isDark) { contrast($0, scheme.page) >= moreContrastMinimum }
@@ -168,7 +192,7 @@
     /// The subtle fill of the increased-contrast schemes: the color's hue,
     /// base text on it at 7:1, the lightness nearest the color's.
     public static func moreContrastSubtle(_ name: String, _ scheme: Scheme) -> OKLCH {
-      let base = name == "gray" ? gray : cusp(h: hues.first { $0.name == name }!.h)
+      let base = base(name)
       return nearest(from: base, darker: scheme.isDark) { contrast($0, scheme.baseText) >= moreContrastMinimum }
     }
 
