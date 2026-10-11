@@ -136,9 +136,12 @@
       while step <= 2000 {
         for l in step == 0 ? [hig.l] : [hig.l + Double(step) * 0.0005, hig.l - Double(step) * 0.0005]
         where l >= 0 && l <= 1 {
-          // Judged as written out: rounded first.
-          let chroma = achromatic ? min(hig.c, maxChroma(l: l, h: hig.h)) : maxChroma(l: l, h: hig.h)
-          let fill = rounded(OKLCH(l, chroma, hig.h))
+          // Judged as written out: lightness and hue rounded first, the
+          // chroma found at them and rounded down, so it stays in gamut.
+          let lightness = (l * 10000).rounded(.down) / 10000
+          let hue = (hig.h * 100).rounded() / 100
+          let most = (maxChroma(l: lightness, h: hue) * 10000).rounded(.down) / 10000
+          let fill = OKLCH(lightness, achromatic ? min(hig.c, most) : most, hue)
           if contrast(fill, base) >= minimum { return fill }
         }
         step += 1
