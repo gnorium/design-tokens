@@ -461,20 +461,6 @@ public let backgroundColorOrangeSubtleHover: CSS.Color = `var`(
 public let backgroundColorOrangeSubtleActive: CSS.Color = `var`(
   "--background-color-orange-subtle-active")
 // Yellow
-// Backgrounds colorBase text reads on, in every scheme (`ReadableFills`, user 2026-10-11).
-public let backgroundColorRedReadable: CSS.Color = `var`("--background-color-red-readable")
-public let backgroundColorOrangeReadable: CSS.Color = `var`("--background-color-orange-readable")
-public let backgroundColorYellowReadable: CSS.Color = `var`("--background-color-yellow-readable")
-public let backgroundColorGreenReadable: CSS.Color = `var`("--background-color-green-readable")
-public let backgroundColorMintReadable: CSS.Color = `var`("--background-color-mint-readable")
-public let backgroundColorTealReadable: CSS.Color = `var`("--background-color-teal-readable")
-public let backgroundColorCyanReadable: CSS.Color = `var`("--background-color-cyan-readable")
-public let backgroundColorBlueReadable: CSS.Color = `var`("--background-color-blue-readable")
-public let backgroundColorIndigoReadable: CSS.Color = `var`("--background-color-indigo-readable")
-public let backgroundColorPurpleReadable: CSS.Color = `var`("--background-color-purple-readable")
-public let backgroundColorPinkReadable: CSS.Color = `var`("--background-color-pink-readable")
-public let backgroundColorBrownReadable: CSS.Color = `var`("--background-color-brown-readable")
-public let backgroundColorGrayReadable: CSS.Color = `var`("--background-color-gray-readable")
 public let backgroundColorYellow: CSS.Color = `var`("--background-color-yellow")
 public let backgroundColorYellowHover: CSS.Color = `var`("--background-color-yellow-hover")
 public let backgroundColorYellowActive: CSS.Color = `var`("--background-color-yellow-active")

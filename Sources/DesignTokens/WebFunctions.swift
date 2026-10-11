@@ -264,26 +264,15 @@
     customProperty("--glyph-pink", oklch(l: lightnessPink, c: chromaPink, h: huePink))
     customProperty("--glyph-brown", oklch(l: lightnessBrown, c: chromaBrown, h: hueBrown))
 
-    customProperty("--fill-red", oklch(l: lightnessRed, c: chromaRed, h: hueRed))
-    customProperty("--fill-orange", oklch(l: lightnessOrange, c: chromaOrange, h: hueOrange))
-    customProperty("--fill-yellow", oklch(l: lightnessYellow, c: chromaYellow, h: hueYellow))
-    customProperty("--fill-green", oklch(l: lightnessGreen, c: chromaGreen, h: hueGreen))
-    customProperty("--fill-mint", oklch(l: lightnessMint, c: chromaMint, h: hueMint))
-    customProperty("--fill-teal", oklch(l: lightnessTeal, c: chromaTeal, h: hueTeal))
-    customProperty("--fill-cyan", oklch(l: lightnessCyan, c: chromaCyan, h: hueCyan))
-    customProperty("--fill-blue", oklch(l: lightnessBlue, c: chromaBlue, h: hueBlue))
-    customProperty("--fill-indigo", oklch(l: lightnessIndigo, c: chromaIndigo, h: hueIndigo))
-    customProperty("--fill-purple", oklch(l: lightnessPurple, c: chromaPurple, h: huePurple))
-    customProperty("--fill-pink", oklch(l: lightnessPink, c: chromaPink, h: huePink))
-    customProperty("--fill-brown", oklch(l: lightnessBrown, c: chromaBrown, h: hueBrown))
 
-    // Fills colorBase text reads on, derived from this scheme's HIG colors
-    // (`ReadableFills`, user 2026-10-11).
-    for fill in ReadableFills.fills(.light) {
-      customProperty("--fill-readable-\(fill.name)", oklch(l: fill.color.l, c: fill.color.c, h: fill.color.h))
+    // The solid fills, derived from this scheme's HIG colors to carry white
+    // text (`SolidFills`, user 2026-10-11).
+    for fill in SolidFills.fills(.light) {
+      customProperty(
+        fill.name == "gray" ? "--gray-fill" : "--fill-\(fill.name)",
+        oklch(l: fill.color.l, c: fill.color.c, h: fill.color.h))
     }
     customProperty("--gray-glyph", oklch(l: lightnessGray, c: chromaGray, h: hueGray))
-    customProperty("--gray-fill", oklch(l: CSS.Value(calc(lightnessGray + 0.1)), c: chromaGray, h: hueGray))
 
     // MARK: - Apple HIG Syntax Tokens (Light Mode)
     customProperty("--color-syntax-addition", glyphGreen)
@@ -427,26 +416,15 @@
     customProperty("--glyph-pink", oklch(l: lightnessPink, c: chromaPink, h: huePink))
     customProperty("--glyph-brown", oklch(l: lightnessBrown, c: chromaBrown, h: hueBrown))
 
-    customProperty("--fill-red", oklch(l: lightnessRed, c: chromaRed, h: hueRed))
-    customProperty("--fill-orange", oklch(l: lightnessOrange, c: chromaOrange, h: hueOrange))
-    customProperty("--fill-yellow", oklch(l: lightnessYellow, c: chromaYellow, h: hueYellow))
-    customProperty("--fill-green", oklch(l: lightnessGreen, c: chromaGreen, h: hueGreen))
-    customProperty("--fill-mint", oklch(l: lightnessMint, c: chromaMint, h: hueMint))
-    customProperty("--fill-teal", oklch(l: lightnessTeal, c: chromaTeal, h: hueTeal))
-    customProperty("--fill-cyan", oklch(l: lightnessCyan, c: chromaCyan, h: hueCyan))
-    customProperty("--fill-blue", oklch(l: lightnessBlue, c: chromaBlue, h: hueBlue))
-    customProperty("--fill-indigo", oklch(l: lightnessIndigo, c: chromaIndigo, h: hueIndigo))
-    customProperty("--fill-purple", oklch(l: lightnessPurple, c: chromaPurple, h: huePurple))
-    customProperty("--fill-pink", oklch(l: lightnessPink, c: chromaPink, h: huePink))
-    customProperty("--fill-brown", oklch(l: lightnessBrown, c: chromaBrown, h: hueBrown))
 
-    // Fills colorBase text reads on, derived from this scheme's HIG colors
-    // (`ReadableFills`, user 2026-10-11).
-    for fill in ReadableFills.fills(.lightMoreContrast) {
-      customProperty("--fill-readable-\(fill.name)", oklch(l: fill.color.l, c: fill.color.c, h: fill.color.h))
+    // The solid fills, derived from this scheme's HIG colors to carry white
+    // text (`SolidFills`, user 2026-10-11).
+    for fill in SolidFills.fills(.lightMoreContrast) {
+      customProperty(
+        fill.name == "gray" ? "--gray-fill" : "--fill-\(fill.name)",
+        oklch(l: fill.color.l, c: fill.color.c, h: fill.color.h))
     }
     customProperty("--gray-glyph", oklch(l: lightnessGray, c: chromaGray, h: hueGray))
-    customProperty("--gray-fill", oklch(l: CSS.Value(calc(lightnessGray + 0.1)), c: chromaGray, h: hueGray))
   }
 
   @CSSBuilder
@@ -569,26 +547,15 @@
     customProperty("--glyph-pink", oklch(l: lightnessPink, c: chromaPink, h: huePink))
     customProperty("--glyph-brown", oklch(l: lightnessBrown, c: chromaBrown, h: hueBrown))
 
-    customProperty("--fill-red", oklch(l: lightnessRed, c: chromaRed, h: hueRed))
-    customProperty("--fill-orange", oklch(l: lightnessOrange, c: chromaOrange, h: hueOrange))
-    customProperty("--fill-yellow", oklch(l: lightnessYellow, c: chromaYellow, h: hueYellow))
-    customProperty("--fill-green", oklch(l: lightnessGreen, c: chromaGreen, h: hueGreen))
-    customProperty("--fill-mint", oklch(l: lightnessMint, c: chromaMint, h: hueMint))
-    customProperty("--fill-teal", oklch(l: lightnessTeal, c: chromaTeal, h: hueTeal))
-    customProperty("--fill-cyan", oklch(l: lightnessCyan, c: chromaCyan, h: hueCyan))
-    customProperty("--fill-blue", oklch(l: lightnessBlue, c: chromaBlue, h: hueBlue))
-    customProperty("--fill-indigo", oklch(l: lightnessIndigo, c: chromaIndigo, h: hueIndigo))
-    customProperty("--fill-purple", oklch(l: lightnessPurple, c: chromaPurple, h: huePurple))
-    customProperty("--fill-pink", oklch(l: lightnessPink, c: chromaPink, h: huePink))
-    customProperty("--fill-brown", oklch(l: lightnessBrown, c: chromaBrown, h: hueBrown))
 
-    // Fills colorBase text reads on, derived from this scheme's HIG colors
-    // (`ReadableFills`, user 2026-10-11).
-    for fill in ReadableFills.fills(.dark) {
-      customProperty("--fill-readable-\(fill.name)", oklch(l: fill.color.l, c: fill.color.c, h: fill.color.h))
+    // The solid fills, derived from this scheme's HIG colors to carry white
+    // text (`SolidFills`, user 2026-10-11).
+    for fill in SolidFills.fills(.dark) {
+      customProperty(
+        fill.name == "gray" ? "--gray-fill" : "--fill-\(fill.name)",
+        oklch(l: fill.color.l, c: fill.color.c, h: fill.color.h))
     }
     customProperty("--gray-glyph", oklch(l: lightnessGray, c: chromaGray, h: hueGray))
-    customProperty("--gray-fill", oklch(l: CSS.Value(calc(lightnessGray - 0.1)), c: chromaGray, h: hueGray))
 
     // MARK: - Apple HIG Syntax Tokens (Dark Mode)
     customProperty("--color-syntax-attributes", hex(0xCC9768))
@@ -739,26 +706,15 @@
     customProperty("--glyph-pink", oklch(l: lightnessPink, c: chromaPink, h: huePink))
     customProperty("--glyph-brown", oklch(l: lightnessBrown, c: chromaBrown, h: hueBrown))
 
-    customProperty("--fill-red", oklch(l: lightnessRed, c: chromaRed, h: hueRed))
-    customProperty("--fill-orange", oklch(l: lightnessOrange, c: chromaOrange, h: hueOrange))
-    customProperty("--fill-yellow", oklch(l: lightnessYellow, c: chromaYellow, h: hueYellow))
-    customProperty("--fill-green", oklch(l: lightnessGreen, c: chromaGreen, h: hueGreen))
-    customProperty("--fill-mint", oklch(l: lightnessMint, c: chromaMint, h: hueMint))
-    customProperty("--fill-teal", oklch(l: lightnessTeal, c: chromaTeal, h: hueTeal))
-    customProperty("--fill-cyan", oklch(l: lightnessCyan, c: chromaCyan, h: hueCyan))
-    customProperty("--fill-blue", oklch(l: lightnessBlue, c: chromaBlue, h: hueBlue))
-    customProperty("--fill-indigo", oklch(l: lightnessIndigo, c: chromaIndigo, h: hueIndigo))
-    customProperty("--fill-purple", oklch(l: lightnessPurple, c: chromaPurple, h: huePurple))
-    customProperty("--fill-pink", oklch(l: lightnessPink, c: chromaPink, h: huePink))
-    customProperty("--fill-brown", oklch(l: lightnessBrown, c: chromaBrown, h: hueBrown))
 
-    // Fills colorBase text reads on, derived from this scheme's HIG colors
-    // (`ReadableFills`, user 2026-10-11).
-    for fill in ReadableFills.fills(.darkMoreContrast) {
-      customProperty("--fill-readable-\(fill.name)", oklch(l: fill.color.l, c: fill.color.c, h: fill.color.h))
+    // The solid fills, derived from this scheme's HIG colors to carry white
+    // text (`SolidFills`, user 2026-10-11).
+    for fill in SolidFills.fills(.darkMoreContrast) {
+      customProperty(
+        fill.name == "gray" ? "--gray-fill" : "--fill-\(fill.name)",
+        oklch(l: fill.color.l, c: fill.color.c, h: fill.color.h))
     }
     customProperty("--gray-glyph", oklch(l: lightnessGray, c: chromaGray, h: hueGray))
-    customProperty("--gray-fill", oklch(l: CSS.Value(calc(lightnessGray - 0.1)), c: chromaGray, h: hueGray))
   }
 
   // MARK: - Unified Applied Tokens
@@ -1153,20 +1109,6 @@
     customProperty("--color-red-hover", glyphColor(from: glyphRed, lShift: glyphLHoverOffset))
     customProperty("--color-red-active", glyphColor(from: glyphRed, lShift: glyphLActiveOffset))
     customProperty("--color-red-focus", glyphBlue)
-    // Backgrounds colorBase text reads on (`ReadableFills`).
-    customProperty("--background-color-red-readable", `var`("--fill-readable-red") as CSS.Color)
-    customProperty("--background-color-orange-readable", `var`("--fill-readable-orange") as CSS.Color)
-    customProperty("--background-color-yellow-readable", `var`("--fill-readable-yellow") as CSS.Color)
-    customProperty("--background-color-green-readable", `var`("--fill-readable-green") as CSS.Color)
-    customProperty("--background-color-mint-readable", `var`("--fill-readable-mint") as CSS.Color)
-    customProperty("--background-color-teal-readable", `var`("--fill-readable-teal") as CSS.Color)
-    customProperty("--background-color-cyan-readable", `var`("--fill-readable-cyan") as CSS.Color)
-    customProperty("--background-color-blue-readable", `var`("--fill-readable-blue") as CSS.Color)
-    customProperty("--background-color-indigo-readable", `var`("--fill-readable-indigo") as CSS.Color)
-    customProperty("--background-color-purple-readable", `var`("--fill-readable-purple") as CSS.Color)
-    customProperty("--background-color-pink-readable", `var`("--fill-readable-pink") as CSS.Color)
-    customProperty("--background-color-brown-readable", `var`("--fill-readable-brown") as CSS.Color)
-    customProperty("--background-color-gray-readable", `var`("--fill-readable-gray") as CSS.Color)
     customProperty("--background-color-red", fillRed)
     customProperty("--background-color-red-hover", fillColor(from: fillRed, l: fillLHover))
     customProperty("--background-color-red-active", fillColor(from: fillRed, l: fillLActive))

@@ -1,18 +1,19 @@
 #if SERVER
   import Foundation
 
-  /// Fills that `colorBase` text reads on (user, 2026-10-11): each HIG hue
-  /// as a background, derived by one deterministic rule from the HIG color
-  /// of its scheme. The glyph (foreground) colors stay exactly HIG; these
-  /// are their own family (`backgroundColor{Hue}Readable`).
+  /// The solid fills (`backgroundColor{Hue}`, `--fill-{hue}`, `--gray-fill`):
+  /// every solid fill carries white text (`colorInvertedFixed`), so each is
+  /// derived from its scheme's HIG color by one rule to read under white
+  /// (user, 2026-10-11); the subtle, hover and active fills follow from
+  /// them. The glyph (foreground) colors stay exactly HIG.
   ///
-  /// The rule: keep the hue; take the most chroma the sRGB gamut allows at
-  /// each lightness; and pick the OKLCH lightness nearest the HIG one at
-  /// which the fill and the scheme's `colorBase` (`--glyph-gray`) contrast
-  /// at least 4.5:1 by WCAG 2 (relative luminance from linear sRGB),
-  /// searched outward from the HIG lightness in steps of 0.0005, the
-  /// lighter side first at each step.
-  public enum ReadableFills {
+  /// The rule, the same for every hue: keep the hue and the HIG color's
+  /// relative chroma—its share of the most chroma sRGB allows at its hue and
+  /// lightness—and move the OKLCH lightness to the nearest value at which
+  /// the fill and white contrast at least 4.5:1 by WCAG 2 (relative
+  /// luminance from linear sRGB), searched outward from the HIG lightness in
+  /// steps of 0.0005, the lighter side first at each step.
+  public enum SolidFills {
     public struct OKLCH: Sendable, Equatable {
       public let l: Double
       public let c: Double
@@ -24,16 +25,6 @@
 
     public enum Scheme: CaseIterable, Sendable {
       case light, lightMoreContrast, dark, darkMoreContrast
-
-      /// The scheme's `colorBase`.
-      public var base: OKLCH {
-        switch self {
-        case .light: return OKLCH(0.20, 0.003, 260)
-        case .lightMoreContrast: return OKLCH(0.12, 0.004, 260)
-        case .dark: return OKLCH(0.96, 0.003, 260)
-        case .darkMoreContrast: return OKLCH(0.98, 0.002, 260)
-        }
-      }
 
       /// The scheme's HIG colors, by hue (`SourceTokens…CSS`).
       public var hig: [(name: String, color: OKLCH)] {
@@ -82,8 +73,11 @@
       }
     }
 
-    /// The minimum WCAG 2 contrast with `colorBase`.
+    /// The minimum WCAG 2 contrast with white.
     public static let minimum = 4.5
+
+    /// White, the text every solid fill carries.
+    public static let white = OKLCH(1, 0, 0)
 
     /// Linear sRGB, unclamped.
     public static func linearSRGB(_ color: OKLCH) -> (r: Double, g: Double, b: Double) {
@@ -128,10 +122,17 @@
       return low
     }
 
-    /// The fill for `hig` under `base` text, by the rule above. An
-    /// achromatic hue (gray) keeps its own chroma: the most the gamut
-    /// allows would make it a blue.
-    public static func derive(_ hig: OKLCH, base: OKLCH, achromatic: Bool = false) -> OKLCH {
+    /// A color's share of the most chroma sRGB allows at its hue and
+    /// lightness.
+    public static func relativeChroma(_ color: OKLCH) -> Double {
+      let most = maxChroma(l: color.l, h: color.h)
+      return most > 0 ? min(1, color.c / most) : 0
+    }
+
+    /// The solid fill for `hig`, by the rule above.
+    public static func derive(_ hig: OKLCH) -> OKLCH {
+      let share = relativeChroma(hig)
+      let hue = (hig.h * 100).rounded() / 100
       var step = 0
       while step <= 2000 {
         for l in step == 0 ? [hig.l] : [hig.l + Double(step) * 0.0005, hig.l - Double(step) * 0.0005]
@@ -139,24 +140,18 @@
           // Judged as written out: lightness and hue rounded first, the
           // chroma found at them and rounded down, so it stays in gamut.
           let lightness = (l * 10000).rounded(.down) / 10000
-          let hue = (hig.h * 100).rounded() / 100
-          let most = (maxChroma(l: lightness, h: hue) * 10000).rounded(.down) / 10000
-          let fill = OKLCH(lightness, achromatic ? min(hig.c, most) : most, hue)
-          if contrast(fill, base) >= minimum { return fill }
+          let chroma = (share * maxChroma(l: lightness, h: hue) * 10000).rounded(.down) / 10000
+          let fill = OKLCH(lightness, chroma, hue)
+          if contrast(fill, white) >= minimum { return fill }
         }
         step += 1
       }
-      return rounded(hig)
-    }
-
-    static func rounded(_ color: OKLCH) -> OKLCH {
-      func four(_ x: Double) -> Double { (x * 10000).rounded(.down) / 10000 }
-      return OKLCH(four(color.l), four(color.c), (color.h * 100).rounded() / 100)
+      return hig
     }
 
     /// Every hue's fill in `scheme`.
     public static func fills(_ scheme: Scheme) -> [(name: String, color: OKLCH)] {
-      scheme.hig.map { ($0.name, derive($0.color, base: scheme.base, achromatic: $0.name == "gray")) }
+      scheme.hig.map { ($0.name, derive($0.color)) }
     }
   }
 #endif
