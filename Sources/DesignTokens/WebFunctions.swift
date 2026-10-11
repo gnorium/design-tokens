@@ -113,7 +113,7 @@
     return (bestL, bestC)
   }
 
-  /// A scheme's named colors (`NamedColors`, the RGB wheel's pure hues): each name's color and solid
+  /// A scheme's named colors (`NamedColors`, twelve cusps 30° apart): each name's color and solid
   /// fill (`--glyph-{name}`, `--fill-{name}`; gray's `--gray-glyph`,
   /// `--gray-fill`) and its subtle fill (`--fill-{name}-subtle`,
   /// `--gray-fill-subtle`)—in the default schemes the color at `opacity-low`
@@ -182,8 +182,8 @@
     customProperty("--glyph-l-hover-offset", -0.1)
     customProperty("--glyph-l-active-offset", -0.2)
 
-    // The named colors (`NamedColors`, user 2026-10-11): the RGB wheel's
-    // pure hues, and gray.
+    // The named colors (`NamedColors`, user 2026-10-11): twelve sRGB
+    // cusps 30° apart from red's hue, and gray.
     NamedColorTokensCSS(.light)
 
     // MARK: - Apple HIG Syntax Tokens (Light Mode)
@@ -264,8 +264,8 @@
     customProperty("--backdrop-dark", rgba(0, 0, 0, 0.65))
  
 
-    // The named colors (`NamedColors`, user 2026-10-11): the RGB wheel's
-    // pure hues, and gray.
+    // The named colors (`NamedColors`, user 2026-10-11): twelve sRGB
+    // cusps 30° apart from red's hue, and gray.
     NamedColorTokensCSS(.lightMoreContrast)
   }
 
@@ -325,8 +325,8 @@
     customProperty("--glyph-l-hover-offset", 0.025)
     customProperty("--glyph-l-active-offset", 0.05)
 
-    // The named colors (`NamedColors`, user 2026-10-11): the RGB wheel's
-    // pure hues, and gray.
+    // The named colors (`NamedColors`, user 2026-10-11): twelve sRGB
+    // cusps 30° apart from red's hue, and gray.
     NamedColorTokensCSS(.dark)
 
     // MARK: - Apple HIG Syntax Tokens (Dark Mode)
@@ -414,8 +414,8 @@
     customProperty("--backdrop-dark", rgba(255, 255, 255, 0.65))
 
 
-    // The named colors (`NamedColors`, user 2026-10-11): the RGB wheel's
-    // pure hues, and gray.
+    // The named colors (`NamedColors`, user 2026-10-11): twelve sRGB
+    // cusps 30° apart from red's hue, and gray.
     NamedColorTokensCSS(.darkMoreContrast)
   }
 
@@ -743,9 +743,9 @@
     customProperty("--color-link-red-hover", glyphColor(from: glyphRed, lShift: glyphLHoverOffset))
     customProperty("--color-link-red-active", glyphColor(from: glyphRed, lShift: glyphLActiveOffset))
     customProperty("--color-link-red-focus", glyphBlue)
-    customProperty("--color-link-red-visited", glyphRose)
-    customProperty("--color-link-red-visited-hover", glyphColor(from: glyphRose, lShift: glyphLHoverOffset))
-    customProperty("--color-link-red-visited-active", glyphColor(from: glyphRose, lShift: glyphLActiveOffset))
+    customProperty("--color-link-red-visited", glyphPink)
+    customProperty("--color-link-red-visited-hover", glyphColor(from: glyphPink, lShift: glyphLHoverOffset))
+    customProperty("--color-link-red-visited-active", glyphColor(from: glyphPink, lShift: glyphLActiveOffset))
     customProperty("--size-icon-x-small", calc(fontSizeMedium16 - px(4)))
     customProperty("--size-icon-small", fontSizeMedium16)
     customProperty("--size-icon-medium", calc(fontSizeMedium16 + px(4)))

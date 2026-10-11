@@ -1,10 +1,10 @@
 #if SERVER
   import Foundation
 
-  /// Gnorium's named colors (user, 2026-10-11): the twelve pure hues of the
-  /// RGB color wheel—HSV hue in 30° steps at full saturation and value,
-  /// "they are the definition"—and white, gray and black. Each sits on the sRGB
-  /// gamut's edge: one channel full, one empty.
+  /// Gnorium's named colors (user, 2026-10-11): twelve hues 30° apart in
+  /// OKLCH, starting at pure red's (#FF0000, 29.23°), each at the sRGB gamut
+  /// cusp—the most chromatic color sRGB reaches at that hue—and white, gray
+  /// and black.
   ///
   /// The default schemes use each as it is, light and dark alike: a color,
   /// its solid fill (the same token) under a white label (white on every hue
@@ -20,35 +20,17 @@
       public init(_ l: Double, _ c: Double, _ h: Double) { self.l = l; self.c = c; self.h = h }
     }
 
-    /// A hue name—the RGB wheel's own, kebab-cased as the tokens are—and
-    /// its HSV hue, in degrees.
-    public struct Hue: Sendable {
-      public let name: String
-      public let hsv: Double
-    }
+    /// The names, one word each, in hue order from red (user, 2026-10-11).
+    public static let hueNames = [
+      "red", "orange", "yellow", "lime", "green", "mint", "cyan", "blue", "indigo", "violet", "magenta", "pink",
+    ]
 
-    /// All twelve wheel hues, 30° apart (user, 2026-10-11).
-    public static let hues: [Hue] = [
-      ("red", 0), ("orange", 30), ("yellow", 60), ("chartreuse", 90), ("green", 120), ("spring-green", 150),
-      ("cyan", 180), ("azure", 210), ("blue", 240), ("violet", 270), ("magenta", 300), ("rose", 330),
-    ].map { Hue(name: $0.0, hsv: $0.1) }
+    /// Pure red's OKLCH hue, where the twelve start.
+    public static var redHue: Double { oklch((255, 0, 0)).h }
 
-    /// 8-bit sRGB of an HSV hue at full saturation and value.
-    public static func wheel(_ degrees: Double) -> (Int, Int, Int) {
-      let h = (degrees.truncatingRemainder(dividingBy: 360) + 360).truncatingRemainder(dividingBy: 360) / 60
-      let x = 1 - abs(h.truncatingRemainder(dividingBy: 2) - 1)
-      let (r, g, b): (Double, Double, Double)
-      switch Int(h) {
-      case 0: (r, g, b) = (1, x, 0)
-      case 1: (r, g, b) = (x, 1, 0)
-      case 2: (r, g, b) = (0, 1, x)
-      case 3: (r, g, b) = (0, x, 1)
-      case 4: (r, g, b) = (x, 0, 1)
-      default: (r, g, b) = (1, 0, x)
-      }
-      // Half a step rounds up, as #FF8000 writes 0.5.
-      func byte(_ v: Double) -> Int { Int((v * 255).rounded(.toNearestOrAwayFromZero)) }
-      return (byte(r), byte(g), byte(b))
+    /// A name's OKLCH hue: red's, and every 30° on.
+    public static func hue(_ name: String) -> Double {
+      (redHue + 30 * Double(hueNames.firstIndex(of: name)!)).truncatingRemainder(dividingBy: 360)
     }
 
     /// OKLCH of an 8-bit sRGB color.
@@ -74,7 +56,7 @@
     public static let grayValue = 5.5
 
     /// Every name the tokens carry, in order.
-    public static var names: [String] { hues.map(\.name) + ["gray"] }
+    public static var names: [String] { hueNames + ["gray"] }
 
     public enum Scheme: String, CaseIterable, Sendable {
       case light, lightMoreContrast, dark, darkMoreContrast
@@ -126,6 +108,17 @@
       return low
     }
 
+    /// The gamut cusp at a hue: the lightness of most chroma, and that chroma.
+    public static func cusp(h: Double) -> OKLCH {
+      var a = 0.0, b = 1.0
+      for _ in 0..<90 {
+        let m1 = a + (b - a) / 3, m2 = b - (b - a) / 3
+        if maxChroma(l: m1, h: h) < maxChroma(l: m2, h: h) { a = m1 } else { b = m2 }
+      }
+      let l = (a + b) / 2
+      return OKLCH(l, maxChroma(l: l, h: h), h)
+    }
+
     /// 8-bit sRGB, channels clamped.
     public static func rgb(_ c: OKLCH) -> (Int, Int, Int) {
       let r = linearSRGB(c)
@@ -166,22 +159,17 @@
 
     // MARK: The rule
 
-    /// The color of a name in a scheme.
-    /// A hue's color on the wheel.
+    /// A name's color in the default schemes: the cusp at its hue.
     static func base(_ name: String) -> OKLCH {
-      name == "gray" ? gray : oklch(wheel(hues.first { $0.name == name }!.hsv))
+      name == "gray" ? gray : cusp(h: hue(name))
     }
 
-    /// The hex a name is written as in a scheme: the wheel's own bytes in
-    /// the default schemes.
+    /// The hex a name is written as in a scheme.
     public static func hex(_ name: String, _ scheme: Scheme) -> String {
-      if !scheme.isMoreContrast, let hue = hues.first(where: { $0.name == name }) {
-        let (r, g, b) = wheel(hue.hsv)
-        return String(format: "#%02X%02X%02X", r, g, b)
-      }
-      return hex(color(name, scheme))
+      hex(color(name, scheme))
     }
 
+    /// The color of a name in a scheme.
     public static func color(_ name: String, _ scheme: Scheme) -> OKLCH {
       let base = base(name)
       guard scheme.isMoreContrast else { return base }
