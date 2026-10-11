@@ -1,4 +1,4 @@
-#if SERVER
+#if SERVER || canImport(SwiftUI)
   import Foundation
 
   /// Gnorium's named colors (user, 2026-10-11): twelve hues 30° apart in
@@ -6,12 +6,14 @@
   /// cusp—the most chromatic color sRGB reaches at that hue—and white, gray
   /// and black.
   ///
-  /// The default schemes use each as it is, light and dark alike: a color,
-  /// its solid fill (the same token) under a white label (white on every hue
-  /// for now), and its subtle fill, the color at `opacity-low` over the page.
-  /// The increased-contrast schemes keep each color's OKLCH hue and move only
-  /// lightness, to the nearest at which it reads at 7:1 on the page, with the
-  /// most chroma sRGB allows there; their subtle fills carry base text at 7:1.
+  /// Light uses each cusp as it is; dark mirrors it—the same hue at the
+  /// lightness that contrasts with black as the cusp does with white. Each
+  /// is a color, its solid fill (the same token) under a white label (white
+  /// on every hue for now), and its subtle fill, the color at `opacity-low`
+  /// over the page. The increased-contrast schemes start from their
+  /// scheme's default, keep its OKLCH hue and move only lightness, to the
+  /// nearest at which it reads at 7:1 on the page, with the most chroma sRGB
+  /// allows there; their subtle fills carry base text at 7:1.
   public enum NamedColors {
     public struct OKLCH: Sendable, Equatable {
       public let l: Double
@@ -159,9 +161,46 @@
 
     // MARK: The rule
 
-    /// A name's color in the default schemes: the cusp at its hue.
+    /// A name's color in light: the cusp at its hue (gray its own).
     static func base(_ name: String) -> OKLCH {
       name == "gray" ? gray : cusp(h: hue(name))
+    }
+
+    /// A name's color in dark: light's mirrored (user, 2026-10-11)—the same
+    /// hue, the lightness at which it contrasts with black as light's does
+    /// with white, with the most chroma sRGB allows there. Each color then
+    /// reads alike in both schemes. Of the written colors around that
+    /// lightness, the one whose contrast is nearest light's.
+    static func mirrored(_ name: String) -> OKLCH {
+      let light = base(name)
+      let target = contrast(light, OKLCH(1, 0, 0))
+      func at(_ l: Double) -> OKLCH {
+        light.c == 0 ? OKLCH(l, 0, 0) : OKLCH(l, maxChroma(l: l, h: light.h), light.h)
+      }
+      func onBlack(_ c: OKLCH) -> Double {
+        let r = linearSRGB(c)
+        let clamp = { (x: Double) in min(1, max(0, x)) }
+        let y = 0.2126 * clamp(r.r) + 0.7152 * clamp(r.g) + 0.0722 * clamp(r.b)
+        return (y + 0.05) / 0.05
+      }
+      var low = 0.0, high = 1.0
+      for _ in 0..<60 {
+        let mid = (low + high) / 2
+        if onBlack(at(mid)) < target { low = mid } else { high = mid }
+      }
+      var best = at(high)
+      for step in -20...20 {
+        let candidate = at(min(1, max(0, high + Double(step) * 0.0005)))
+        if abs(contrast(candidate, OKLCH(0, 0, 0)) - target) < abs(contrast(best, OKLCH(0, 0, 0)) - target) {
+          best = candidate
+        }
+      }
+      return best
+    }
+
+    /// A scheme's default color: light's own, or dark's mirrored.
+    static func start(_ name: String, _ scheme: Scheme) -> OKLCH {
+      scheme.isDark ? mirrored(name) : base(name)
     }
 
     /// The hex a name is written as in a scheme.
@@ -171,7 +210,7 @@
 
     /// The color of a name in a scheme.
     public static func color(_ name: String, _ scheme: Scheme) -> OKLCH {
-      let base = base(name)
+      let base = start(name, scheme)
       guard scheme.isMoreContrast else { return base }
       // Lighter or darker toward more contrast with the page.
       return nearest(from: base, darker: !scheme.isDark) { contrast($0, scheme.page) >= moreContrastMinimum }
@@ -180,7 +219,7 @@
     /// The subtle fill of the increased-contrast schemes: the color's hue,
     /// base text on it at 7:1, the lightness nearest the color's.
     public static func moreContrastSubtle(_ name: String, _ scheme: Scheme) -> OKLCH {
-      let base = base(name)
+      let base = start(name, scheme)
       return nearest(from: base, darker: scheme.isDark) { contrast($0, scheme.baseText) >= moreContrastMinimum }
     }
 

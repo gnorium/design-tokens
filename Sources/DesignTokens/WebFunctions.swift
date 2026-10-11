@@ -135,6 +135,40 @@
     }
   }
 
+  /// Code's colors by role (user, 2026-10-11), the same in every scheme:
+  /// each a named color's token, so it follows the scheme and its increased
+  /// contrast. Text and a tag's marks are the text's own; a tag's name
+  /// indigo, an attribute's name violet, its value red, references pink,
+  /// declarations magenta, comments gray; additions green, deletions red,
+  /// links blue. Kept to the hues that read in both light and dark (indigo,
+  /// violet, red, pink, magenta, gray).
+  @CSSBuilder
+  public func SyntaxTokensCSS() -> [CSSOM.CSSRule] {
+    let roles: [(String, String)] = [
+      ("plain-text", "var(--glyph)"), ("marks", "var(--glyph)"), ("param-internal-name", "var(--glyph)"),
+      ("keywords", "var(--glyph-indigo)"), ("heading", "var(--glyph-indigo)"),
+      ("other-function-and-method-names", "var(--glyph-indigo)"),
+      ("project-function-and-method-names", "var(--glyph-indigo)"),
+      ("attributes", "var(--glyph-violet)"), ("other-class-names", "var(--glyph-violet)"),
+      ("other-type-names", "var(--glyph-violet)"), ("project-class-names", "var(--glyph-violet)"),
+      ("project-type-names", "var(--glyph-violet)"), ("type-declarations", "var(--glyph-violet)"),
+      ("strings", "var(--glyph-red)"),
+      ("characters", "var(--glyph-pink)"), ("numbers", "var(--glyph-pink)"), ("other-constants", "var(--glyph-pink)"),
+      ("project-constants", "var(--glyph-pink)"),
+      ("other-declarations", "var(--glyph-magenta)"), ("other-preprocessor-macros", "var(--glyph-magenta)"),
+      ("preprocessor-statements", "var(--glyph-magenta)"), ("project-preprocessor-macros", "var(--glyph-magenta)"),
+      ("other-instance-variables-and-globals", "var(--glyph-magenta)"),
+      ("project-instance-variables-and-globals", "var(--glyph-magenta)"),
+      ("comments", "var(--gray-glyph)"), ("documentation-markup", "var(--gray-glyph)"),
+      ("documentation-markup-keywords", "var(--gray-glyph)"),
+      ("addition", "var(--glyph-green)"), ("deletion", "var(--glyph-red)"), ("urls", "var(--glyph-blue)"),
+      ("highlighted", "color-mix(in srgb, var(--glyph-blue) calc(var(--opacity-low) * 100%), transparent)"),
+    ]
+    for (role, value) in roles {
+      customProperty("--color-syntax-\(role)", value)
+    }
+  }
+
   @CSSBuilder
   public func SourceTokensLightModeLessContrastCSS() -> [CSSOM.CSSRule] {
     // Fill (surface hierarchy)
@@ -186,37 +220,8 @@
     // cusps 30° apart from red's hue, and gray.
     NamedColorTokensCSS(.light)
 
-    // MARK: - Apple HIG Syntax Tokens (Light Mode)
-    customProperty("--color-syntax-addition", glyphGreen)
-    customProperty("--color-syntax-attributes", hex(0x947100))
-    customProperty("--color-syntax-characters", hex(0x272AD8))
-    customProperty("--color-syntax-comments", hex(0x707F8C))
-    customProperty("--color-syntax-deletion", glyphRed)
-    customProperty("--color-syntax-documentation-markup", hex(0x506375))
-    customProperty("--color-syntax-heading", hex(0xBA2DA2))
-    customProperty("--color-syntax-highlighted", rgba(0, 113, 227, 0.2))
-    customProperty("--color-syntax-keywords", hex(0xAD3DA4))
-    customProperty("--color-syntax-marks", hex(0x000000))
-    customProperty("--color-syntax-numbers", hex(0x272AD8))
-    customProperty("--color-syntax-other-class-names", hex(0x703DAA))
-    customProperty("--color-syntax-other-constants", hex(0x4B21B0))
-    customProperty("--color-syntax-other-declarations", hex(0x047CB0))
-    customProperty("--color-syntax-other-function-and-method-names", hex(0x4B21B0))
-    customProperty("--color-syntax-other-instance-variables-and-globals", hex(0x703DAA))
-    customProperty("--color-syntax-other-preprocessor-macros", hex(0x78492A))
-    customProperty("--color-syntax-other-type-names", hex(0x703DAA))
-    customProperty("--color-syntax-param-internal-name", hex(0x404040))
-    customProperty("--color-syntax-plain-text", hex(0x000000))
-    customProperty("--color-syntax-preprocessor-statements", hex(0x78492A))
-    customProperty("--color-syntax-project-class-names", hex(0x3E8087))
-    customProperty("--color-syntax-project-constants", hex(0x2D6469))
-    customProperty("--color-syntax-project-function-and-method-names", hex(0x2D6469))
-    customProperty("--color-syntax-project-instance-variables-and-globals", hex(0x3E8087))
-    customProperty("--color-syntax-project-preprocessor-macros", hex(0x78492A))
-    customProperty("--color-syntax-project-type-names", hex(0x3E8087))
-    customProperty("--color-syntax-strings", hex(0xD12F1B))
-    customProperty("--color-syntax-type-declarations", hex(0x03638C))
-    customProperty("--color-syntax-urls", hex(0x1337FF))
+    // Syntax colors: the named colors by role (`SyntaxTokensCSS`).
+    SyntaxTokensCSS()
   }
 
   @CSSBuilder
@@ -329,35 +334,8 @@
     // cusps 30° apart from red's hue, and gray.
     NamedColorTokensCSS(.dark)
 
-    // MARK: - Apple HIG Syntax Tokens (Dark Mode)
-    customProperty("--color-syntax-attributes", hex(0xCC9768))
-    customProperty("--color-syntax-characters", hex(0xD9C97C))
-    customProperty("--color-syntax-comments", hex(0x7F8C98))
-    customProperty("--color-syntax-documentation-markup", hex(0x7F8C98))
-    customProperty("--color-syntax-documentation-markup-keywords", hex(0xA3B1BF))
-    customProperty("--color-syntax-highlighted", rgba(0, 113, 227, 0.6))
-    customProperty("--color-syntax-keywords", hex(0xFF7AB2))
-    customProperty("--color-syntax-marks", hex(0xFFFFFF))
-    customProperty("--color-syntax-numbers", hex(0xD9C97C))
-    customProperty("--color-syntax-other-class-names", hex(0xDABAFF))
-    customProperty("--color-syntax-other-constants", hex(0xA7EBDD))
-    customProperty("--color-syntax-other-declarations", hex(0x4EB0CC))
-    customProperty("--color-syntax-other-function-and-method-names", hex(0xB281EB))
-    customProperty("--color-syntax-other-instance-variables-and-globals", hex(0xB281EB))
-    customProperty("--color-syntax-other-preprocessor-macros", hex(0xFFA14F))
-    customProperty("--color-syntax-other-type-names", hex(0xDABAFF))
-    customProperty("--color-syntax-param-internal-name", hex(0xBFBFBF))
-    customProperty("--color-syntax-plain-text", hex(0xFFFFFF))
-    customProperty("--color-syntax-preprocessor-statements", hex(0xFFA14F))
-    customProperty("--color-syntax-project-class-names", hex(0xACF2E4))
-    customProperty("--color-syntax-project-constants", hex(0x78C2B3))
-    customProperty("--color-syntax-project-function-and-method-names", hex(0x78C2B3))
-    customProperty("--color-syntax-project-instance-variables-and-globals", hex(0x78C2B3))
-    customProperty("--color-syntax-project-preprocessor-macros", hex(0xFFA14F))
-    customProperty("--color-syntax-project-type-names", hex(0xACF2E4))
-    customProperty("--color-syntax-strings", hex(0xFF8170))
-    customProperty("--color-syntax-type-declarations", hex(0x6BDFFF))
-    customProperty("--color-syntax-urls", hex(0x6699FF))
+    // Syntax colors: the named colors by role (`SyntaxTokensCSS`).
+    SyntaxTokensCSS()
   }
 
   @CSSBuilder

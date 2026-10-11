@@ -41,7 +41,7 @@ Gray (Munsell N5.5), white and black are achromatic. `NamedColors` implements th
 Primitives.
 - **Named colors**: the twelve hues above, per scheme.
 - **Grays**: light and dark grayscale ramps.
-- **Syntax colors**: code highlighting palettes.
+- **Syntax colors**: code highlighting by role, drawn from the named colors (`SyntaxTokensCSS`): tag names indigo, attribute names violet, values red, references pink, declarations magenta, comments gray, text the text's own; additions green, deletions red.
 
 ### 2. Applied Tokens
 Semantic tokens that map source primitives to specific UI roles.
