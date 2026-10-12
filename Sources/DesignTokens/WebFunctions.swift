@@ -538,6 +538,10 @@
     customProperty("--background-color-base-active", fillTertiary)
     customProperty("--background-color-neutral", fillTertiary)
     customProperty("--background-color-neutral-subtle", fillGrayQuaternary)
+    // A neutral subtle surface's states (a striped row): the next two fills
+    // above it (`NamedColors.Neutral` fills 4 and 5).
+    customProperty("--background-color-neutral-subtle-hover", borderSecondary)
+    customProperty("--background-color-neutral-subtle-active", fillGrayTertiary)
     customProperty("--background-color-interactive", fillTertiary)
     customProperty("--background-color-interactive-hover", fillGrayQuaternary)
     customProperty("--background-color-interactive-active", fillGrayTertiary)
