@@ -113,6 +113,19 @@
     return (bestL, bestC)
   }
 
+  /// A scheme's neutral ramp (`NamedColors.Neutral`): each step the
+  /// achromatic gray at its contrast with the page, and `--glyph-gray-fixed`,
+  /// light's base text at the scheme's contrast.
+  @CSSBuilder
+  public func NeutralTokensCSS(_ scheme: NamedColors.Scheme) -> [CSSOM.CSSRule] {
+    for step in NamedColors.Neutral.allCases {
+      customProperty(step.token, NamedColors.css(NamedColors.neutral(step, scheme)))
+    }
+    customProperty(
+      "--glyph-gray-fixed",
+      NamedColors.css(NamedColors.neutral(.glyphGray, scheme.isMoreContrast ? .lightMoreContrast : .light)))
+  }
+
   /// A scheme's named colors (`NamedColors`, twelve cusps 30° apart): each name's color and solid
   /// fill (`--glyph-{name}`, `--fill-{name}`; gray's `--gray-glyph`,
   /// `--gray-fill`) and its subtle fill (`--fill-{name}-subtle`,
@@ -137,12 +150,6 @@
           // which move a color toward black or white, mix in Oklab).
           : "color-mix(in srgb, \(color) calc(var(--opacity-low) * 100%), var(--fill))")
     }
-    // The neutral subtle fill (user, 2026-10-12): by the colored subtle
-    // fills' rule, the scheme's gray (3:1 against the page by default, 7:1
-    // in increased contrast) at `opacity-low` over the page, in sRGB.
-    customProperty(
-      "--fill-neutral-subtle",
-      "color-mix(in srgb, \(NamedColors.css("gray", scheme)) calc(var(--opacity-low) * 100%), var(--fill))")
   }
 
   /// Code's colors by role (user, 2026-10-11), the same in every scheme:
@@ -183,39 +190,12 @@
   public func SourceTokensLightModeLessContrastCSS() -> [CSSOM.CSSRule] {
     // Fill (surface hierarchy)
     customProperty("--fill", .white)
-    customProperty("--fill-alpha", rgba(120, 120, 128, 0.2))
-    customProperty("--fill-secondary", oklch(0.98, 0.004, 260))
-    customProperty("--fill-tertiary", oklch(0.97, 0.002, 260))
-    customProperty("--fill-tertiary-alpha", rgba(118, 118, 128, 0.12))
-    customProperty("--fill-gray", oklch(0.20, 0.003, 260))
-    customProperty("--fill-gray-alpha", rgba(0, 0, 0, 0.88))
-    customProperty("--fill-gray-hover", oklch(0.26, 0.003, 260))
-    customProperty("--fill-gray-active", oklch(0.16, 0.003, 260))
-    customProperty("--fill-gray-secondary", oklch(0.60, 0.005, 260))
-    customProperty("--fill-gray-secondary-alpha", rgba(0, 0, 0, 0.48))
-    customProperty("--fill-gray-tertiary", oklch(0.86, 0.005, 260))
-    customProperty("--fill-gray-tertiary-alpha", rgba(0, 0, 0, 0.16))
-    customProperty("--fill-gray-quaternary", oklch(0.94, 0.005, 260))
-    customProperty("--fill-gray-quaternary-alpha", rgba(0, 0, 0, 0.08))
 
     // Glyph (text hierarchy)
     customProperty("--glyph", .black)
     customProperty("--glyph-fixed", .black)
-    customProperty("--glyph-gray", oklch(0.20, 0.003, 260))
-    customProperty("--glyph-gray-alpha", rgba(0, 0, 0, 0.88))
-    customProperty("--glyph-gray-fixed", oklch(0.20, 0.003, 260))
-    customProperty("--glyph-gray-secondary", oklch(0.52, 0.003, 260))
-    customProperty("--glyph-gray-secondary-alpha", rgba(0, 0, 0, 0.56))
-    customProperty("--glyph-gray-secondary-alt", oklch(0.35, 0.003, 260))
-    customProperty("--glyph-gray-secondary-alt-alpha", rgba(0, 0, 0, 0.72))
-    customProperty("--glyph-gray-tertiary", oklch(0.60, 0.005, 260))
-    customProperty("--glyph-gray-tertiary-alpha", rgba(0, 0, 0, 0.48))
-    customProperty("--glyph-gray-quaternary", oklch(0.68, 0.005, 260))
-    customProperty("--glyph-gray-quaternary-alpha", rgba(0, 0, 0, 0.36))
 
     // Semantic bridge for unified applied function
-    customProperty("--border", oklch(0.86, 0.005, 260))
-    customProperty("--border-secondary", oklch(0.91, 0.003, 260))
     customProperty("--border-muted", oklch(0.95, 0.002, 260))
     customProperty("--border-emphasis", oklch(0.20, 0.003, 260))
     customProperty("--border-interactive", oklch(0.20, 0.003, 260))
@@ -225,6 +205,9 @@
 
     customProperty("--glyph-l-hover-offset", -0.1)
     customProperty("--glyph-l-active-offset", -0.2)
+
+    // The neutral ramp (`NamedColors.Neutral`, user 2026-10-12).
+    NeutralTokensCSS(.light)
 
     // The named colors (`NamedColors`, user 2026-10-11): twelve sRGB
     // cusps 30° apart from red's hue, and gray.
@@ -238,46 +221,21 @@
   public func SourceTokensLightModeMoreContrastCSS() -> [CSSOM.CSSRule] {
     // Fill (surface hierarchy—increased contrast)
     customProperty("--fill", .white)
-    customProperty("--fill-alpha", rgba(120, 120, 128, 0.24))
-    customProperty("--fill-secondary", oklch(0.97, 0.005, 260))
-    customProperty("--fill-tertiary", oklch(0.96, 0.003, 260))
-    customProperty("--fill-tertiary-alpha", rgba(118, 118, 128, 0.16))
-    customProperty("--fill-gray", oklch(0.15, 0.004, 260))
-    customProperty("--fill-gray-alpha", rgba(0, 0, 0, 0.92))
-    customProperty("--fill-gray-hover", oklch(0.20, 0.004, 260))
-    customProperty("--fill-gray-active", oklch(0.12, 0.004, 260))
-    customProperty("--fill-gray-secondary", oklch(0.50, 0.006, 260))
-    customProperty("--fill-gray-secondary-alpha", rgba(0, 0, 0, 0.56))
-    customProperty("--fill-gray-tertiary", oklch(0.80, 0.006, 260))
-    customProperty("--fill-gray-tertiary-alpha", rgba(0, 0, 0, 0.2))
-    customProperty("--fill-gray-quaternary", oklch(0.88, 0.006, 260))
-    customProperty("--fill-gray-quaternary-alpha", rgba(0, 0, 0, 0.12))
 
     // Glyph (text hierarchy—increased contrast)
     customProperty("--glyph", .black)
     customProperty("--glyph-fixed", .black)
-    customProperty("--glyph-gray", oklch(0.12, 0.004, 260))
-    customProperty("--glyph-gray-alpha", rgba(0, 0, 0, 0.94))
-    customProperty("--glyph-gray-fixed", oklch(0.12, 0.004, 260))
-    customProperty("--glyph-gray-secondary", oklch(0.42, 0.004, 260))
-    customProperty("--glyph-gray-secondary-alpha", rgba(0, 0, 0, 0.64))
-    customProperty("--glyph-gray-secondary-alt", oklch(0.28, 0.004, 260))
-    customProperty("--glyph-gray-secondary-alt-alpha", rgba(0, 0, 0, 0.8))
-    customProperty("--glyph-gray-tertiary", oklch(0.50, 0.006, 260))
-    customProperty("--glyph-gray-tertiary-alpha", rgba(0, 0, 0, 0.56))
-    customProperty("--glyph-gray-quaternary", oklch(0.60, 0.006, 260))
-    customProperty("--glyph-gray-quaternary-alpha", rgba(0, 0, 0, 0.44))
 
     // Semantic bridge for unified applied function
-    customProperty("--border", oklch(0.80, 0.006, 260))
-    customProperty("--border-secondary", oklch(0.86, 0.005, 260))
     customProperty("--border-muted", oklch(0.92, 0.003, 260))
     customProperty("--border-emphasis", oklch(0.12, 0.004, 260))
     customProperty("--border-interactive", oklch(0.12, 0.004, 260))
     customProperty("--shadow-alpha", rgba(0, 0, 0, 0.08))
     customProperty("--backdrop-light", rgba(255, 255, 255, 0.65))
     customProperty("--backdrop-dark", rgba(0, 0, 0, 0.65))
- 
+
+    // The neutral ramp (`NamedColors.Neutral`, user 2026-10-12).
+    NeutralTokensCSS(.lightMoreContrast)
 
     // The named colors (`NamedColors`, user 2026-10-11): twelve sRGB
     // cusps 30° apart from red's hue, and gray.
@@ -288,36 +246,10 @@
   public func SourceTokensDarkModeLessContrastCSS() -> [CSSOM.CSSRule] {
     // Fill (surface hierarchy)
     customProperty("--fill", .black)
-    customProperty("--fill-alpha", rgba(182, 182, 182, 0.3))
-    customProperty("--fill-secondary", oklch(0.15, 0.003, 260))
-    customProperty("--fill-tertiary", oklch(0.18, 0.003, 260))
-    customProperty("--fill-tertiary-alpha", rgba(118, 118, 128, 0.24))
-    customProperty("--fill-quaternary-alpha", rgba(116, 116, 128, 0.25))
-    customProperty("--fill-gray", oklch(0.96, 0.003, 260))
-    customProperty("--fill-gray-alpha", rgba(255, 255, 255, 0.92))
-    customProperty("--fill-gray-hover", oklch(0.92, 0.003, 260))
-    customProperty("--fill-gray-active", oklch(0.98, 0.003, 260))
-    customProperty("--fill-gray-secondary", oklch(0.50, 0.005, 260))
-    customProperty("--fill-gray-secondary-alpha", rgba(255, 255, 255, 0.4))
-    customProperty("--fill-gray-tertiary", oklch(0.35, 0.005, 260))
-    customProperty("--fill-gray-tertiary-alpha", rgba(255, 255, 255, 0.24))
-    customProperty("--fill-gray-quaternary", oklch(0.28, 0.005, 260))
-    customProperty("--fill-gray-quaternary-alpha", rgba(255, 255, 255, 0.2))
 
     // Glyph (text hierarchy)
     customProperty("--glyph", .white)
     customProperty("--glyph-fixed", .black)
-    customProperty("--glyph-gray", oklch(0.96, 0.003, 260))
-    customProperty("--glyph-gray-alpha", rgba(255, 255, 255, 0.92))
-    customProperty("--glyph-gray-fixed", oklch(0.20, 0.003, 260))
-    customProperty("--glyph-gray-secondary", oklch(0.62, 0.005, 260))
-    customProperty("--glyph-gray-secondary-alpha", rgba(255, 255, 255, 0.56))
-    customProperty("--glyph-gray-secondary-alt", oklch(0.85, 0.003, 260))
-    customProperty("--glyph-gray-secondary-alt-alpha", rgba(255, 255, 255, 0.8))
-    customProperty("--glyph-gray-tertiary", oklch(0.50, 0.005, 260))
-    customProperty("--glyph-gray-tertiary-alpha", rgba(255, 255, 255, 0.4))
-    customProperty("--glyph-gray-quaternary", oklch(0.40, 0.005, 260))
-    customProperty("--glyph-gray-quaternary-alpha", rgba(255, 255, 255, 0.28))
 
     // Background Layers
     customProperty("--background-primary", oklch(0.17, 0.003, 260))
@@ -328,8 +260,6 @@
     customProperty("--separator", oklch(0.28, 0.004, 260))
 
     // Semantic bridge for unified applied function
-    customProperty("--border", oklch(0.50, 0.005, 260))
-    customProperty("--border-secondary", oklch(0.33, 0.004, 260))
     customProperty("--border-muted", oklch(0.17, 0.003, 260))
     customProperty("--border-emphasis", oklch(0.96, 0.003, 260))
     customProperty("--border-interactive", oklch(0.62, 0.005, 260))
@@ -339,6 +269,9 @@
 
     customProperty("--glyph-l-hover-offset", 0.025)
     customProperty("--glyph-l-active-offset", 0.05)
+
+    // The neutral ramp (`NamedColors.Neutral`, user 2026-10-12).
+    NeutralTokensCSS(.dark)
 
     // The named colors (`NamedColors`, user 2026-10-11): twelve sRGB
     // cusps 30° apart from red's hue, and gray.
@@ -352,36 +285,10 @@
   public func SourceTokensDarkModeMoreContrastCSS() -> [CSSOM.CSSRule] {
     // Fill (surface hierarchy—increased contrast)
     customProperty("--fill", .black)
-    customProperty("--fill-alpha", rgba(182, 182, 182, 0.34))
-    customProperty("--fill-secondary", oklch(0.14, 0.004, 260))
-    customProperty("--fill-tertiary", oklch(0.17, 0.004, 260))
-    customProperty("--fill-tertiary-alpha", rgba(118, 118, 128, 0.28))
-    customProperty("--fill-quaternary-alpha", rgba(116, 116, 128, 0.29))
-    customProperty("--fill-gray", oklch(0.98, 0.002, 260))
-    customProperty("--fill-gray-alpha", rgba(255, 255, 255, 0.96))
-    customProperty("--fill-gray-hover", oklch(0.94, 0.002, 260))
-    customProperty("--fill-gray-active", oklch(0.99, 0.002, 260))
-    customProperty("--fill-gray-secondary", oklch(0.58, 0.006, 260))
-    customProperty("--fill-gray-secondary-alpha", rgba(255, 255, 255, 0.48))
-    customProperty("--fill-gray-tertiary", oklch(0.40, 0.006, 260))
-    customProperty("--fill-gray-tertiary-alpha", rgba(255, 255, 255, 0.28))
-    customProperty("--fill-gray-quaternary", oklch(0.32, 0.006, 260))
-    customProperty("--fill-gray-quaternary-alpha", rgba(255, 255, 255, 0.24))
 
     // Glyph (text hierarchy—increased contrast)
     customProperty("--glyph", .white)
     customProperty("--glyph-fixed", .black)
-    customProperty("--glyph-gray", oklch(0.98, 0.002, 260))
-    customProperty("--glyph-gray-alpha", rgba(255, 255, 255, 0.96))
-    customProperty("--glyph-gray-fixed", oklch(0.12, 0.004, 260))
-    customProperty("--glyph-gray-secondary", oklch(0.70, 0.005, 260))
-    customProperty("--glyph-gray-secondary-alpha", rgba(255, 255, 255, 0.64))
-    customProperty("--glyph-gray-secondary-alt", oklch(0.90, 0.003, 260))
-    customProperty("--glyph-gray-secondary-alt-alpha", rgba(255, 255, 255, 0.86))
-    customProperty("--glyph-gray-tertiary", oklch(0.58, 0.006, 260))
-    customProperty("--glyph-gray-tertiary-alpha", rgba(255, 255, 255, 0.48))
-    customProperty("--glyph-gray-quaternary", oklch(0.46, 0.005, 260))
-    customProperty("--glyph-gray-quaternary-alpha", rgba(255, 255, 255, 0.36))
 
     // Background Layers
     customProperty("--background-primary", oklch(0.17, 0.003, 260))
@@ -392,8 +299,6 @@
     customProperty("--separator", oklch(0.28, 0.004, 260))
 
     // Semantic bridge for unified applied function
-    customProperty("--border", oklch(0.58, 0.006, 260))
-    customProperty("--border-secondary", oklch(0.39, 0.005, 260))
     customProperty("--border-muted", oklch(0.20, 0.004, 260))
     customProperty("--border-emphasis", oklch(0.98, 0.002, 260))
     customProperty("--border-interactive", oklch(0.70, 0.005, 260))
@@ -401,6 +306,8 @@
     customProperty("--backdrop-light", rgba(0, 0, 0, 0.65))
     customProperty("--backdrop-dark", rgba(255, 255, 255, 0.65))
 
+    // The neutral ramp (`NamedColors.Neutral`, user 2026-10-12).
+    NeutralTokensCSS(.darkMoreContrast)
 
     // The named colors (`NamedColors`, user 2026-10-11): twelve sRGB
     // cusps 30° apart from red's hue, and gray.
@@ -420,12 +327,12 @@
     customProperty("--color-base", glyphGray)
     customProperty("--color-base-fixed", glyphGrayFixed)
     customProperty("--color-base-hover", glyphGraySecondary)
-    customProperty("--color-base-active", glyphGrayTertiary)
+    customProperty("--color-base-active", glyphGrayQuaternary)
     customProperty("--color-emphasized", glyph)
     customProperty("--color-subtle", glyphGraySecondary)
-    customProperty("--color-disabled", glyphGrayTertiary)
+    customProperty("--color-disabled", glyphGrayQuaternary)
     customProperty("--color-disabled-emphasized", glyphGraySecondary)
-    customProperty("--color-placeholder", glyphGrayQuaternary)
+    customProperty("--color-placeholder", glyphGrayTertiary)
     customProperty("--color-inverted", fill)
     customProperty("--color-inverted-fixed", .white)
     customProperty("--color-content-added", glyphGreen)
@@ -626,7 +533,7 @@
     customProperty("--background-color-base-hover", fillSecondary)
     customProperty("--background-color-base-active", fillTertiary)
     customProperty("--background-color-neutral", fillTertiary)
-    customProperty("--background-color-neutral-subtle", fillNeutralSubtle)
+    customProperty("--background-color-neutral-subtle", fillGrayQuaternary)
     customProperty("--background-color-interactive", fillTertiary)
     customProperty("--background-color-interactive-hover", fillGrayQuaternary)
     customProperty("--background-color-interactive-active", fillGrayTertiary)
@@ -702,7 +609,7 @@
     customProperty("--border-color-interactive", borderInteractive)
     customProperty("--border-color-interactive-hover", glyphColor(from: borderColorInteractive, lShift: glyphLHoverOffset))
     customProperty("--border-color-interactive-active", glyphColor(from: borderColorInteractive, lShift: glyphLActiveOffset))
-    customProperty("--border-color-disabled", border)
+    customProperty("--border-color-disabled", borderSecondary)
     customProperty("--border-color-inverted", fill)
     customProperty("--border-color-inverted-fixed", .white)
     customProperty("--border-color-content-added", glyphGreen)

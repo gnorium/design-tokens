@@ -66,15 +66,9 @@
       public var isMoreContrast: Bool { self == .lightMoreContrast || self == .darkMoreContrast }
       /// The page: white in light, black in dark.
       public var page: OKLCH { isDark ? OKLCH(0, 0, 0) : OKLCH(1, 0, 0) }
-      /// Base text (`colorBase`, the scheme's `--glyph-gray`).
-      public var baseText: OKLCH {
-        switch self {
-        case .light: return OKLCH(0.20, 0.003, 260)
-        case .lightMoreContrast: return OKLCH(0.12, 0.004, 260)
-        case .dark: return OKLCH(0.96, 0.003, 260)
-        case .darkMoreContrast: return OKLCH(0.98, 0.002, 260)
-        }
-      }
+      /// Base text (`colorBase`, the scheme's `--glyph-gray`): the neutral
+      /// ramp's.
+      public var baseText: OKLCH { NamedColors.neutral(.glyphGray, self) }
     }
 
     /// The minimum contrast of the increased-contrast schemes (WCAG AAA).
@@ -218,6 +212,106 @@
     /// The color of a name in a scheme.
     public static func color(_ name: String, _ scheme: Scheme) -> OKLCH {
       color(name, luminance: luminance(of: scheme))
+    }
+
+    // MARK: The neutral ramp
+
+    /// The neutral ramp (user, 2026-10-12): every neutral fill, border and
+    /// text is an achromatic gray at one WCAG contrast with the page,
+    /// mirrored—the same ratio against white in light as against black in
+    /// dark. The ratios are light's from before the rule, except three
+    /// set by rule: the subtle fill (the 3:1 gray at `opacity-low` over the
+    /// page, 1.20:1), the base border (3:1, as a control's boundary needs)
+    /// and placeholder text (4.5:1, as text). Disabled text, which WCAG
+    /// exempts, sits below placeholder: base > subtle > placeholder >
+    /// disabled.
+    public enum Neutral: String, CaseIterable, Sendable {
+      /// `--fill-secondary`: the interactive subtle fill, the base hover.
+      case fillSecondary
+      /// `--fill-tertiary`: the interactive fill, the interactive subtle
+      /// hover, the disabled subtle fill, the base active.
+      case fillTertiary
+      /// `--fill-gray-quaternary`: the neutral subtle fill, the interactive
+      /// hover, the interactive subtle active, the disabled fill.
+      case fillGrayQuaternary
+      /// `--fill-gray-tertiary`: the interactive active (pressed) fill.
+      case fillGrayTertiary
+      /// `--border-secondary`: the subtle border, the disabled border.
+      case borderSecondary
+      /// `--border`: the base border.
+      case border
+      /// `--glyph-gray-quaternary`: disabled text.
+      case glyphGrayQuaternary
+      /// `--glyph-gray-tertiary`: placeholder text.
+      case glyphGrayTertiary
+      /// `--glyph-gray-secondary`: subtle text.
+      case glyphGraySecondary
+      /// `--glyph-gray`: base text.
+      case glyphGray
+
+      /// The custom property it is written as.
+      public var token: String {
+        var out = "--"
+        for ch in rawValue {
+          if ch.isUppercase { out += "-" + ch.lowercased() } else { out.append(ch) }
+        }
+        return out
+      }
+
+      /// Its contrast with the page in the default schemes.
+      public var ratio: Double {
+        switch self {
+        case .fillSecondary: return 1.06
+        case .fillTertiary: return 1.09
+        case .fillGrayQuaternary: return NamedColors.subtleRatio
+        case .borderSecondary: return 1.31
+        case .fillGrayTertiary: return 1.53
+        case .border: return 3
+        case .glyphGrayQuaternary: return 3.96
+        case .glyphGrayTertiary: return 4.5
+        case .glyphGraySecondary: return 5.5
+        case .glyphGray: return 18.12
+        }
+      }
+    }
+
+    /// `opacity-low`, at which a subtle fill lays its color over the page.
+    public static let opacityLow = 0.2
+
+    /// The subtle fill's contrast with the page: light's 3:1 gray at
+    /// `opacity-low` over white, mixed in sRGB as the colored subtle fills
+    /// are (1.20:1).
+    public static var subtleRatio: Double {
+      let (g, _, _) = rgb(color("gray", .light))
+      let v = Int((opacityLow * Double(g) + (1 - opacityLow) * 255).rounded())
+      return contrast(OKLCH(1, 0, 0), oklch((v, v, v)))
+    }
+
+    /// Increased contrast's ratio for a default one: the named colors' 3:1
+    /// to 7:1, as one map of the log ratio pinned at 1:1 and 21:1—below
+    /// 3:1, R^(ln 7/ln 3); above, 7·(R/3)^(ln 3/ln 7).
+    public static func moreContrastRatio(_ ratio: Double) -> Double {
+      let x = log(ratio), ln3 = log(3.0), ln7 = log(7.0)
+      return exp(x <= ln3 ? x * ln7 / ln3 : ln7 + (x - ln3) * ln3 / ln7)
+    }
+
+    /// The relative luminance at which a gray stands at a ratio with a
+    /// scheme's page.
+    public static func luminance(ratio: Double, _ scheme: Scheme) -> Double {
+      scheme.isDark ? 0.05 * ratio - 0.05 : 1.05 / ratio - 0.05
+    }
+
+    /// A neutral step in a scheme: the 8-bit achromatic gray nearest its
+    /// ratio (by `moreContrastRatio` in increased contrast) against the
+    /// page without falling below it.
+    public static func neutral(_ step: Neutral, _ scheme: Scheme) -> OKLCH {
+      let ratio = scheme.isMoreContrast ? moreContrastRatio(step.ratio) : step.ratio
+      let (near, _, _) = rgb(color("gray", luminance: luminance(ratio: ratio, scheme)))
+      let page = scheme.page
+      let gray = { (v: Int) in oklch((v, v, v)) }
+      let meeting = (max(0, near - 3)...min(255, near + 3)).filter { contrast(gray($0), page) >= ratio }
+      let best = meeting.min { contrast(gray($0), page) < contrast(gray($1), page) } ?? (scheme.isDark ? 255 : 0)
+      return gray(best)
     }
 
     /// The subtle fill of the increased-contrast schemes: the color's hue,

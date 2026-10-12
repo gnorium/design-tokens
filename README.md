@@ -32,6 +32,8 @@ DesignTokens provides CSS custom property definitions and Swift constants for co
 
 5. **Fills.** A solid fill is the color itself, under a white label; a subtle fill is the color at the `opacity-low` token over the page background (in the increased-contrast schemes, the hue's lightness nearest the color's at which base text reads at 7:1).
 
+6. **Neutral ramp.** Every neutral fill, border and text is an achromatic gray at one WCAG contrast with the page, mirrored: the same ratio against white in light as against black in dark (`NamedColors.Neutral`, `NeutralTokensCSS`). Interactive subtle 1.06:1; interactive 1.09:1; neutral subtle 1.20:1 (the 3:1 gray at `opacity-low` over the page, also the interactive hover and disabled fill); subtle border 1.31:1; interactive active 1.53:1; base border 3:1; disabled text 3.96:1; placeholder 4.5:1; subtle text 5.5:1; base text 18.12:1. Increased contrast maps each ratio by the named colors' 3:1 → 7:1, as one log-ratio map pinned at 1:1 and 21:1 (`moreContrastRatio`).
+
 Gray follows the same rule achromatically (`#959595` / `#595959`); white and black are the pages. `NamedColors` implements the rule; its tests reproduce every value above.
 
 ## Architecture
