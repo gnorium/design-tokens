@@ -8,7 +8,7 @@ DesignTokens provides CSS custom property definitions and Swift constants for co
 
 ## Features
 
-- **Rule-generated colors**: twelve hues, evenly spaced in perceived hue, each at exactly its scheme's contrast with the page and the most saturated sRGB allows there.
+- **Rule-generated colors**: twelve hues, evenly spaced in perceived hue, each at the base border's APCA contrast with the page and the most saturated sRGB allows there; an achromatic neutral ramp from the same contrast model.
 - **Layered Architecture**: **Source Tokens** (primitives) and **Applied Tokens** (semantic mappings).
 - **Light and dark, default and increased contrast**: four schemes, each derived from the same rule.
 - **CSS Generation**: functions that generate the CSS custom property definitions.
@@ -16,33 +16,87 @@ DesignTokens provides CSS custom property definitions and Swift constants for co
 
 ## The color rule
 
-1. **Hue.** Start at the OKLCH hue of pure red (`#FF0000`, h ≈ 29.23°) and step 30° around the circle: twelve hues, evenly spaced in perceived hue. OKLab/OKLCH is a perceptual color space, so equal steps look like equal differences (the HSV/RGB wheel, by contrast, bunches greens and blues).
-2. **Lightness by contrast.** At each hue, the lightness is set so the color's WCAG contrast with the page is *exactly* the scheme's target, with the most chroma sRGB allows at that lightness: **3:1** in the default schemes (light against white, dark against black), **7:1** in the increased-contrast schemes (`prefers-contrast: more`).
-3. **Two sets, four schemes.** A color's contrasts with white and with black multiply to 21, so 3:1 against white is 7:1 against black. Set A (relative luminance 0.3) is light's default and dark's increased contrast; set B (luminance 0.1) is dark's default and light's increased contrast.
-4. **Names.** One word each, chosen by appearance:
+Every color is computed; nothing in the palette is a hand-picked value. Contrast is measured with APCA (SAPC/APCA 0.0.98G-4g, computed exactly in `NamedColors.APCA`), which models dark-on-light and light-on-dark separately. Where the published Lc reads 0 (below Lc 10), the unclipped SAPC is used, so pale fills can be spaced and mirrored. WCAG 2 ratios are kept as floors where a standard binds.
 
-   | Name | Set A | Set B | Name | Set A | Set B |
-   |---|---|---|---|---|---|
-   | Red | `#FF5F4E` | `#B60000` | Cyan | `#00A4B7` | `#00636F` |
-   | Orange | `#DF7C00` | `#884900` | Blue | `#009EE5` | `#005F8C` |
-   | Yellow | `#B79000` | `#6F5600` | Indigo | `#6E8EFF` | `#2F31FF` |
-   | Lime | `#889F00` | `#515F00` | Violet | `#AD7AFF` | `#7F00E2` |
-   | Green | `#00AC4B` | `#00682A` | Magenta | `#FF2CFA` | `#A1009E` |
-   | Mint | `#00A892` | `#006557` | Pink | `#FF549A` | `#B0005D` |
+Each palette is built on white (light) and **mirrored to dark by equal APCA**: a dark step is the color with the same APCA contrast against black that the light step has against white. There are four schemes: light, dark, and each with increased contrast (`prefers-contrast: more`).
 
-5. **Fills.** A solid fill is the color itself, under a white label; a subtle fill is the color at the `opacity-low` token over the page background (in the increased-contrast schemes, the hue's lightness nearest the color's at which base text reads at 7:1).
+### The neutral ramp
 
-6. **Neutral ramp.** Every neutral fill, border and text is an achromatic gray, set in light and mirrored to dark by equal APCA contrast with the page (SAPC/APCA 0.0.98G-4g, computed exactly; the unclipped SAPC where Lc reads 0 below 10), with WCAG 2 as floors (`NamedColors.Neutral`, `neutralRamp`, `NeutralTokensCSS`). Fills: five steps evenly spaced in APCA, a step a third of the neutral subtle fill's (the 3:1 gray at `opacity-low` over white), so light 248, 241, 234, 227, 220 and dark 39, 56, 68, 80, 91. Foreground in light: base border 3:1, disabled text 3.96:1, placeholder 4.5:1 on the page and on the subtle fill, subtle text APCA Lc 90, base text 18.12:1. Increased contrast raises the foreground only: the border to the APCA of 7:1 and every foreground step above it by the same map of its APCA, pinned at the page's maximum; the fills stay.
+The ramp is achromatic grays (`NamedColors.Neutral`, `neutralRamp`, emitted by `NeutralTokensCSS`). Values are 8-bit sRGB.
 
-Gray follows the same rule achromatically (`#959595` / `#595959`); white and black are the pages. `NamedColors` implements the rule; its tests reproduce every value above.
+| Step | Token | Role | Light | Light, more | Dark | Dark, more |
+|---|---|---|---|---|---|---|
+| Fill 1 | `--fill-secondary` | Neutral subtle surfaces, a table's stripe, interactive subtle, base hover | 248 | 248 | 39 | 39 |
+| Fill 2 | `--fill-tertiary` | Interactive, interactive subtle hover, stripe hover, disabled subtle, base active | 241 | 241 | 56 | 56 |
+| Fill 3 | `--fill-gray-quaternary` | Interactive hover, interactive subtle active, stripe active, disabled | 234 | 234 | 68 | 68 |
+| Fill 4 | `--fill-quaternary` | (a ramp step) | 227 | 227 | 80 | 80 |
+| Fill 5 | `--fill-gray-tertiary` | Interactive active (pressed) | 220 | 220 | 91 | 91 |
+| Subtle border | `--border-secondary` | Decorative and grouping borders, disabled borders | 185 | 160 | 135 | 161 |
+| Base border | `--border` | Control outlines | 148 | 89 | 172 | 218 |
+| Disabled text | `--glyph-gray-quaternary` | `--color-disabled` | 127 | 78 | 190 | 226 |
+| Placeholder | `--glyph-gray-tertiary` | `--color-placeholder` | 105 | 66 | 207 | 233 |
+| Subtle text | `--glyph-gray-secondary` | `--color-subtle` | 74 | 50 | 228 | 242 |
+| Base text | `--glyph-gray` | `--color-base` | 21 | 15 | 251 | 251 |
+
+1. **Fills.** There are five steps, evenly spaced in APCA from the page. A step is a third of the APCA of the 3:1 gray laid at `opacity-low` over white, which makes that gray fill 3. Fills don't change with increased contrast.
+2. **Base border.** This is 3:1 against the page, as WCAG 2.x 1.4.11 asks of a control's outline.
+3. **Text.** Each text step is set in light by a standard:
+   - disabled text at 3.96:1 (exempt by WCAG, kept below placeholder)
+   - placeholder at 4.5:1 against the page and against fill 3 (WCAG 1.4.3)
+   - subtle text at APCA Lc 90
+   - base text at 18.12:1
+4. **Subtle border.** This sits midway in APCA between fill 5 and the base border.
+5. **One construction for every scheme.** Each text step keeps its fraction of the APCA distance from the base border to the APCA maximum. The same rule lays out light, dark and both increased-contrast schemes.
+
+### Increased contrast
+
+Increased contrast raises the foreground only. The base border moves to the APCA of 7:1 on white, the named colors' 3:1 → 7:1 expressed in APCA. Every text step keeps its fraction of the way from the border to the APCA maximum. The fills stay, so text on them gains contrast. In dark, the steps above the border are compressed toward white (218 to 251), as the rule gives.
+
+### Named colors
+
+There are twelve hues, 30° apart in OKLCH starting at pure red's hue (`#FF0000`, h ≈ 29.23°): red, orange, yellow, lime, green, mint, cyan, blue, indigo, violet, magenta, pink. Gray is the achromatic thirteenth. Each color's lightness is set so its APCA contrast with the page equals the base border's in that scheme (about Lc 57 by default), with the most chroma sRGB allows at that lightness. The hue is kept.
+
+| Name | Light | Light, more | Dark | Dark, more |
+|---|---|---|---|---|
+| Red | `#FF5847` | `#AA0000` | `#FF8A7A` | `#FFCFC7` |
+| Orange | `#DC7A00` | `#864800` | `#FF8E01` | `#FFD1AE` |
+| Yellow | `#B58F00` | `#6E5500` | `#D2A600` | `#FFD563` |
+| Lime | `#879D00` | `#515F00` | `#9DB700` | `#C8E800` |
+| Green | `#00A94A` | `#006629` | `#00C557` | `#00F970` |
+| Mint | `#00A590` | `#006356` | `#00C0A8` | `#00F3D5` |
+| Cyan | `#00A2B4` | `#00616D` | `#00BCD1` | `#6CEBFF` |
+| Blue | `#009BE1` | `#005D89` | `#2EB5FF` | `#B4E0FF` |
+| Indigo | `#6C8DFF` | `#2D1FFF` | `#8CA9FF` | `#CCDAFF` |
+| Violet | `#AC77FF` | `#7700D3` | `#BE9AFF` | `#E1D4FF` |
+| Magenta | `#FB00F7` | `#970094` | `#FF74F9` | `#FFC9FA` |
+| Pink | `#FF4B97` | `#A50057` | `#FF84AF` | `#FFCDDB` |
+| Gray | `#949494` | `#595959` | `#ACACAC` | `#DADADA` |
+
+Each name gives three things:
+- **Color:** `--glyph-{name}` / `--color-{name}`.
+- **Solid fill:** the same color, `--fill-{name}` / `--background-color-{name}`.
+- **Subtle fill:** the color at `opacity-low` over the page in the default schemes. In the increased-contrast schemes, it is the hue's lightness nearest the color's at which base text reads at 7:1.
+
+Hover and active states mix toward the scheme's extreme in Oklab. Tokens are written as `oklch()`, so transitions interpolate in Oklab.
+
+### Labels on solid fills
+
+A solid fill's label is `--color-on-solid`: white in light and black in dark (`--extreme-inverted`). The colors are set against the page first. A white label on a light-scheme solid stands near 3:1; in dark the label is black. `--color-inverted-fixed` stays white for what must always be white (emails, a source document's white text).
+
+### Border roles
+
+Neutral borders are assigned by WCAG 2.x 1.4.11, which asks 3:1 of a boundary needed to identify a component or its state:
+- **`borderColorBase` (3:1):** text inputs, textareas, selects and dropdown triggers, search fields, the pager's page boxes, checkboxes, radios, toggles, bordered buttons with no fill, the editor box, a table's resize handle, and graphical objects that carry meaning (relation-graph edges, chart axes).
+- **`borderColorSubtle` (the subtle border step):** everything decorative or grouping, where content or another cue identifies it. This covers cards, accordions, tables and their lines, reader frames, dividers and rules, modals and popovers, menus, code blocks, fieldsets, rails, attachment frames, chips with text, and chart grids.
 
 ## Architecture
 
 ### 1. Source Tokens
 Primitives.
 - **Named colors**: the twelve hues above, per scheme.
+- **Neutral ramp**: five fills, the subtle and base borders, and four text steps, per scheme.
 - **Grays**: light and dark grayscale ramps.
-- **Syntax colors**: code highlighting by role, drawn from the named colors (`SyntaxTokensCSS`): tag names indigo, attribute names violet, values red, references pink, declarations magenta, comments gray, text the text's own; additions green, deletions red.
+- **Syntax colors**: code highlighting by role, drawn from the named colors (`SyntaxTokensCSS`).
 
 ### 2. Applied Tokens
 Semantic tokens that map source primitives to specific UI roles.
