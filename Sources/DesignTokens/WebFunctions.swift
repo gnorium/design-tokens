@@ -152,32 +152,36 @@
     }
   }
 
-  /// Code's colors by role (user, 2026-10-11), the same in every scheme:
+  /// Code's colors by role (user, 2026-10-12), the same in every scheme:
   /// each a named color's token, so it follows the scheme and its increased
-  /// contrast. Text and a tag's marks are the text's own; a tag's name
-  /// indigo, an attribute's name violet, its value red, references pink,
-  /// declarations magenta, comments gray; additions green, deletions red,
-  /// links blue. Kept to the hues that read in both light and dark (indigo,
-  /// violet, red, pink, magenta, gray).
+  /// contrast. Seven hues, never a state color (red, green, blue, yellow,
+  /// orange), by Xcode's roles: keywords magenta (an XML element's name),
+  /// attributes cyan, strings lime (an attribute's value), characters pink
+  /// (a reference), type names and numbers indigo (a namespace prefix, a
+  /// JSON number), preprocessor statements violet (`<?xml?>`,
+  /// `<!DOCTYPE>`), constants mint (CDATA); comments the subtle gray; text
+  /// and a tag's marks the text's own. Diffs and links keep their meaning:
+  /// additions green, deletions red, URLs blue.
   @CSSBuilder
   public func SyntaxTokensCSS() -> [CSSOM.CSSRule] {
     let roles: [(String, String)] = [
       ("plain-text", "var(--glyph)"), ("marks", "var(--glyph)"), ("param-internal-name", "var(--glyph)"),
-      ("keywords", "var(--glyph-indigo)"), ("heading", "var(--glyph-indigo)"),
-      ("other-function-and-method-names", "var(--glyph-indigo)"),
-      ("project-function-and-method-names", "var(--glyph-indigo)"),
-      ("attributes", "var(--glyph-violet)"), ("other-class-names", "var(--glyph-violet)"),
-      ("other-type-names", "var(--glyph-violet)"), ("project-class-names", "var(--glyph-violet)"),
-      ("project-type-names", "var(--glyph-violet)"), ("type-declarations", "var(--glyph-violet)"),
-      ("strings", "var(--glyph-red)"),
-      ("characters", "var(--glyph-pink)"), ("numbers", "var(--glyph-pink)"), ("other-constants", "var(--glyph-pink)"),
-      ("project-constants", "var(--glyph-pink)"),
-      ("other-declarations", "var(--glyph-magenta)"), ("other-preprocessor-macros", "var(--glyph-magenta)"),
-      ("preprocessor-statements", "var(--glyph-magenta)"), ("project-preprocessor-macros", "var(--glyph-magenta)"),
-      ("other-instance-variables-and-globals", "var(--glyph-magenta)"),
-      ("project-instance-variables-and-globals", "var(--glyph-magenta)"),
-      ("comments", "var(--gray-glyph)"), ("documentation-markup", "var(--gray-glyph)"),
-      ("documentation-markup-keywords", "var(--gray-glyph)"),
+      ("keywords", "var(--glyph-magenta)"), ("heading", "var(--glyph-magenta)"),
+      ("attributes", "var(--glyph-cyan)"), ("other-function-and-method-names", "var(--glyph-cyan)"),
+      ("project-function-and-method-names", "var(--glyph-cyan)"),
+      ("other-instance-variables-and-globals", "var(--glyph-cyan)"),
+      ("project-instance-variables-and-globals", "var(--glyph-cyan)"),
+      ("strings", "var(--glyph-lime)"),
+      ("characters", "var(--glyph-pink)"),
+      ("numbers", "var(--glyph-indigo)"), ("other-type-names", "var(--glyph-indigo)"),
+      ("project-type-names", "var(--glyph-indigo)"),
+      ("other-class-names", "var(--glyph-indigo)"), ("project-class-names", "var(--glyph-indigo)"),
+      ("type-declarations", "var(--glyph-indigo)"),
+      ("preprocessor-statements", "var(--glyph-violet)"), ("other-preprocessor-macros", "var(--glyph-violet)"),
+      ("project-preprocessor-macros", "var(--glyph-violet)"), ("other-declarations", "var(--glyph-violet)"),
+      ("other-constants", "var(--glyph-mint)"), ("project-constants", "var(--glyph-mint)"),
+      ("comments", "var(--color-subtle)"), ("documentation-markup", "var(--color-subtle)"),
+      ("documentation-markup-keywords", "var(--color-subtle)"),
       ("addition", "var(--glyph-green)"), ("deletion", "var(--glyph-red)"), ("urls", "var(--glyph-blue)"),
       ("highlighted", "color-mix(in srgb, var(--glyph-blue) calc(var(--opacity-low) * 100%), transparent)"),
     ]
