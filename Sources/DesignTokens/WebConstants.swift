@@ -47,6 +47,8 @@ public let trafficLightGreen: CSS.Color = `var`("--traffic-light-green")
 public let fill: CSS.Color = `var`("--fill")
 public let fillAlpha: CSS.Color = `var`("--fill-alpha")
 public let fillSecondary: CSS.Color = `var`("--fill-secondary")
+/// The neutral subtle fill: the scheme's gray at `opacity-low` over the page, as the colored subtle fills.
+public let fillNeutralSubtle: CSS.Color = `var`("--fill-neutral-subtle")
 public let fillTertiary: CSS.Color = `var`("--fill-tertiary")
 public let fillTertiaryAlpha: CSS.Color = `var`("--fill-tertiary-alpha")
 public let fillQuaternaryAlpha: CSS.Color = `var`("--fill-quaternary-alpha")

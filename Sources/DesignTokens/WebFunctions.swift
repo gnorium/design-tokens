@@ -137,6 +137,12 @@
           // which move a color toward black or white, mix in Oklab).
           : "color-mix(in srgb, \(color) calc(var(--opacity-low) * 100%), var(--fill))")
     }
+    // The neutral subtle fill (user, 2026-10-12): by the colored subtle
+    // fills' rule, the scheme's gray (3:1 against the page by default, 7:1
+    // in increased contrast) at `opacity-low` over the page, in sRGB.
+    customProperty(
+      "--fill-neutral-subtle",
+      "color-mix(in srgb, \(NamedColors.css("gray", scheme)) calc(var(--opacity-low) * 100%), var(--fill))")
   }
 
   /// Code's colors by role (user, 2026-10-11), the same in every scheme:
@@ -620,7 +626,7 @@
     customProperty("--background-color-base-hover", fillSecondary)
     customProperty("--background-color-base-active", fillTertiary)
     customProperty("--background-color-neutral", fillTertiary)
-    customProperty("--background-color-neutral-subtle", fillSecondary)
+    customProperty("--background-color-neutral-subtle", fillNeutralSubtle)
     customProperty("--background-color-interactive", fillTertiary)
     customProperty("--background-color-interactive-hover", fillGrayQuaternary)
     customProperty("--background-color-interactive-active", fillGrayTertiary)
