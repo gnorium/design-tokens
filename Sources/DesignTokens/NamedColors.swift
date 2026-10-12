@@ -5,12 +5,13 @@
   /// OKLCH, starting at pure red's (#FF0000, 29.23°), and gray.
   ///
   /// By APCA (user, 2026-10-12): each color's lightness is set so its APCA
-  /// contrast with the page equals the neutral base border's in that scheme
-  /// (`Neutral.border`: 3:1 on white by default, 7:1's APCA in increased
-  /// contrast, mirrored to dark by equal APCA), with the most chroma sRGB
-  /// allows at that lightness, its hue kept. The page comes first: a solid
-  /// fill's label is white in light and black in dark (`--color-on-solid`),
-  /// whatever its own contrast.
+  /// contrast with the page is APCA's own level—Lc 60 by default (the
+  /// minimum for short labels and captions: links, syntax), Lc 75 in
+  /// increased contrast (the minimum for body text)—dark on white in light,
+  /// light on black in dark (APCA's reverse polarity), with the most chroma
+  /// sRGB allows at that lightness, its hue kept. A solid fill's label is
+  /// the page's own color (`--color-on-solid`: white in light, black in
+  /// dark).
   ///
   /// Each is a color, its solid fill (the same token), and its subtle fill:
   /// the color at `opacity-low` over the page in the default schemes; in
@@ -160,11 +161,18 @@
       return at((low + high) / 2)
     }
 
+    /// The named colors' APCA level by default (user, 2026-10-12): Lc 60,
+    /// APCA's minimum for short labels and captions—links and syntax.
+    public static let namedLc = 60.0
+    /// Their level in increased contrast: Lc 75, APCA's minimum for body text.
+    public static let namedLcMoreContrast = 75.0
+
     /// Every name's color in every scheme, computed once.
     static let colors: [Scheme: [String: OKLCH]] = Dictionary(
       uniqueKeysWithValues: Scheme.allCases.map { scheme in
         let page = scheme.isDark ? 0 : 255
-        let target = apca(neutralRamp(scheme)[.border]!, on: page)
+        // APCA's own levels as |SAPC| (Lc plus its 2.7 offset).
+        let target = (scheme.isMoreContrast ? namedLcMoreContrast : namedLc) + APCA.loBoWoffset * 100
         return (scheme, Dictionary(uniqueKeysWithValues: names.map { ($0, color($0, apca: target, on: page)) }))
       })
 
@@ -206,7 +214,8 @@
       hex(color(name, scheme))
     }
 
-    /// The color of a name in a scheme: at the base border's APCA.
+    /// The color of a name in a scheme: at Lc 60 against the page, Lc 75 in
+    /// increased contrast.
     public static func color(_ name: String, _ scheme: Scheme) -> OKLCH {
       colors[scheme]![name]!
     }

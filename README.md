@@ -8,7 +8,7 @@ DesignTokens provides CSS custom property definitions and Swift constants for co
 
 ## Features
 
-- **Rule-generated colors**: twelve hues, evenly spaced in perceived hue, each at the base border's APCA contrast with the page and the most saturated sRGB allows there; an achromatic neutral ramp from the same contrast model.
+- **Rule-generated colors**: twelve hues, evenly spaced in perceived hue, each at APCA's own contrast level with the page (Lc 60, Lc 75 in increased contrast) and the most saturated sRGB allows there; an achromatic neutral ramp from the same contrast model.
 - **Layered Architecture**: **Source Tokens** (primitives) and **Applied Tokens** (semantic mappings).
 - **Light and dark, default and increased contrast**: four schemes, each derived from the same rule.
 - **CSS Generation**: functions that generate the CSS custom property definitions.
@@ -54,26 +54,31 @@ Increased contrast raises the foreground only. The base border moves to the APCA
 
 ### Named colors
 
-There are twelve hues, 30° apart in OKLCH starting at pure red's hue (`#FF0000`, h ≈ 29.23°): red, orange, yellow, lime, green, mint, cyan, blue, indigo, violet, magenta, pink. Gray is the achromatic thirteenth. Each color's lightness is set so its APCA contrast with the page equals the base border's in that scheme (about Lc 57 by default), with the most chroma sRGB allows at that lightness. The hue is kept.
+There are twelve hues, 30° apart in OKLCH starting at pure red's hue (`#FF0000`, h ≈ 29.23°): red, orange, yellow, lime, green, mint, cyan, blue, indigo, violet, magenta, pink. Gray is the achromatic thirteenth.
+
+Each color's lightness is set so its APCA contrast with the page is one of APCA's own published levels, with the most chroma sRGB allows at that lightness. The hue is kept.
+- **Default: Lc 60**, APCA's minimum for short labels and captions. This level covers links and syntax.
+- **Increased contrast: Lc 75**, APCA's minimum for body text.
+- **Polarity:** light is dark-on-white; dark is light-on-black, using APCA's reverse-polarity formula.
 
 | Name | Light | Light, more | Dark | Dark, more |
 |---|---|---|---|---|
-| Red | `#FF5847` | `#AA0000` | `#FF8A7A` | `#FFCFC7` |
-| Orange | `#DC7A00` | `#864800` | `#FF8E01` | `#FFD1AE` |
-| Yellow | `#B58F00` | `#6E5500` | `#D2A600` | `#FFD563` |
-| Lime | `#879D00` | `#515F00` | `#9DB700` | `#C8E800` |
-| Green | `#00A94A` | `#006629` | `#00C557` | `#00F970` |
-| Mint | `#00A590` | `#006356` | `#00C0A8` | `#00F3D5` |
-| Cyan | `#00A2B4` | `#00616D` | `#00BCD1` | `#6CEBFF` |
-| Blue | `#009BE1` | `#005D89` | `#2EB5FF` | `#B4E0FF` |
-| Indigo | `#6C8DFF` | `#2D1FFF` | `#8CA9FF` | `#CCDAFF` |
-| Violet | `#AC77FF` | `#7700D3` | `#BE9AFF` | `#E1D4FF` |
-| Magenta | `#FB00F7` | `#970094` | `#FF74F9` | `#FFC9FA` |
-| Pink | `#FF4B97` | `#A50057` | `#FF84AF` | `#FFCDDB` |
-| Gray | `#949494` | `#595959` | `#ACACAC` | `#DADADA` |
+| Red | `#FF4636` | `#D30000` | `#FF9282` | `#FFBAAF` |
+| Orange | `#D47500` | `#A65A00` | `#FF9631` | `#FFBD89` |
+| Yellow | `#AE8900` | `#886A00` | `#D8AA00` | `#F8C400` |
+| Lime | `#829700` | `#657600` | `#A2BC00` | `#BAD800` |
+| Green | `#00A347` | `#007E35` | `#00CA5A` | `#00E868` |
+| Mint | `#009F8A` | `#007B6B` | `#00C5AC` | `#00E3C6` |
+| Cyan | `#009BAD` | `#007987` | `#00C1D7` | `#00DEF7` |
+| Blue | `#0095D9` | `#0074A9` | `#45BAFF` | `#91D2FF` |
+| Indigo | `#6486FF` | `#3E58FF` | `#93AEFF` | `#B7CAFF` |
+| Violet | `#A86EFF` | `#9321FF` | `#C1A0FF` | `#D5C1FF` |
+| Magenta | `#F100ED` | `#BB00B8` | `#FF7FF9` | `#FFB1F9` |
+| Pink | `#FF3390` | `#CC006E` | `#FF8DB4` | `#FFB7CD` |
+| Gray | `#8E8E8E` | `#6E6E6E` | `#B1B1B1` | `#CBCBCB` |
 
 Each name gives three things:
-- **Color:** `--glyph-{name}` / `--color-{name}`.
+- **Color:** `--glyph-{name}` / `--color-{name}`. Links (`--color-link`) and syntax colors use these; there is no separate text set.
 - **Solid fill:** the same color, `--fill-{name}` / `--background-color-{name}`.
 - **Subtle fill:** the color at `opacity-low` over the page in the default schemes. In the increased-contrast schemes, it is the hue's lightness nearest the color's at which base text reads at 7:1.
 
@@ -81,7 +86,7 @@ Hover and active states mix toward the scheme's extreme in Oklab. Tokens are wri
 
 ### Labels on solid fills
 
-A solid fill's label is `--color-on-solid`: white in light and black in dark (`--extreme-inverted`). The colors are set against the page first. A white label on a light-scheme solid stands near 3:1; in dark the label is black. `--color-inverted-fixed` stays white for what must always be white (emails, a source document's white text).
+A solid fill's label is `--color-on-solid`, the page's own color: white in light and black in dark (`--extreme-inverted`). A white label on a light solid reads at about Lc 65, or about Lc 80 in increased contrast. A black label on a dark solid reads at about Lc 62, or about Lc 76. `--color-inverted-fixed` stays white for what must always be white (emails, a source document's white text).
 
 ### Border roles
 
