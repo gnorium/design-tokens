@@ -47,6 +47,7 @@ public let trafficLightGreen: CSS.Color = `var`("--traffic-light-green")
 public let fill: CSS.Color = `var`("--fill")
 public let fillSecondary: CSS.Color = `var`("--fill-secondary")
 public let fillTertiary: CSS.Color = `var`("--fill-tertiary")
+public let fillQuaternary: CSS.Color = `var`("--fill-quaternary")
 public let fillGrayTertiary: CSS.Color = `var`("--fill-gray-tertiary")
 public let fillGrayQuaternary: CSS.Color = `var`("--fill-gray-quaternary")
 

@@ -285,10 +285,15 @@
       /// `--fill-gray-quaternary`: fill 3—a stripe's active row, the
       /// interactive hover, the interactive subtle active, the disabled fill.
       case fillGrayQuaternary
-      /// `--border-secondary`: fill 4—the subtle border, the disabled border.
-      case borderSecondary
+      /// `--fill-quaternary`: fill 4.
+      case fillQuaternary
       /// `--fill-gray-tertiary`: fill 5—the interactive active (pressed) fill.
       case fillGrayTertiary
+      /// `--border-secondary`: the subtle border—decorative and grouping
+      /// lines (WCAG 2.x 1.4.11 asks 3:1 only of a boundary needed to
+      /// identify a component), and the disabled border: midway in APCA
+      /// between fill 5 and the base border.
+      case borderSecondary
       /// `--border`: the base border.
       case border
       /// `--glyph-gray-quaternary`: disabled text.
@@ -315,7 +320,7 @@
         case .fillSecondary: return 1
         case .fillTertiary: return 2
         case .fillGrayQuaternary: return 3
-        case .borderSecondary: return 4
+        case .fillQuaternary: return 4
         case .fillGrayTertiary: return 5
         default: return nil
         }
@@ -414,6 +419,9 @@
       if apca(ramp[.glyphGrayQuaternary]!, on: page) >= apca(placeholder, on: page) {
         ramp[.glyphGrayQuaternary] = scheme.isDark ? placeholder - 1 : placeholder + 1
       }
+      // The subtle border: midway in APCA between fill 5 and the border.
+      ramp[.borderSecondary] = gray(
+        apca: (apca(ramp[.fillGrayTertiary]!, on: page) + apca(ramp[.border]!, on: page)) / 2, on: page)
       return ramp
     }
 
