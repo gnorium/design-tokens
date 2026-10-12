@@ -214,30 +214,73 @@
       color(name, luminance: luminance(of: scheme))
     }
 
+    // MARK: APCA
+
+    /// APCA contrast, SAPC/APCA 0.0.98G-4g (apca-w3), computed exactly.
+    public enum APCA {
+      static let mainTRC = 2.4
+      static let sRco = 0.2126729, sGco = 0.7151522, sBco = 0.0721750
+      static let normBG = 0.56, normTXT = 0.57, revTXT = 0.62, revBG = 0.65
+      static let blkThrs = 0.022, blkClmp = 1.414
+      static let scaleBoW = 1.14, scaleWoB = 1.14
+      static let loBoWoffset = 0.027, loWoBoffset = 0.027
+      static let deltaYmin = 0.0005, loClip = 0.1
+
+      /// APCA's screen luminance of an 8-bit sRGB color, soft-clamped near black.
+      static func y(_ rgb: (Int, Int, Int)) -> Double {
+        let y =
+          sRco * pow(Double(rgb.0) / 255, mainTRC) + sGco * pow(Double(rgb.1) / 255, mainTRC)
+          + sBco * pow(Double(rgb.2) / 255, mainTRC)
+        return y > blkThrs ? y : y + pow(blkThrs - y, blkClmp)
+      }
+
+      /// SAPC ×100, signed (+ dark on light, − light on dark), before
+      /// `loClip` and the offsets: the contrast the published Lc reads as 0
+      /// below 10, kept so pale fills can be spaced and mirrored.
+      public static func sapc(text: (Int, Int, Int), background: (Int, Int, Int)) -> Double {
+        let t = y(text), b = y(background)
+        if abs(b - t) < deltaYmin { return 0 }
+        return (b > t ? (pow(b, normBG) - pow(t, normTXT)) * scaleBoW : (pow(b, revBG) - pow(t, revTXT)) * scaleWoB) * 100
+      }
+
+      /// The published Lc: clipped below 10 and offset.
+      public static func lc(text: (Int, Int, Int), background: (Int, Int, Int)) -> Double {
+        let s = sapc(text: text, background: background) / 100
+        if s > 0 { return s < loClip ? 0 : (s - loBoWoffset) * 100 }
+        if s < 0 { return s > -loClip ? 0 : (s + loWoBoffset) * 100 }
+        return 0
+      }
+    }
+
     // MARK: The neutral ramp
 
     /// The neutral ramp (user, 2026-10-12): every neutral fill, border and
-    /// text is an achromatic gray at one WCAG contrast with the page,
-    /// mirrored—the same ratio against white in light as against black in
-    /// dark. The ratios are light's from before the rule, except three
-    /// set by rule: the subtle fill (the 3:1 gray at `opacity-low` over the
-    /// page, 1.20:1), the base border (3:1, as a control's boundary needs)
-    /// and placeholder text (4.5:1, as text). Disabled text, which WCAG
-    /// exempts, sits below placeholder: base > subtle > placeholder >
-    /// disabled.
+    /// text is an achromatic gray, set in light and mirrored to dark by
+    /// equal APCA contrast with the page (`APCA.sapc`), with WCAG 2 as
+    /// floors.
+    ///
+    /// Fills: five steps evenly spaced in APCA from the page, a step a third
+    /// of the neutral subtle fill's (the 3:1 gray at `opacity-low` over
+    /// white), which is the third. Foreground, in light: the base border
+    /// at 3:1 (WCAG 1.4.11), disabled text at 3.96:1, placeholder at 4.5:1
+    /// on the page and on the subtle fill (WCAG 1.4.3), subtle text at
+    /// APCA Lc 90, base text at 18.12:1. Increased contrast raises the
+    /// foreground only: the base border to the APCA of 7:1, and every
+    /// foreground step above it by the same map of its APCA, pinned at the
+    /// page's maximum; the fills stay.
     public enum Neutral: String, CaseIterable, Sendable {
-      /// `--fill-secondary`: the interactive subtle fill, the base hover.
+      /// `--fill-secondary`: fill 1—the interactive subtle fill, the base hover.
       case fillSecondary
-      /// `--fill-tertiary`: the interactive fill, the interactive subtle
-      /// hover, the disabled subtle fill, the base active.
+      /// `--fill-tertiary`: fill 2—the interactive fill, the interactive
+      /// subtle hover, the disabled subtle fill, the base active.
       case fillTertiary
-      /// `--fill-gray-quaternary`: the neutral subtle fill, the interactive
-      /// hover, the interactive subtle active, the disabled fill.
+      /// `--fill-gray-quaternary`: fill 3—the neutral subtle fill, the
+      /// interactive hover, the interactive subtle active, the disabled fill.
       case fillGrayQuaternary
-      /// `--fill-gray-tertiary`: the interactive active (pressed) fill.
-      case fillGrayTertiary
-      /// `--border-secondary`: the subtle border, the disabled border.
+      /// `--border-secondary`: fill 4—the subtle border, the disabled border.
       case borderSecondary
+      /// `--fill-gray-tertiary`: fill 5—the interactive active (pressed) fill.
+      case fillGrayTertiary
       /// `--border`: the base border.
       case border
       /// `--glyph-gray-quaternary`: disabled text.
@@ -258,60 +301,112 @@
         return out
       }
 
-      /// Its contrast with the page in the default schemes.
-      public var ratio: Double {
+      /// Its fill step (1–5), or nil for the foreground.
+      public var fillStep: Int? {
         switch self {
-        case .fillSecondary: return 1.06
-        case .fillTertiary: return 1.09
-        case .fillGrayQuaternary: return NamedColors.subtleRatio
-        case .borderSecondary: return 1.31
-        case .fillGrayTertiary: return 1.53
-        case .border: return 3
-        case .glyphGrayQuaternary: return 3.96
-        case .glyphGrayTertiary: return 4.5
-        case .glyphGraySecondary: return 5.5
-        case .glyphGray: return 18.12
+        case .fillSecondary: return 1
+        case .fillTertiary: return 2
+        case .fillGrayQuaternary: return 3
+        case .borderSecondary: return 4
+        case .fillGrayTertiary: return 5
+        default: return nil
         }
       }
+
+      /// The foreground, lowest contrast first.
+      public static let foreground: [Neutral] = [.border, .glyphGrayQuaternary, .glyphGrayTertiary, .glyphGraySecondary, .glyphGray]
     }
 
     /// `opacity-low`, at which a subtle fill lays its color over the page.
     public static let opacityLow = 0.2
 
-    /// The subtle fill's contrast with the page: light's 3:1 gray at
-    /// `opacity-low` over white, mixed in sRGB as the colored subtle fills
-    /// are (1.20:1).
-    public static var subtleRatio: Double {
-      let (g, _, _) = rgb(color("gray", .light))
-      let v = Int((opacityLow * Double(g) + (1 - opacityLow) * 255).rounded())
-      return contrast(OKLCH(1, 0, 0), oklch((v, v, v)))
+    static func rgb(_ v: Int) -> (Int, Int, Int) { (v, v, v) }
+
+    /// WCAG 2 contrast of two 8-bit grays.
+    public static func wcag(_ a: Int, _ b: Int) -> Double {
+      contrast(oklch(rgb(a)), oklch(rgb(b)))
     }
 
-    /// Increased contrast's ratio for a default one: the named colors' 3:1
-    /// to 7:1, as one map of the log ratio pinned at 1:1 and 21:1—below
-    /// 3:1, R^(ln 7/ln 3); above, 7·(R/3)^(ln 3/ln 7).
-    public static func moreContrastRatio(_ ratio: Double) -> Double {
-      let x = log(ratio), ln3 = log(3.0), ln7 = log(7.0)
-      return exp(x <= ln3 ? x * ln7 / ln3 : ln7 + (x - ln3) * ln3 / ln7)
+    /// |SAPC| of a gray against a page.
+    public static func apca(_ v: Int, on page: Int) -> Double {
+      abs(APCA.sapc(text: rgb(v), background: rgb(page)))
     }
 
-    /// The relative luminance at which a gray stands at a ratio with a
-    /// scheme's page.
-    public static func luminance(ratio: Double, _ scheme: Scheme) -> Double {
-      scheme.isDark ? 0.05 * ratio - 0.05 : 1.05 / ratio - 0.05
+    /// The gray nearest a |SAPC| against a page.
+    static func gray(apca target: Double, on page: Int) -> Int {
+      (0...255).min { abs(apca($0, on: page) - target) < abs(apca($1, on: page) - target) }!
     }
 
-    /// A neutral step in a scheme: the 8-bit achromatic gray nearest its
-    /// ratio (by `moreContrastRatio` in increased contrast) against the
-    /// page without falling below it.
+    /// The gray nearest a WCAG 2 ratio against a background without falling
+    /// below it, on the side away from the page.
+    static func gray(wcag target: Double, on background: Int, darker: Bool) -> Int {
+      let side = (0...255).filter { darker ? $0 < background : $0 > background }
+      let meeting = side.filter { wcag($0, background) >= target }
+      return meeting.min { wcag($0, background) < wcag($1, background) } ?? (darker ? 0 : 255)
+    }
+
+    /// The whole ramp in each scheme, as grays, computed once.
+    static let neutralRamps: [Scheme: [Neutral: Int]] = Dictionary(
+      uniqueKeysWithValues: Scheme.allCases.map { ($0, computeNeutralRamp($0)) })
+
+    /// The whole ramp in a scheme, as grays.
+    public static func neutralRamp(_ scheme: Scheme) -> [Neutral: Int] { neutralRamps[scheme]! }
+
+    static func computeNeutralRamp(_ scheme: Scheme) -> [Neutral: Int] {
+      let white: Int = 255, black: Int = 0
+      let page: Int = scheme.isDark ? black : white
+      // Fills: steps of a third of the neutral subtle fill's APCA in light.
+      let gray3 = rgb(color("gray", .light)).0
+      let subtle = Int((opacityLow * Double(gray3) + (1 - opacityLow) * 255).rounded())
+      let step = apca(subtle, on: white) / 3
+      var ramp: [Neutral: Int] = [:]
+      for n in Neutral.allCases { if let k = n.fillStep { ramp[n] = gray(apca: Double(k) * step, on: page) } }
+      let lightFill3 = gray(apca: 3 * step, on: white)
+      // The foreground in light, as APCA.
+      var light: [Neutral: Double] = [
+        .border: apca(gray(wcag: 3, on: white, darker: true), on: white),
+        .glyphGrayQuaternary: apca(gray(wcag: 3.96, on: white, darker: true), on: white),
+        .glyphGrayTertiary: apca(
+          min(gray(wcag: 4.5, on: white, darker: true), gray(wcag: 4.5, on: lightFill3, darker: true)), on: white),
+        .glyphGraySecondary: apca(
+          (0...255).filter { abs(APCA.lc(text: rgb($0), background: rgb(white))) >= 90 }.max()!, on: white),
+        .glyphGray: apca(gray(wcag: 18.12, on: white, darker: true), on: white),
+      ]
+      if scheme.isMoreContrast {
+        // The border to 7:1's APCA; the rest by the same map, pinned at the
+        // page's maximum.
+        let top = apca(scheme.isDark ? white : black, on: page)
+        let target = apca(gray(wcag: 7, on: white, darker: true), on: white)
+        let from = light[.border]!
+        for (n, value) in light { light[n] = target + (value - from) * (top - target) / (top - from) }
+      }
+      // Mirrored to the scheme's page, distinct and ordered.
+      var previous: Int? = nil
+      for n in Neutral.foreground {
+        var v = gray(apca: light[n]!, on: page)
+        if let p = previous, scheme.isDark ? v <= p : v >= p { v = scheme.isDark ? min(255, p + 1) : max(0, p - 1) }
+        ramp[n] = v
+        previous = v
+      }
+      // WCAG 2 floors: the border 3:1; placeholder 4.5:1 on the page and the
+      // subtle fill; disabled text below placeholder.
+      let fill3 = ramp[.fillGrayQuaternary]!
+      ramp[.border] = scheme.isDark
+        ? max(ramp[.border]!, gray(wcag: 3, on: page, darker: false))
+        : min(ramp[.border]!, gray(wcag: 3, on: page, darker: true))
+      let placeholder = scheme.isDark
+        ? max(ramp[.glyphGrayTertiary]!, gray(wcag: 4.5, on: page, darker: false), gray(wcag: 4.5, on: fill3, darker: false))
+        : min(ramp[.glyphGrayTertiary]!, gray(wcag: 4.5, on: page, darker: true), gray(wcag: 4.5, on: fill3, darker: true))
+      ramp[.glyphGrayTertiary] = placeholder
+      if apca(ramp[.glyphGrayQuaternary]!, on: page) >= apca(placeholder, on: page) {
+        ramp[.glyphGrayQuaternary] = scheme.isDark ? placeholder - 1 : placeholder + 1
+      }
+      return ramp
+    }
+
+    /// A neutral step in a scheme (`neutralRamp`).
     public static func neutral(_ step: Neutral, _ scheme: Scheme) -> OKLCH {
-      let ratio = scheme.isMoreContrast ? moreContrastRatio(step.ratio) : step.ratio
-      let (near, _, _) = rgb(color("gray", luminance: luminance(ratio: ratio, scheme)))
-      let page = scheme.page
-      let gray = { (v: Int) in oklch((v, v, v)) }
-      let meeting = (max(0, near - 3)...min(255, near + 3)).filter { contrast(gray($0), page) >= ratio }
-      let best = meeting.min { contrast(gray($0), page) < contrast(gray($1), page) } ?? (scheme.isDark ? 255 : 0)
-      return gray(best)
+      oklch(rgb(neutralRamp(scheme)[step]!))
     }
 
     /// The subtle fill of the increased-contrast schemes: the color's hue,
