@@ -89,6 +89,7 @@ public let colorDisabledEmphasized: CSS.Color = `var`("--color-disabled-emphasiz
 public let colorPlaceholder: CSS.Color = `var`("--color-placeholder")
 public let colorInverted: CSS.Color = `var`("--color-inverted")
 public let colorInvertedFixed: CSS.Color = `var`("--color-inverted-fixed")
+public let colorOnSolid: CSS.Color = `var`("--color-on-solid")
 
 // MARK: - Applied: Content Diff
 public let colorContentAdded: CSS.Color = `var`("--color-content-added")
@@ -342,8 +343,9 @@ public let backgroundColorBaseHover: CSS.Color = `var`("--background-color-base-
 public let backgroundColorBaseActive: CSS.Color = `var`("--background-color-base-active")
 public let backgroundColorNeutral: CSS.Color = `var`("--background-color-neutral")
 public let backgroundColorNeutralSubtle: CSS.Color = `var`("--background-color-neutral-subtle")
-public let backgroundColorNeutralSubtleHover: CSS.Color = `var`("--background-color-neutral-subtle-hover")
-public let backgroundColorNeutralSubtleActive: CSS.Color = `var`("--background-color-neutral-subtle-active")
+public let backgroundColorStripe: CSS.Color = `var`("--background-color-stripe")
+public let backgroundColorStripeHover: CSS.Color = `var`("--background-color-stripe-hover")
+public let backgroundColorStripeActive: CSS.Color = `var`("--background-color-stripe-active")
 public let backgroundColorInteractive: CSS.Color = `var`("--background-color-interactive")
 public let backgroundColorInteractiveHover: CSS.Color = `var`("--background-color-interactive-hover")
 public let backgroundColorInteractiveActive: CSS.Color = `var`(

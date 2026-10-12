@@ -339,6 +339,9 @@
     customProperty("--color-placeholder", glyphGrayTertiary)
     customProperty("--color-inverted", fill)
     customProperty("--color-inverted-fixed", .white)
+    // A solid fill's label (user, 2026-10-12): white in light, black in dark,
+    // as the named colors stand against the page first.
+    customProperty("--color-on-solid", extremeInverted)
     customProperty("--color-content-added", glyphGreen)
     customProperty("--color-content-removed", glyphRed)
     customProperty("--opacity-base", 1)
@@ -537,11 +540,13 @@
     customProperty("--background-color-base-hover", fillSecondary)
     customProperty("--background-color-base-active", fillTertiary)
     customProperty("--background-color-neutral", fillTertiary)
-    customProperty("--background-color-neutral-subtle", fillGrayQuaternary)
-    // A neutral subtle surface's states (a striped row): the next two fills
-    // above it (`NamedColors.Neutral` fills 4 and 5).
-    customProperty("--background-color-neutral-subtle-hover", borderSecondary)
-    customProperty("--background-color-neutral-subtle-active", fillGrayTertiary)
+    // Fill 1, the first step from the page (user, 2026-10-12).
+    customProperty("--background-color-neutral-subtle", fillSecondary)
+    // A table's stripe and a row's states over it (user, 2026-10-12): the
+    // subtle fills 1, 2 and 3, each above the last (`NamedColors.Neutral`).
+    customProperty("--background-color-stripe", fillSecondary)
+    customProperty("--background-color-stripe-hover", fillTertiary)
+    customProperty("--background-color-stripe-active", fillGrayQuaternary)
     customProperty("--background-color-interactive", fillTertiary)
     customProperty("--background-color-interactive-hover", fillGrayQuaternary)
     customProperty("--background-color-interactive-active", fillGrayTertiary)

@@ -4,20 +4,18 @@
   /// Gnorium's named colors (user, 2026-10-11): twelve hues 30° apart in
   /// OKLCH, starting at pure red's (#FF0000, 29.23°), and gray.
   ///
-  /// Each color's lightness is set so its WCAG contrast with the page is
-  /// exactly the scheme's target, with the most chroma sRGB allows at that
-  /// lightness, its hue kept: 3:1 in the default schemes (light against
-  /// white, dark against black), 7:1 in the increased-contrast ones. A
-  /// color's contrasts with white and with black multiply to 21, so 3:1
-  /// against white is 7:1 against black (relative luminance 0.3, set A) and
-  /// 7:1 against white is 3:1 against black (luminance 0.1, set B): light's
-  /// default and dark's increased contrast are set A; dark's default and
-  /// light's increased contrast are set B.
+  /// By APCA (user, 2026-10-12): each color's lightness is set so its APCA
+  /// contrast with the page equals the neutral base border's in that scheme
+  /// (`Neutral.border`: 3:1 on white by default, 7:1's APCA in increased
+  /// contrast, mirrored to dark by equal APCA), with the most chroma sRGB
+  /// allows at that lightness, its hue kept. The page comes first: a solid
+  /// fill's label is white in light and black in dark (`--color-on-solid`),
+  /// whatever its own contrast.
   ///
-  /// Each is a color, its solid fill (the same token) under a white label,
-  /// and its subtle fill: the color at `opacity-low` over the page in the
-  /// default schemes; in the increased-contrast ones, the hue's lightness
-  /// nearest the color's at which base text reads at 7:1.
+  /// Each is a color, its solid fill (the same token), and its subtle fill:
+  /// the color at `opacity-low` over the page in the default schemes; in
+  /// the increased-contrast ones, the hue's lightness nearest the color's at
+  /// which base text reads at 7:1.
   public enum NamedColors {
     public struct OKLCH: Sendable, Equatable {
       public let l: Double
@@ -136,40 +134,39 @@
 
     // MARK: The rule
 
-    /// Set A's relative luminance: 3:1 against white, 7:1 against black.
-    public static let luminanceA = 0.3
-    /// Set B's: 7:1 against white, 3:1 against black.
-    public static let luminanceB = 0.1
-
-    /// The luminance a scheme's colors stand at: set A in light and in
-    /// dark's increased contrast, set B in dark and in light's.
-    public static func luminance(of scheme: Scheme) -> Double {
-      switch scheme {
-      case .light, .darkMoreContrast: return luminanceA
-      case .dark, .lightMoreContrast: return luminanceB
-      }
-    }
-
-    /// A name's color at a relative luminance: its hue (gray none), the
-    /// lightness at which it stands there, the most chroma sRGB allows at
-    /// that lightness: found by bisection on the exact (unrounded)
-    /// luminance, then written in 8-bit sRGB.
-    public static func color(_ name: String, luminance target: Double) -> OKLCH {
+    /// A name's color at an APCA contrast with a page: its hue (gray none),
+    /// the lightness at which its |SAPC| against the page is the target,
+    /// with the most chroma sRGB allows at that lightness: found by
+    /// bisection on the exact (unrounded) color, then written in 8-bit sRGB.
+    public static func color(_ name: String, apca target: Double, on page: Int) -> OKLCH {
       let gray = name == "gray"
       let h = gray ? 0 : hue(name)
       func at(_ l: Double) -> OKLCH { gray ? OKLCH(l, 0, 0) : OKLCH(l, maxChroma(l: l, h: h), h) }
       func exact(_ c: OKLCH) -> Double {
         let r = linearSRGB(c)
-        let clamp = { (x: Double) in min(1, max(0, x)) }
-        return 0.2126 * clamp(r.r) + 0.7152 * clamp(r.g) + 0.0722 * clamp(r.b)
+        func encode(_ v: Double) -> Double {
+          let x = min(1, max(0, v))
+          return x <= 0.0031308 ? 12.92 * x : 1.055 * pow(x, 1 / 2.4) - 0.055
+        }
+        return abs(APCA.sapc(text: (encode(r.r), encode(r.g), encode(r.b)), background: Double(page) / 255))
       }
+      let dark = page == 0
       var low = 0.0, high = 1.0
       for _ in 0..<60 {
         let mid = (low + high) / 2
-        if exact(at(mid)) < target { low = mid } else { high = mid }
+        // Lighter is less contrast on white, more on black.
+        if (exact(at(mid)) > target) != dark { low = mid } else { high = mid }
       }
-      return at(high)
+      return at((low + high) / 2)
     }
+
+    /// Every name's color in every scheme, computed once.
+    static let colors: [Scheme: [String: OKLCH]] = Dictionary(
+      uniqueKeysWithValues: Scheme.allCases.map { scheme in
+        let page = scheme.isDark ? 0 : 255
+        let target = apca(neutralRamp(scheme)[.border]!, on: page)
+        return (scheme, Dictionary(uniqueKeysWithValues: names.map { ($0, color($0, apca: target, on: page)) }))
+      })
 
     /// A name's color written for CSS as `oklch(L C h)` (user, 2026-10-11),
     /// so browsers interpolate its transitions in Oklab: the OKLCH of its
@@ -209,9 +206,9 @@
       hex(color(name, scheme))
     }
 
-    /// The color of a name in a scheme.
+    /// The color of a name in a scheme: at the base border's APCA.
     public static func color(_ name: String, _ scheme: Scheme) -> OKLCH {
-      color(name, luminance: luminance(of: scheme))
+      colors[scheme]![name]!
     }
 
     // MARK: APCA
@@ -232,6 +229,16 @@
           sRco * pow(Double(rgb.0) / 255, mainTRC) + sGco * pow(Double(rgb.1) / 255, mainTRC)
           + sBco * pow(Double(rgb.2) / 255, mainTRC)
         return y > blkThrs ? y : y + pow(blkThrs - y, blkClmp)
+      }
+
+      /// SAPC ×100 of gamma-encoded sRGB channels in [0, 1] (a text) on a
+      /// gray background in [0, 1]: the same as the 8-bit one, unrounded.
+      static func sapc(text: (Double, Double, Double), background: Double) -> Double {
+        func clamp(_ y: Double) -> Double { y > blkThrs ? y : y + pow(blkThrs - y, blkClmp) }
+        let t = clamp(sRco * pow(text.0, mainTRC) + sGco * pow(text.1, mainTRC) + sBco * pow(text.2, mainTRC))
+        let b = clamp(pow(background, mainTRC))
+        if abs(b - t) < deltaYmin { return 0 }
+        return (b > t ? (pow(b, normBG) - pow(t, normTXT)) * scaleBoW : (pow(b, revBG) - pow(t, revTXT)) * scaleWoB) * 100
       }
 
       /// SAPC ×100, signed (+ dark on light, − light on dark), before
@@ -260,21 +267,22 @@
     /// floors.
     ///
     /// Fills: five steps evenly spaced in APCA from the page, a step a third
-    /// of the neutral subtle fill's (the 3:1 gray at `opacity-low` over
-    /// white), which is the third. Foreground, in light: the base border
-    /// at 3:1 (WCAG 1.4.11), disabled text at 3.96:1, placeholder at 4.5:1
-    /// on the page and on the subtle fill (WCAG 1.4.3), subtle text at
-    /// APCA Lc 90, base text at 18.12:1. Increased contrast raises the
-    /// foreground only: the base border to the APCA of 7:1, and every
-    /// foreground step above it by the same map of its APCA, pinned at the
-    /// page's maximum; the fills stay.
+    /// of the 3:1 gray's at `opacity-low` over white (fill 3); the neutral
+    /// subtle fill and a table's stripe are fill 1. Foreground, in light:
+    /// the base border at 3:1 (WCAG 1.4.11), disabled text at 3.96:1,
+    /// placeholder at 4.5:1 on the page and on fill 3 (WCAG 1.4.3), subtle
+    /// text at APCA Lc 90, base text at 18.12:1. Increased contrast raises
+    /// the foreground only: the base border to the APCA of 7:1, every text
+    /// step keeping its fraction of the way from the border to the APCA
+    /// maximum; the fills stay.
     public enum Neutral: String, CaseIterable, Sendable {
-      /// `--fill-secondary`: fill 1—the interactive subtle fill, the base hover.
+      /// `--fill-secondary`: fill 1—the neutral subtle fill, a table's stripe,
+      /// the interactive subtle fill, the base hover.
       case fillSecondary
       /// `--fill-tertiary`: fill 2—the interactive fill, the interactive
       /// subtle hover, the disabled subtle fill, the base active.
       case fillTertiary
-      /// `--fill-gray-quaternary`: fill 3—the neutral subtle fill, the
+      /// `--fill-gray-quaternary`: fill 3—a stripe's active row, the
       /// interactive hover, the interactive subtle active, the disabled fill.
       case fillGrayQuaternary
       /// `--border-secondary`: fill 4—the subtle border, the disabled border.
@@ -356,15 +364,22 @@
       let white: Int = 255, black: Int = 0
       let page: Int = scheme.isDark ? black : white
       // Fills: steps of a third of the neutral subtle fill's APCA in light.
-      let gray3 = rgb(color("gray", .light)).0
+      let gray3 = gray(wcag: 3, on: white, darker: true)
       let subtle = Int((opacityLow * Double(gray3) + (1 - opacityLow) * 255).rounded())
       let step = apca(subtle, on: white) / 3
       var ramp: [Neutral: Int] = [:]
       for n in Neutral.allCases { if let k = n.fillStep { ramp[n] = gray(apca: Double(k) * step, on: page) } }
       let lightFill3 = gray(apca: 3 * step, on: white)
-      // The foreground in light, as APCA.
-      var light: [Neutral: Double] = [
-        .border: apca(gray(wcag: 3, on: white, darker: true), on: white),
+      // The foreground, by one rule in every scheme, built on white and
+      // mirrored to dark by equal APCA: the base border at 3:1's APCA by
+      // default (WCAG 2.x 1.4.11), 7:1's in increased contrast; each text
+      // step above it at the same fraction of the way from the border to
+      // the APCA maximum as light's anchors set it (disabled 3.96:1,
+      // placeholder 4.5:1 on the page and on fill 3, subtle text Lc 90,
+      // base text 18.12:1).
+      let lightTop = apca(black, on: white)
+      let lightBorder = apca(gray(wcag: 3, on: white, darker: true), on: white)
+      let anchors: [Neutral: Double] = [
         .glyphGrayQuaternary: apca(gray(wcag: 3.96, on: white, darker: true), on: white),
         .glyphGrayTertiary: apca(
           min(gray(wcag: 4.5, on: white, darker: true), gray(wcag: 4.5, on: lightFill3, darker: true)), on: white),
@@ -372,15 +387,13 @@
           (0...255).filter { abs(APCA.lc(text: rgb($0), background: rgb(white))) >= 90 }.max()!, on: white),
         .glyphGray: apca(gray(wcag: 18.12, on: white, darker: true), on: white),
       ]
-      if scheme.isMoreContrast {
-        // The border to 7:1's APCA; the rest by the same map, pinned at the
-        // page's maximum.
-        let top = apca(scheme.isDark ? white : black, on: page)
-        let target = apca(gray(wcag: 7, on: white, darker: true), on: white)
-        let from = light[.border]!
-        for (n, value) in light { light[n] = target + (value - from) * (top - target) / (top - from) }
+      let border = scheme.isMoreContrast ? apca(gray(wcag: 7, on: white, darker: true), on: white) : lightBorder
+      let top = lightTop
+      var light: [Neutral: Double] = [.border: border]
+      for (n, value) in anchors {
+        light[n] = border + (value - lightBorder) / (lightTop - lightBorder) * (top - border)
       }
-      // Mirrored to the scheme's page, distinct and ordered.
+      // Distinct and ordered.
       var previous: Int? = nil
       for n in Neutral.foreground {
         var v = gray(apca: light[n]!, on: page)
