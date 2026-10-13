@@ -8,7 +8,7 @@ DesignTokens provides CSS custom property definitions and Swift constants for co
 
 ## Features
 
-- **Rule-generated colors**: twelve hues, evenly spaced in perceived hue, each at one of APCA's published contrast levels with the page (Lc 45, Lc 75 in increased contrast) and the most saturated sRGB allows there, with a Display P3 layer by the same rule; an achromatic neutral ramp from the same contrast model.
+- **Rule-generated colors**: twelve hues, evenly spaced in perceived hue, each at one of APCA's published contrast levels with the page (Lc 60, Lc 75 in increased contrast) and the most saturated sRGB allows there, with a Display P3 layer by the same rule; an achromatic neutral ramp from the same contrast model.
 - **Layered Architecture**: **Source Tokens** (primitives) and **Applied Tokens** (semantic mappings).
 - **Light and dark, default and increased contrast**: four schemes, each derived from the same rule.
 - **CSS Generation**: functions that generate the CSS custom property definitions.
@@ -58,25 +58,25 @@ Increased contrast raises the foreground only. The base border moves to the APCA
 There are twelve hues, 30° apart in OKLCH starting at pure red's hue (`#FF0000`, h ≈ 29.23°): red, orange, yellow, lime, green, mint, cyan, blue, indigo, violet, magenta, pink. Gray is the achromatic thirteenth.
 
 Each color's lightness is set so its APCA contrast with the page is one of APCA's own published levels, with the most chroma sRGB allows at that lightness. The hue is kept.
-- **Default: Lc 45**, APCA's minimum for large text (about 36px regular or 24px bold) and for non-text with fine detail, such as icons. It is below the Lc 60 APCA asks of smaller labels and captions, so 16px links and code colors meet APCA's guidance only in increased contrast.
+- **Default: Lc 60**, APCA's minimum for short labels and captions (content text that is not body text: about 24px regular or 16px bold). This level covers links and syntax.
 - **Increased contrast: Lc 75**, APCA's minimum for body text.
 - **Polarity:** light is dark-on-white; dark is light-on-black, using APCA's reverse-polarity formula.
 
 | Name | Light | Light, more | Dark | Dark, more |
 |---|---|---|---|---|
-| Red | `#FF8979` | `#D30000` | `#FF5A49` | `#FFBAAF` |
-| Orange | `#FE8E00` | `#A65A00` | `#DD7A00` | `#FFBD89` |
-| Yellow | `#D2A500` | `#886A00` | `#B68F00` | `#F8C400` |
-| Lime | `#9DB600` | `#657600` | `#889E00` | `#BAD800` |
-| Green | `#00C457` | `#007E35` | `#00AA4A` | `#00E868` |
-| Mint | `#00C0A7` | `#007B6B` | `#00A691` | `#00E3C6` |
-| Cyan | `#00BBD1` | `#007987` | `#00A2B5` | `#00DEF7` |
-| Blue | `#2BB4FF` | `#0074A9` | `#009CE3` | `#91D2FF` |
-| Indigo | `#8CA8FF` | `#3E58FF` | `#6D8EFF` | `#B7CAFF` |
-| Violet | `#BD99FF` | `#9321FF` | `#AD79FF` | `#D5C1FF` |
-| Magenta | `#FF73F9` | `#BB00B8` | `#FC00F8` | `#FFB1F9` |
-| Pink | `#FF83AF` | `#CC006E` | `#FF4D98` | `#FFB7CD` |
-| Gray | `#ACACAC` | `#6E6E6E` | `#959595` | `#CBCBCB` |
+| Red | `#FF4636` | `#D30000` | `#FF9282` | `#FFBAAF` |
+| Orange | `#D47500` | `#A65A00` | `#FF9631` | `#FFBD89` |
+| Yellow | `#AE8900` | `#886A00` | `#D8AA00` | `#F8C400` |
+| Lime | `#829700` | `#657600` | `#A2BC00` | `#BAD800` |
+| Green | `#00A347` | `#007E35` | `#00CA5A` | `#00E868` |
+| Mint | `#009F8A` | `#007B6B` | `#00C5AC` | `#00E3C6` |
+| Cyan | `#009BAD` | `#007987` | `#00C1D7` | `#00DEF7` |
+| Blue | `#0095D9` | `#0074A9` | `#45BAFF` | `#91D2FF` |
+| Indigo | `#6486FF` | `#3E58FF` | `#93AEFF` | `#B7CAFF` |
+| Violet | `#A86EFF` | `#9321FF` | `#C1A0FF` | `#D5C1FF` |
+| Magenta | `#F100ED` | `#BB00B8` | `#FF7FF9` | `#FFB1F9` |
+| Pink | `#FF3390` | `#CC006E` | `#FF8DB4` | `#FFB7CD` |
+| Gray | `#8E8E8E` | `#6E6E6E` | `#B1B1B1` | `#CBCBCB` |
 
 **Display P3.** sRGB is the standard and the baseline; the logo and every raster stay sRGB. Under `@media (color-gamut: p3)`, each hue's color and solid fill is redrawn by the same rule in Display P3 (`NamedColors.p3Color`): the most chroma P3 allows (OKLCH → linear P3 by CSS Color 4's matrices, the boundary found by bisection), at the lightness where its APCA contrast, measured with APCA's P3 luminance, is its level. Keeping the sRGB lightness instead would not keep the contrast: at a fixed OKLCH lightness, luminance moves with chroma, up to about Lc 2. Gray and the increased-contrast subtle fills stay sRGB.
 
@@ -89,7 +89,7 @@ Hover and active states mix toward the scheme's extreme in Oklab. Tokens are wri
 
 ### Labels on solid fills
 
-A solid fill's label is `--color-on-solid`, the page's own color: white in light and black in dark (`--extreme-inverted`). A white label on a light solid reads at about Lc 50, or about Lc 80 in increased contrast. A black label on a dark solid reads at about Lc 47, or about Lc 76. By default, then, a label on a solid fill meets APCA's guidance only at large sizes (about 24px bold). `--color-inverted-fixed` stays white for what must always be white (emails, a source document's white text).
+A solid fill's label is `--color-on-solid`, the page's own color: white in light and black in dark (`--extreme-inverted`). A white label on a light solid reads at about Lc 65, or about Lc 80 in increased contrast. A black label on a dark solid reads at about Lc 62, or about Lc 76. `--color-inverted-fixed` stays white for what must always be white (emails, a source document's white text).
 
 ### Border roles
 

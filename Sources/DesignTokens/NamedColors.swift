@@ -4,16 +4,16 @@
   /// Gnorium's named colors (user, 2026-10-11): twelve hues 30° apart in
   /// OKLCH, starting at pure red's (#FF0000, 29.23°), and gray.
   ///
-  /// By APCA (user, 2026-10-12; level 2026-10-14): each color's lightness is
-  /// set so its APCA contrast with the page is one of APCA's published
-  /// levels—Lc 45 by default, Lc 75 in increased contrast—dark on white in
-  /// light, light on black in dark (APCA's reverse polarity), with the most
-  /// chroma sRGB allows at that lightness, its hue kept. Lc 45 is APCA's
-  /// minimum for large text (about 36px regular or 24px bold) and for
-  /// non-text with fine detail, such as icons; APCA asks Lc 60 of smaller
-  /// labels and Lc 75 of body text, which only increased contrast meets. A
+  /// By APCA (user, 2026-10-12; kept at Lc 60 2026-10-14): each color's
+  /// lightness is set so its APCA contrast with the page is one of APCA's
+  /// published levels—Lc 60 by default, Lc 75 in increased contrast—dark on
+  /// white in light, light on black in dark (APCA's reverse polarity), with
+  /// the most chroma sRGB allows at that lightness, its hue kept. Lc 60 is
+  /// APCA's minimum for content text that is not body text: about 24px
+  /// regular or 16px bold, and short labels and captions such as links and
+  /// syntax; APCA asks Lc 75 of body text, which increased contrast meets. A
   /// solid fill's label is the page's own color (`--color-on-solid`: white
-  /// in light, black in dark), at about Lc 50 on the fill in light and Lc 47
+  /// in light, black in dark), at about Lc 65 on the fill in light and Lc 62
   /// in dark.
   ///
   /// sRGB is the standard; on a Display P3 screen (`color-gamut: p3`) each
@@ -168,11 +168,10 @@
       return at((low + high) / 2)
     }
 
-    /// The named colors' APCA level by default (user, 2026-10-14): Lc 45,
-    /// APCA's minimum for large text (about 36px regular, 24px bold) and for
-    /// non-text with fine detail, such as icons; below the Lc 60 APCA asks
-    /// of smaller labels.
-    public static let namedLc = 45.0
+    /// The named colors' APCA level by default (user, 2026-10-12, kept
+    /// 2026-10-14): Lc 60, APCA's minimum for short labels and captions—links
+    /// and syntax.
+    public static let namedLc = 60.0
     /// Their level in increased contrast: Lc 75, APCA's minimum for body text.
     public static let namedLcMoreContrast = 75.0
 
@@ -223,7 +222,7 @@
       hex(color(name, scheme))
     }
 
-    /// The color of a name in a scheme: at Lc 45 against the page, Lc 75 in
+    /// The color of a name in a scheme: at Lc 60 against the page, Lc 75 in
     /// increased contrast.
     public static func color(_ name: String, _ scheme: Scheme) -> OKLCH {
       colors[scheme]![name]!
