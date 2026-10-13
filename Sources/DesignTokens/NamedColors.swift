@@ -4,14 +4,21 @@
   /// Gnorium's named colors (user, 2026-10-11): twelve hues 30° apart in
   /// OKLCH, starting at pure red's (#FF0000, 29.23°), and gray.
   ///
-  /// By APCA (user, 2026-10-12): each color's lightness is set so its APCA
-  /// contrast with the page is APCA's own level—Lc 60 by default (the
-  /// minimum for short labels and captions: links, syntax), Lc 75 in
-  /// increased contrast (the minimum for body text)—dark on white in light,
-  /// light on black in dark (APCA's reverse polarity), with the most chroma
-  /// sRGB allows at that lightness, its hue kept. A solid fill's label is
-  /// the page's own color (`--color-on-solid`: white in light, black in
-  /// dark).
+  /// By APCA (user, 2026-10-12; level 2026-10-14): each color's lightness is
+  /// set so its APCA contrast with the page is one of APCA's published
+  /// levels—Lc 45 by default, Lc 75 in increased contrast—dark on white in
+  /// light, light on black in dark (APCA's reverse polarity), with the most
+  /// chroma sRGB allows at that lightness, its hue kept. Lc 45 is APCA's
+  /// minimum for large text (about 36px regular or 24px bold) and for
+  /// non-text with fine detail, such as icons; APCA asks Lc 60 of smaller
+  /// labels and Lc 75 of body text, which only increased contrast meets. A
+  /// solid fill's label is the page's own color (`--color-on-solid`: white
+  /// in light, black in dark), at about Lc 50 on the fill in light and Lc 47
+  /// in dark.
+  ///
+  /// sRGB is the standard; on a Display P3 screen (`color-gamut: p3`) each
+  /// color is redrawn by the same rule in that gamut (`p3Color`): the most
+  /// chroma P3 allows, at the lightness that keeps its APCA level.
   ///
   /// Each is a color, its solid fill (the same token), and its subtle fill:
   /// the color at `opacity-low` over the page in the default schemes; in
@@ -161,9 +168,11 @@
       return at((low + high) / 2)
     }
 
-    /// The named colors' APCA level by default (user, 2026-10-12): Lc 60,
-    /// APCA's minimum for short labels and captions—links and syntax.
-    public static let namedLc = 60.0
+    /// The named colors' APCA level by default (user, 2026-10-14): Lc 45,
+    /// APCA's minimum for large text (about 36px regular, 24px bold) and for
+    /// non-text with fine detail, such as icons; below the Lc 60 APCA asks
+    /// of smaller labels.
+    public static let namedLc = 45.0
     /// Their level in increased contrast: Lc 75, APCA's minimum for body text.
     public static let namedLcMoreContrast = 75.0
 
@@ -214,10 +223,99 @@
       hex(color(name, scheme))
     }
 
-    /// The color of a name in a scheme: at Lc 60 against the page, Lc 75 in
+    /// The color of a name in a scheme: at Lc 45 against the page, Lc 75 in
     /// increased contrast.
     public static func color(_ name: String, _ scheme: Scheme) -> OKLCH {
       colors[scheme]![name]!
+    }
+
+    // MARK: Display P3
+
+    /// Linear Display P3 of an OKLCH color: OKLab to LMS to CIE XYZ (D65) to
+    /// P3, by CSS Color 4's matrices.
+    public static func linearDisplayP3(_ c: OKLCH) -> (r: Double, g: Double, b: Double) {
+      let a = c.c * cos(c.h * .pi / 180), b = c.c * sin(c.h * .pi / 180)
+      let l = pow(c.l + 0.3963377773761749 * a + 0.2158037573099136 * b, 3)
+      let m = pow(c.l - 0.1055613458156586 * a - 0.0638541728258133 * b, 3)
+      let s = pow(c.l - 0.0894841775298119 * a - 1.2914855480194092 * b, 3)
+      let x = 1.2268798758459243 * l - 0.5578149944602171 * m + 0.2813910456659647 * s
+      let y = -0.0405757452148008 * l + 1.1122868032803170 * m - 0.0717110580655164 * s
+      let z = -0.0763729366746601 * l - 0.4214933324022432 * m + 1.5869240198367816 * s
+      return (
+        446124 / 178915 * x - 333277 / 357830 * y - 72051 / 178915 * z,
+        -14852 / 17905 * x + 63121 / 35810 * y + 423 / 71620 * z,
+        11844 / 330415 * x - 50337 / 660830 * y + 316169 / 330415 * z
+      )
+    }
+
+    public static func inDisplayP3(_ c: OKLCH, tolerance: Double = 1e-7) -> Bool {
+      let p = linearDisplayP3(c)
+      return [p.r, p.g, p.b].allSatisfy { $0 >= -tolerance && $0 <= 1 + tolerance }
+    }
+
+    /// The most chroma Display P3 allows at a lightness and hue, by bisection.
+    public static func maxChromaP3(l: Double, h: Double) -> Double {
+      guard l > 0, l < 1 else { return 0 }
+      var low = 0.0, high = 0.6
+      for _ in 0..<50 {
+        let mid = (low + high) / 2
+        if inDisplayP3(OKLCH(l, mid, h)) { low = mid } else { high = mid }
+      }
+      return low
+    }
+
+    /// APCA's published Lc of a Display P3 color on a gray page (8-bit), by
+    /// APCA's own Display P3 luminance (`displayP3toY`).
+    public static func lcP3(_ c: OKLCH, on page: Int) -> Double {
+      APCA.lc(sapc: APCA.sapcP3(c, background: Double(page) / 255))
+    }
+
+    /// A name's P3 color (user, 2026-10-14): the sRGB rule in Display P3—its
+    /// hue, the most chroma P3 allows, at the lightness where its APCA
+    /// contrast with the page (measured in P3) is its scheme's level. Not
+    /// the sRGB color's own lightness with more chroma: at a fixed OKLCH
+    /// lightness, luminance moves with chroma, which would put the dark
+    /// scheme's blues, violets and magentas up to Lc 2 under their level.
+    /// Gray has none.
+    public static func p3Color(_ name: String, _ scheme: Scheme) -> OKLCH? {
+      guard name != "gray" else { return nil }
+      return p3Colors[scheme]![name]!
+    }
+
+    static let p3Colors: [Scheme: [String: OKLCH]] = Dictionary(
+      uniqueKeysWithValues: Scheme.allCases.map { scheme in
+        let page = scheme.isDark ? 0 : 255
+        let target = (scheme.isMoreContrast ? namedLcMoreContrast : namedLc) + APCA.loBoWoffset * 100
+        return (scheme, Dictionary(uniqueKeysWithValues: hueNames.map { name in
+          let h = hue(name)
+          func at(_ l: Double) -> OKLCH { OKLCH(l, maxChromaP3(l: l, h: h), h) }
+          var low = 0.0, high = 1.0
+          for _ in 0..<60 {
+            let mid = (low + high) / 2
+            if (abs(APCA.sapcP3(at(mid), background: Double(page) / 255)) > target) != (page == 0) {
+              low = mid
+            } else {
+              high = mid
+            }
+          }
+          return (name, at((low + high) / 2))
+        }))
+      })
+
+    /// A name's P3 color written for CSS as `oklch(L C h)`: lightness and hue
+    /// to 4 decimals, chroma rounded down to 4 decimals until the value is
+    /// inside Display P3. Nil for gray.
+    public static func cssP3(_ name: String, _ scheme: Scheme) -> String? {
+      guard let color = p3Color(name, scheme) else { return nil }
+      return cssP3(color)
+    }
+
+    /// Any color written so (`cssP3(_:_:)`).
+    public static func cssP3(_ color: OKLCH) -> String {
+      let l = (color.l * 1e4).rounded() / 1e4, h = (color.h * 1e4).rounded() / 1e4
+      var c = (maxChromaP3(l: l, h: h) * 1e4).rounded(.down) / 1e4
+      while c > 0, !inDisplayP3(OKLCH(l, c, h), tolerance: 1e-12) { c -= 1e-4 }
+      return "oklch(\(format(l, 4)) \(format(max(0, c), 4)) \(format(h, 4)))"
     }
 
     // MARK: APCA
@@ -261,10 +359,34 @@
 
       /// The published Lc: clipped below 10 and offset.
       public static func lc(text: (Int, Int, Int), background: (Int, Int, Int)) -> Double {
-        let s = sapc(text: text, background: background) / 100
+        lc(sapc: sapc(text: text, background: background))
+      }
+
+      /// The published Lc of a SAPC ×100: clipped below 10 and offset.
+      public static func lc(sapc value: Double) -> Double {
+        let s = value / 100
         if s > 0 { return s < loClip ? 0 : (s - loBoWoffset) * 100 }
         if s < 0 { return s > -loClip ? 0 : (s + loWoBoffset) * 100 }
         return 0
+      }
+
+      /// Display P3's luminance coefficients in APCA (`displayP3toY`).
+      static let pRco = 0.2289829594805780, pGco = 0.6917492625852380, pBco = 0.0792677779341829
+
+      /// SAPC ×100, signed, of an OKLCH color drawn in Display P3 (encoded
+      /// with the sRGB curve, as P3 is) on a gray background in [0, 1].
+      static func sapcP3(_ c: OKLCH, background: Double) -> Double {
+        let p = linearDisplayP3(c)
+        func encode(_ v: Double) -> Double {
+          let x = min(1, max(0, v))
+          return x <= 0.0031308 ? 12.92 * x : 1.055 * pow(x, 1 / 2.4) - 0.055
+        }
+        func clamp(_ y: Double) -> Double { y > blkThrs ? y : y + pow(blkThrs - y, blkClmp) }
+        let t = clamp(
+          pRco * pow(encode(p.r), mainTRC) + pGco * pow(encode(p.g), mainTRC) + pBco * pow(encode(p.b), mainTRC))
+        let b = clamp(pow(background, mainTRC))
+        if abs(b - t) < deltaYmin { return 0 }
+        return (b > t ? (pow(b, normBG) - pow(t, normTXT)) * scaleBoW : (pow(b, revBG) - pow(t, revTXT)) * scaleWoB) * 100
       }
     }
 

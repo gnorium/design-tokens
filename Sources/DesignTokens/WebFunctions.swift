@@ -154,6 +154,26 @@
     }
   }
 
+  /// A scheme's named colors on a Display P3 screen (user, 2026-10-14), for
+  /// `@media (color-gamut: p3)` after `NamedColorTokensCSS`: each hue's
+  /// color and solid fill redrawn with the most chroma P3 allows at its
+  /// APCA level (`NamedColors.p3Color`), and in the default schemes its
+  /// subtle fill mixed from it. sRGB stays the standard; gray and the
+  /// increased-contrast subtle fills (surfaces solved for base text at 7:1)
+  /// keep their sRGB values.
+  @CSSBuilder
+  public func NamedColorTokensP3CSS(_ scheme: NamedColors.Scheme) -> [CSSOM.CSSRule] {
+    for name in NamedColors.hueNames {
+      let color = NamedColors.cssP3(name, scheme)!
+      customProperty("--glyph-\(name)", color)
+      customProperty("--fill-\(name)", color)
+      if !scheme.isMoreContrast {
+        customProperty(
+          "--fill-\(name)-subtle", "color-mix(in display-p3, \(color) calc(var(--opacity-low) * 100%), var(--fill))")
+      }
+    }
+  }
+
   /// Code's colors by role (user, 2026-10-12), the same in every scheme:
   /// each a named color's token, so it follows the scheme and its increased
   /// contrast. Seven hues, never a state color (red, green, blue, yellow,
