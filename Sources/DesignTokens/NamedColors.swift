@@ -280,7 +280,7 @@
     /// subtle fill and a table's stripe are fill 1. Foreground, in light:
     /// the base border at 3:1 (WCAG 1.4.11), disabled text at 3.96:1,
     /// placeholder at 4.5:1 on the page and on fill 3 (WCAG 1.4.3), subtle
-    /// text at APCA Lc 90, base text at 18.12:1. Increased contrast raises
+    /// text at APCA Lc 75 (APCA's minimum for body text), base text at 18.12:1. Increased contrast raises
     /// the foreground only: the base border to the APCA of 7:1, every text
     /// step keeping its fraction of the way from the border to the APCA
     /// maximum; the fills stay.
@@ -399,7 +399,7 @@
       // default (WCAG 2.x 1.4.11), 7:1's in increased contrast; each text
       // step above it at the same fraction of the way from the border to
       // the APCA maximum as light's anchors set it (disabled 3.96:1,
-      // placeholder 4.5:1 on the page and on fill 3, subtle text Lc 90,
+      // placeholder 4.5:1 on the page and on fill 3, subtle text Lc 75,
       // base text 18.12:1).
       let lightTop = apca(black, on: white)
       let lightBorder = apca(gray(wcag: 3, on: white, darker: true), on: white)
@@ -408,7 +408,7 @@
         .glyphGrayTertiary: apca(
           min(gray(wcag: 4.5, on: white, darker: true), gray(wcag: 4.5, on: lightFill3, darker: true)), on: white),
         .glyphGraySecondary: apca(
-          (0...255).filter { abs(APCA.lc(text: rgb($0), background: rgb(white))) >= 90 }.max()!, on: white),
+          (0...255).filter { abs(APCA.lc(text: rgb($0), background: rgb(white))) >= 75 }.max()!, on: white),
         .glyphGray: apca(gray(wcag: 18.12, on: white, darker: true), on: white),
       ]
       let border = scheme.isMoreContrast ? apca(gray(wcag: 7, on: white, darker: true), on: white) : lightBorder
