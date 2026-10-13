@@ -27,6 +27,7 @@ The ramp is achromatic grays (`NamedColors.Neutral`, `neutralRamp`, emitted by `
 | Step | Token | Role | Light | Light, more | Dark | Dark, more |
 |---|---|---|---|---|---|---|
 | Fill 1 | `--fill-secondary` | Neutral subtle surfaces, a table's stripe, interactive subtle, base hover | 248 | 248 | 39 | 39 |
+| Editor line | `--background-color-current-line` | Faint current-line band, mirrored by luminance contrast | 248 | 248 | 10 | 10 |
 | Fill 2 | `--fill-tertiary` | Interactive, interactive subtle hover, stripe hover, disabled subtle, base active | 241 | 241 | 56 | 56 |
 | Fill 3 | `--fill-gray-quaternary` | Interactive hover, interactive subtle active, stripe active, disabled | 234 | 234 | 68 | 68 |
 | Fill 4 | `--fill-quaternary` | (a ramp step) | 227 | 227 | 80 | 80 |

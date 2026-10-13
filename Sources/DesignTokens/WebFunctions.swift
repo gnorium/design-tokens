@@ -118,6 +118,8 @@
   /// light's base text at the scheme's contrast.
   @CSSBuilder
   public func NeutralTokensCSS(_ scheme: NamedColors.Scheme) -> [CSSOM.CSSRule] {
+    customProperty("--background-color-current-line", NamedColors.css(NamedColors.oklch(
+      (NamedColors.currentLineGray(scheme), NamedColors.currentLineGray(scheme), NamedColors.currentLineGray(scheme)))))
     for step in NamedColors.Neutral.allCases {
       customProperty(step.token, NamedColors.css(NamedColors.neutral(step, scheme)))
     }

@@ -374,6 +374,16 @@
     /// The whole ramp in a scheme, as grays.
     public static func neutralRamp(_ scheme: Scheme) -> [Neutral: Int] { neutralRamps[scheme]! }
 
+    /// A faint editor band is a surface, not text. Mirror its light fill's
+    /// luminance contrast on black; SAPC's near-black soft clamp overstates
+    /// the dark fill at this very low contrast.
+    public static func currentLineGray(_ scheme: Scheme) -> Int {
+      let light = neutralRamp(.light)[.fillSecondary]!
+      guard scheme.isDark else { return light }
+      let target = wcag(light, 255)
+      return (0...255).min { abs(wcag($0, 0) - target) < abs(wcag($1, 0) - target) }!
+    }
+
     static func computeNeutralRamp(_ scheme: Scheme) -> [Neutral: Int] {
       let white: Int = 255, black: Int = 0
       let page: Int = scheme.isDark ? black : white

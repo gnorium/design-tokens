@@ -344,6 +344,7 @@ public let backgroundColorBaseHover: CSS.Color = `var`("--background-color-base-
 public let backgroundColorBaseActive: CSS.Color = `var`("--background-color-base-active")
 public let backgroundColorNeutral: CSS.Color = `var`("--background-color-neutral")
 public let backgroundColorNeutralSubtle: CSS.Color = `var`("--background-color-neutral-subtle")
+public let backgroundColorCurrentLine: CSS.Color = `var`("--background-color-current-line")
 public let backgroundColorStripe: CSS.Color = `var`("--background-color-stripe")
 public let backgroundColorStripeHover: CSS.Color = `var`("--background-color-stripe-hover")
 public let backgroundColorStripeActive: CSS.Color = `var`("--background-color-stripe-active")
