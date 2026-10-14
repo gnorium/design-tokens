@@ -128,12 +128,13 @@
       NamedColors.css(NamedColors.neutral(.glyphGray, scheme.isMoreContrast ? .lightMoreContrast : .light)))
   }
 
-  /// A scheme's named colors (`NamedColors`, twelve cusps 30° apart): each name's color and solid
+  /// A scheme's named colors (`NamedColors`, twelve hues 30° apart, here
+  /// as the sRGB clips of their P3 colors; gray achromatic): each name's color and solid
   /// fill (`--glyph-{name}`, `--fill-{name}`; gray's `--gray-glyph`,
   /// `--gray-fill`) and its subtle fill (`--fill-{name}-subtle`,
-  /// `--gray-fill-subtle`)—in the default schemes the color at `opacity-low`
-  /// over the page, in the increased-contrast ones solved to carry base text
-  /// at 7:1.
+  /// `--gray-fill-subtle`)—in the default schemes the color at 20% over
+  /// the page, precomputed (`NamedColors.subtle`; no runtime color-mix), in
+  /// the increased-contrast ones solved to carry base text at 7:1.
   @CSSBuilder
   public func NamedColorTokensCSS(_ scheme: NamedColors.Scheme) -> [CSSOM.CSSRule] {
     for name in NamedColors.names {
@@ -147,20 +148,17 @@
         "\(fillName)-subtle",
         scheme.isMoreContrast
           ? NamedColors.css(NamedColors.moreContrastSubtle(name, scheme))
-          // In sRGB: a subtle fill models the color at an opacity over the
-          // page, and opacity composites in sRGB (hover and active mixes,
-          // which move a color toward black or white, mix in Oklab).
-          : "color-mix(in srgb, \(color) calc(var(--opacity-low) * 100%), var(--fill))")
+          // The color at 20% over the page, precomputed in P3; here its clip.
+          : NamedColors.css(NamedColors.oklch(NamedColors.rgb(NamedColors.subtle(name, scheme)))))
     }
   }
 
-  /// A scheme's named colors on a Display P3 screen (user, 2026-10-14), for
-  /// `@media (color-gamut: p3)` after `NamedColorTokensCSS`: each hue's
-  /// color and solid fill redrawn with the most chroma P3 allows at its
-  /// APCA level (`NamedColors.p3Color`), and in the default schemes its
-  /// subtle fill mixed from it. sRGB stays the standard; gray and the
-  /// increased-contrast subtle fills (surfaces solved for base text at 7:1)
-  /// keep their sRGB values.
+  /// A scheme's named colors in Display P3 (user, 2026-10-14), for
+  /// `@media (color-gamut: p3)` after `NamedColorTokensCSS`, whose values
+  /// are their sRGB clips: each hue's color and solid fill as its P3 value
+  /// (`NamedColors.cssP3`), and in the default schemes its subtle fill's
+  /// (`NamedColors.subtle`). Gray and the increased-contrast subtle fills (surfaces solved
+  /// for base text at 7:1) keep their sRGB values.
   @CSSBuilder
   public func NamedColorTokensP3CSS(_ scheme: NamedColors.Scheme) -> [CSSOM.CSSRule] {
     for name in NamedColors.hueNames {
@@ -168,8 +166,7 @@
       customProperty("--glyph-\(name)", color)
       customProperty("--fill-\(name)", color)
       if !scheme.isMoreContrast {
-        customProperty(
-          "--fill-\(name)-subtle", "color-mix(in display-p3, \(color) calc(var(--opacity-low) * 100%), var(--fill))")
+        customProperty("--fill-\(name)-subtle", NamedColors.cssP3(NamedColors.subtle(name, scheme)))
       }
     }
   }
@@ -235,8 +232,8 @@
     // The neutral ramp (`NamedColors.Neutral`, user 2026-10-12).
     NeutralTokensCSS(.light)
 
-    // The named colors (`NamedColors`, user 2026-10-11): twelve sRGB
-    // cusps 30° apart from red's hue, and gray.
+    // The named colors (`NamedColors`, user 2026-10-11): twelve Display
+    // P3 hues 30° apart from red's, and gray.
     NamedColorTokensCSS(.light)
 
     // Syntax colors: the named colors by role (`SyntaxTokensCSS`).
@@ -263,8 +260,8 @@
     // The neutral ramp (`NamedColors.Neutral`, user 2026-10-12).
     NeutralTokensCSS(.lightMoreContrast)
 
-    // The named colors (`NamedColors`, user 2026-10-11): twelve sRGB
-    // cusps 30° apart from red's hue, and gray.
+    // The named colors (`NamedColors`, user 2026-10-11): twelve Display
+    // P3 hues 30° apart from red's, and gray.
     NamedColorTokensCSS(.lightMoreContrast)
   }
 
@@ -299,8 +296,8 @@
     // The neutral ramp (`NamedColors.Neutral`, user 2026-10-12).
     NeutralTokensCSS(.dark)
 
-    // The named colors (`NamedColors`, user 2026-10-11): twelve sRGB
-    // cusps 30° apart from red's hue, and gray.
+    // The named colors (`NamedColors`, user 2026-10-11): twelve Display
+    // P3 hues 30° apart from red's, and gray.
     NamedColorTokensCSS(.dark)
 
     // Syntax colors: the named colors by role (`SyntaxTokensCSS`).
@@ -335,8 +332,8 @@
     // The neutral ramp (`NamedColors.Neutral`, user 2026-10-12).
     NeutralTokensCSS(.darkMoreContrast)
 
-    // The named colors (`NamedColors`, user 2026-10-11): twelve sRGB
-    // cusps 30° apart from red's hue, and gray.
+    // The named colors (`NamedColors`, user 2026-10-11): twelve Display
+    // P3 hues 30° apart from red's, and gray.
     NamedColorTokensCSS(.darkMoreContrast)
   }
 

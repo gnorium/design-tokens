@@ -8,7 +8,7 @@ DesignTokens provides CSS custom property definitions and Swift constants for co
 
 ## Features
 
-- **Rule-generated colors**: twelve hues, evenly spaced in perceived hue, each at one of APCA's published contrast levels with the page (Lc 60, Lc 75 in increased contrast) and the most saturated sRGB allows there, with a Display P3 layer by the same rule; an achromatic neutral ramp from the same contrast model.
+- **Rule-generated colors**: twelve hues, evenly spaced in perceived hue, each at one of APCA's published contrast levels with the page (Lc 60, Lc 75 in increased contrast) and the most chroma Display P3 allows there (P3 is the definition; the sRGB value is its clip); an achromatic neutral ramp from the same contrast model.
 - **Layered Architecture**: **Source Tokens** (primitives) and **Applied Tokens** (semantic mappings).
 - **Light and dark, default and increased contrast**: four schemes, each derived from the same rule.
 - **CSS Generation**: functions that generate the CSS custom property definitions.
@@ -57,39 +57,39 @@ Increased contrast raises the foreground only. The base border moves to the APCA
 
 There are twelve hues, 30° apart in OKLCH starting at pure red's hue (`#FF0000`, h ≈ 29.23°): red, orange, yellow, lime, green, mint, cyan, blue, indigo, violet, magenta, pink. Gray is the achromatic thirteenth.
 
-Each color's lightness is set so its APCA contrast with the page is one of APCA's own published levels, with the most chroma sRGB allows at that lightness. The hue is kept.
+Each color is a Display P3 color: its hue kept, the most chroma P3 allows, at the lightness where its APCA contrast with the page, measured with APCA's Display P3 luminance, is one of APCA's own published levels. P3 is the definition (user, 2026-10-14). The sRGB value is not solved for its Lc: it is the P3 color's clip, the CSS fallback, overridden by the P3 value under `@media (color-gamut: p3)`.
 - **Default: Lc 60**, APCA's minimum for short labels and captions (content text that is not body text: about 24px regular or 16px bold). This level covers links and syntax.
 - **Increased contrast: Lc 75**, APCA's minimum for body text.
 - **Polarity:** light is dark-on-white; dark is light-on-black, using APCA's reverse-polarity formula.
 
-| Name | Light | Light, more | Dark | Dark, more |
+| Name | Light (Lc 60) | Light, more (Lc 75) | Dark (Lc 60) | Dark, more (Lc 75) |
 |---|---|---|---|---|
-| Red | `#FF4636` | `#D30000` | `#FF9282` | `#FFBAAF` |
-| Orange | `#D47500` | `#A65A00` | `#FF9631` | `#FFBD89` |
-| Yellow | `#AE8900` | `#886A00` | `#D8AA00` | `#F8C400` |
-| Lime | `#829700` | `#657600` | `#A2BC00` | `#BAD800` |
-| Green | `#00A347` | `#007E35` | `#00CA5A` | `#00E868` |
-| Mint | `#009F8A` | `#007B6B` | `#00C5AC` | `#00E3C6` |
-| Cyan | `#009BAD` | `#007987` | `#00C1D7` | `#00DEF7` |
-| Blue | `#0095D9` | `#0074A9` | `#45BAFF` | `#91D2FF` |
-| Indigo | `#6486FF` | `#3E58FF` | `#93AEFF` | `#B7CAFF` |
-| Violet | `#A86EFF` | `#9321FF` | `#C1A0FF` | `#D5C1FF` |
-| Magenta | `#F100ED` | `#BB00B8` | `#FF7FF9` | `#FFB1F9` |
-| Pink | `#FF3390` | `#CC006E` | `#FF8DB4` | `#FFB7CD` |
+| Red | `oklch(0.6684 0.2770 29.2339)`<br>clip `#FF0000`, Lc 64.1 | `oklch(0.5497 0.2518 29.2339)`<br>clip `#DF0000`, Lc 72.0 | `oklch(0.7765 0.1683 29.2339)`<br>clip `#FF8775`, Lc 56.4 | `oklch(0.8524 0.1039 29.2339)`<br>clip `#FFB5A7`, Lc 72.8 |
+| Orange | `oklch(0.6575 0.1775 59.2339)`<br>clip `#DD7000`, Lc 59.6 | `oklch(0.5473 0.1477 59.2339)`<br>clip `#AD5600`, Lc 74.7 | `oklch(0.7722 0.2046 59.2339)`<br>clip `#FF8D00`, Lc 57.0 | `oklch(0.8494 0.1275 59.2339)`<br>clip `#FFB975`, Lc 73.0 |
+| Yellow | `oklch(0.6477 0.1527 89.2339)`<br>clip `#B38800`, Lc 59.7 | `oklch(0.5396 0.1272 89.2339)`<br>clip `#8C6900`, Lc 74.8 | `oklch(0.7605 0.1793 89.2339)`<br>clip `#DEA900`, Lc 60.4 | `oklch(0.8426 0.1987 89.2339)`<br>clip `#FFC200`, Lc 75.5 |
+| Lime | `oklch(0.6368 0.1747 119.2339)`<br>clip `#809800`, Lc 59.9 | `oklch(0.5306 0.1456 119.2339)`<br>clip `#637600`, Lc 75.0 | `oklch(0.7476 0.2052 119.2339)`<br>clip `#A0BD00`, Lc 60.3 | `oklch(0.8284 0.2273 119.2339)`<br>clip `#B8D900`, Lc 75.4 |
+| Green | `oklch(0.6167 0.2417 149.2339)`<br>clip `#00A813`, Lc 58.1 | `oklch(0.5130 0.2010 149.2339)`<br>clip `#00830C`, Lc 73.4 | `oklch(0.7249 0.2841 149.2339)`<br>clip `#00D11A`, Lc 62.8 | `oklch(0.8037 0.3149 149.2339)`<br>clip `#00F020`, Lc 78.5 |
+| Mint | `oklch(0.6235 0.1542 179.2339)`<br>clip `#00A489`, Lc 57.9 | `oklch(0.5188 0.1283 179.2339)`<br>clip `#007F6A`, Lc 73.7 | `oklch(0.7326 0.1812 179.2339)`<br>clip `#00CBAB`, Lc 62.5 | `oklch(0.8121 0.2008 179.2339)`<br>clip `#00E9C5`, Lc 78.2 |
+| Cyan | `oklch(0.6288 0.1446 209.2339)`<br>clip `#009FB8`, Lc 58.0 | `oklch(0.5233 0.1204 209.2339)`<br>clip `#007B8F`, Lc 73.8 | `oklch(0.7389 0.1700 209.2339)`<br>clip `#00C5E4`, Lc 62.4 | `oklch(0.8206 0.1824 209.2339)`<br>clip `#00E2FF`, Lc 77.6 |
+| Blue | `oklch(0.6374 0.1884 239.2339)`<br>clip `#0095EF`, Lc 58.5 | `oklch(0.5302 0.1567 239.2339)`<br>clip `#0074BB`, Lc 73.8 | `oklch(0.7528 0.1547 239.2339)`<br>clip `#34BAFF`, Lc 59.7 | `oklch(0.8369 0.0994 239.2339)`<br>clip `#8BD3FF`, Lc 74.8 |
+| Indigo | `oklch(0.6555 0.1972 269.2339)`<br>clip `#6184FF`, Lc 60.7 | `oklch(0.5538 0.2635 269.2339)`<br>clip `#3C53FF`, Lc 76.1 | `oklch(0.7635 0.1307 269.2339)`<br>clip `#91AEFF`, Lc 59.8 | `oklch(0.8435 0.0842 269.2339)`<br>clip `#B5CAFF`, Lc 74.7 |
+| Violet | `oklch(0.6689 0.2236 299.2339)`<br>clip `#AB6AFF`, Lc 60.7 | `oklch(0.5660 0.3031 299.2339)`<br>clip `#9601FF`, Lc 75.4 | `oklch(0.7728 0.1481 299.2339)`<br>clip `#C39EFF`, Lc 59.5 | `oklch(0.8495 0.0955 299.2339)`<br>clip `#D6C0FF`, Lc 74.7 |
+| Magenta | `oklch(0.6761 0.3385 329.2339)`<br>clip `#FB00F8`, Lc 57.0 | `oklch(0.5595 0.2801 329.2339)`<br>clip `#C300C1`, Lc 72.8 | `oklch(0.7885 0.2498 329.2339)`<br>clip `#FF71FF`, Lc 57.1 | `oklch(0.8604 0.1603 329.2339)`<br>clip `#FFA9FF`, Lc 72.7 |
+| Pink | `oklch(0.6693 0.3059 359.2339)`<br>clip `#FF0090`, Lc 61.9 | `oklch(0.5537 0.2530 359.2339)`<br>clip `#D8006F`, Lc 72.3 | `oklch(0.7811 0.1823 359.2339)`<br>clip `#FF7FB5`, Lc 56.3 | `oklch(0.8554 0.1121 359.2339)`<br>clip `#FFB0CD`, Lc 72.5 |
 | Gray | `#8E8E8E` | `#6E6E6E` | `#B1B1B1` | `#CBCBCB` |
 
-**Display P3.** sRGB is the standard and the baseline; the logo and every raster stay sRGB. Under `@media (color-gamut: p3)`, each hue's color and solid fill is redrawn by the same rule in Display P3 (`NamedColors.p3Color`): the most chroma P3 allows (OKLCH → linear P3 by CSS Color 4's matrices, the boundary found by bisection), at the lightness where its APCA contrast, measured with APCA's P3 luminance, is its level. Keeping the sRGB lightness instead would not keep the contrast: at a fixed OKLCH lightness, luminance moves with chroma, up to about Lc 2. Gray and the increased-contrast subtle fills stay sRGB.
+**The sRGB clip.** On an sRGB screen the browser clips each P3 color: its linear sRGB channels clipped to [0, 1], then encoded (relative-colorimetric clipping, as Chrome and Safari do). That clip (`NamedColors.clipHex`) is the sRGB value everywhere: the CSS tokens' default, theme-color, the web manifest, emails, `favicon.ico`, social images. By the user's decision its contrast drifts from the level, as the table shows: Lc 56–64 by default, Lc 72–79 in increased contrast. Gray is achromatic, the same in sRGB and P3.
 
 Each name gives three things:
 - **Color:** `--glyph-{name}` / `--color-{name}`. Links (`--color-link`) and syntax colors use these; there is no separate text set.
 - **Solid fill:** the same color, `--fill-{name}` / `--background-color-{name}`.
-- **Subtle fill:** the color at `opacity-low` over the page in the default schemes. In the increased-contrast schemes, it is the hue's lightness nearest the color's at which base text reads at 7:1.
+- **Subtle fill:** in the default schemes, the color at 20% over the page (`NamedColors.subtleShare`), mixed in gamma-encoded Display P3 and precomputed (`NamedColors.subtle`): its P3 value as `oklch()`, its sRGB value the clip; no runtime `color-mix`. In the increased-contrast schemes, it is the hue's lightness nearest the color's at which base text reads at 7:1.
 
 Hover and active states mix toward the scheme's extreme in Oklab. Tokens are written as `oklch()`, so transitions interpolate in Oklab.
 
 ### Labels on solid fills
 
-A solid fill's label is `--color-on-solid`, the page's own color: white in light and black in dark (`--extreme-inverted`). A white label on a light solid reads at about Lc 65, or about Lc 80 in increased contrast. A black label on a dark solid reads at about Lc 62, or about Lc 76. `--color-inverted-fixed` stays white for what must always be white (emails, a source document's white text).
+A solid fill's label is `--color-on-solid`, the page's own color: white in light and black in dark (`--extreme-inverted`). A white label on a light solid reads at Lc 65 in P3 (62–70 on the sRGB clip), or Lc 80 in increased contrast. A black label on a dark solid reads at Lc 62 in P3 (58–64 on the clip), or Lc 76. `--color-inverted-fixed` stays white for what must always be white (emails, a source document's white text).
 
 ### Border roles
 

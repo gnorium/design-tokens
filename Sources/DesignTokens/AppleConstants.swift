@@ -19,8 +19,9 @@ public enum AppleConstants {
 
         init(_ name: String) {
             func color(_ scheme: NamedColors.Scheme) -> Color {
-                let (r, g, b) = NamedColors.rgb(NamedColors.color(name, scheme))
-                return Color(.sRGB, red: Double(r) / 255, green: Double(g) / 255, blue: Double(b) / 255, opacity: 1)
+                // Display P3, as on the web (user, 2026-10-14: P3 only).
+                let (r, g, b) = NamedColors.displayP3(NamedColors.color(name, scheme))
+                return Color(.displayP3, red: r, green: g, blue: b, opacity: 1)
             }
             light = color(.light)
             dark = color(.dark)

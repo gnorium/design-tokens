@@ -4,25 +4,29 @@
   /// Gnorium's named colors (user, 2026-10-11): twelve hues 30° apart in
   /// OKLCH, starting at pure red's (#FF0000, 29.23°), and gray.
   ///
-  /// By APCA (user, 2026-10-12; kept at Lc 60 2026-10-14): each color's
-  /// lightness is set so its APCA contrast with the page is one of APCA's
-  /// published levels—Lc 60 by default, Lc 75 in increased contrast—dark on
-  /// white in light, light on black in dark (APCA's reverse polarity), with
-  /// the most chroma sRGB allows at that lightness, its hue kept. Lc 60 is
-  /// APCA's minimum for content text that is not body text: about 24px
-  /// regular or 16px bold, and short labels and captions such as links and
-  /// syntax; APCA asks Lc 75 of body text, which increased contrast meets. A
-  /// solid fill's label is the page's own color (`--color-on-solid`: white
-  /// in light, black in dark), at about Lc 65 on the fill in light and Lc 62
-  /// in dark.
+  /// By APCA (user, 2026-10-12; P3 only 2026-10-14): each color is a
+  /// Display P3 color—its hue kept, the most chroma P3 allows—at the
+  /// lightness where its APCA contrast with the page (by APCA's P3
+  /// luminance) is one of APCA's published levels: Lc 60 by default, Lc 75
+  /// in increased contrast; dark on white in light, light on black in dark
+  /// (APCA's reverse polarity). Lc 60 is APCA's minimum for content text
+  /// that is not body text (about 24px regular or 16px bold): short labels
+  /// and captions such as links and syntax; APCA asks Lc 75 of body text,
+  /// which increased contrast meets. A solid fill's label is the page's own
+  /// color (`--color-on-solid`: white in light, black in dark), at Lc 65 on
+  /// the fill in light and Lc 62 in dark.
   ///
-  /// sRGB is the standard; on a Display P3 screen (`color-gamut: p3`) each
-  /// color is redrawn by the same rule in that gamut (`p3Color`): the most
-  /// chroma P3 allows, at the lightness that keeps its APCA level.
+  /// P3 is the definition (user, 2026-10-14). The sRGB value is not solved
+  /// for its Lc: it is the P3 color's clip, channel by channel, as browsers
+  /// draw it on an sRGB screen (`clipHex`)—the CSS fallback, and what can't
+  /// take P3 uses—so every sRGB path shows the same color. There its
+  /// contrast drifts from the level, by the user's decision: Lc 56–64 by
+  /// default, Lc 72–79 in increased contrast.
   ///
-  /// Each is a color, its solid fill (the same token), and its subtle fill:
-  /// the color at `opacity-low` over the page in the default schemes; in
-  /// the increased-contrast ones, the hue's lightness nearest the color's at
+  /// Each is a color, its solid fill (the same token), and its subtle fill
+  /// (`subtle`): in the default schemes the color at 20% over the page
+  /// (`subtleShare`), precomputed in P3 with its clip as sRGB value; in the
+  /// increased-contrast ones, the hue's lightness nearest the color's at
   /// which base text reads at 7:1.
   public enum NamedColors {
     public struct OKLCH: Sendable, Equatable {
@@ -142,32 +146,6 @@
 
     // MARK: The rule
 
-    /// A name's color at an APCA contrast with a page: its hue (gray none),
-    /// the lightness at which its |SAPC| against the page is the target,
-    /// with the most chroma sRGB allows at that lightness: found by
-    /// bisection on the exact (unrounded) color, then written in 8-bit sRGB.
-    public static func color(_ name: String, apca target: Double, on page: Int) -> OKLCH {
-      let gray = name == "gray"
-      let h = gray ? 0 : hue(name)
-      func at(_ l: Double) -> OKLCH { gray ? OKLCH(l, 0, 0) : OKLCH(l, maxChroma(l: l, h: h), h) }
-      func exact(_ c: OKLCH) -> Double {
-        let r = linearSRGB(c)
-        func encode(_ v: Double) -> Double {
-          let x = min(1, max(0, v))
-          return x <= 0.0031308 ? 12.92 * x : 1.055 * pow(x, 1 / 2.4) - 0.055
-        }
-        return abs(APCA.sapc(text: (encode(r.r), encode(r.g), encode(r.b)), background: Double(page) / 255))
-      }
-      let dark = page == 0
-      var low = 0.0, high = 1.0
-      for _ in 0..<60 {
-        let mid = (low + high) / 2
-        // Lighter is less contrast on white, more on black.
-        if (exact(at(mid)) > target) != dark { low = mid } else { high = mid }
-      }
-      return at((low + high) / 2)
-    }
-
     /// The named colors' APCA level by default (user, 2026-10-12, kept
     /// 2026-10-14): Lc 60, APCA's minimum for short labels and captions—links
     /// and syntax.
@@ -175,25 +153,89 @@
     /// Their level in increased contrast: Lc 75, APCA's minimum for body text.
     public static let namedLcMoreContrast = 75.0
 
+    /// A hue's color at an APCA contrast (|SAPC|, Lc plus its 2.7 offset)
+    /// with a gray page: its hue, the most chroma Display P3 allows, at the
+    /// lightness where its contrast—by APCA's Display P3 luminance—is the
+    /// target; found by bisection, then as written (`cssP3`).
+    public static func color(_ name: String, apca target: Double, on page: Int) -> OKLCH {
+      if name == "gray" { return namedGray(apca: target, on: page) }
+      let h = hue(name)
+      func at(_ l: Double) -> OKLCH { OKLCH(l, maxChromaP3(l: l, h: h), h) }
+      var low = 0.0, high = 1.0
+      for _ in 0..<60 {
+        let mid = (low + high) / 2
+        // Lighter is less contrast on white, more on black.
+        if (abs(APCA.sapcP3(at(mid), background: Double(page) / 255)) > target) != (page == 0) {
+          low = mid
+        } else {
+          high = mid
+        }
+      }
+      return written(at((low + high) / 2))
+    }
+
+    /// Gray, achromatic and so the same in sRGB and P3: the lightness at
+    /// which its |SAPC| against the page is the target, written in 8-bit
+    /// sRGB.
+    static func namedGray(apca target: Double, on page: Int) -> OKLCH {
+      func exact(_ l: Double) -> Double {
+        let v = linearSRGB(OKLCH(l, 0, 0)).r
+        let e = v <= 0.0031308 ? 12.92 * v : 1.055 * pow(v, 1 / 2.4) - 0.055
+        return abs(APCA.sapc(text: (e, e, e), background: Double(page) / 255))
+      }
+      var low = 0.0, high = 1.0
+      for _ in 0..<60 {
+        let mid = (low + high) / 2
+        if (exact(mid) > target) != (page == 0) { low = mid } else { high = mid }
+      }
+      return OKLCH((low + high) / 2, 0, 0)
+    }
+
     /// Every name's color in every scheme, computed once.
     static let colors: [Scheme: [String: OKLCH]] = Dictionary(
       uniqueKeysWithValues: Scheme.allCases.map { scheme in
         let page = scheme.isDark ? 0 : 255
-        // APCA's own levels as |SAPC| (Lc plus its 2.7 offset).
         let target = (scheme.isMoreContrast ? namedLcMoreContrast : namedLc) + APCA.loBoWoffset * 100
         return (scheme, Dictionary(uniqueKeysWithValues: names.map { ($0, color($0, apca: target, on: page)) }))
       })
 
-    /// A name's color written for CSS as `oklch(L C h)` (user, 2026-10-11),
-    /// so browsers interpolate its transitions in Oklab: the OKLCH of its
-    /// 8-bit sRGB color, at the fewest decimals (4 to 8) at which the value
-    /// stays inside sRGB—each channel in [0, 1]—and renders that same 8-bit
-    /// color; on the gamut's edge, its chroma rounded down until it does.
-    public static func css(_ name: String, _ scheme: Scheme) -> String {
-      css(color(name, scheme))
+    /// The color of a name in a scheme (user, 2026-10-14: P3 is the
+    /// definition): at Lc 60 against the page, Lc 75 in increased contrast,
+    /// in Display P3. Its sRGB value is its clip (`clipHex`), whose contrast
+    /// drifts from the level: Lc 56–64 by default, Lc 72–79 in increased
+    /// contrast.
+    public static func color(_ name: String, _ scheme: Scheme) -> OKLCH {
+      colors[scheme]![name]!
     }
 
-    /// Any color written so (`css(_:_:)`).
+    /// A name's sRGB token value (user, 2026-10-14): not solved for its Lc
+    /// but defined as the sRGB clip of its P3 color (`clipHex`), written as
+    /// `oklch()` of those 8 bits (`css(_:)`), so it renders exactly the clip;
+    /// gray, achromatic, as its gray. The P3 value overrides it under
+    /// `@media (color-gamut: p3)` (`cssP3(_:_:)`).
+    public static func css(_ name: String, _ scheme: Scheme) -> String {
+      css(oklch(rgb(color(name, scheme))))
+    }
+
+    /// A name's P3 token value, `oklch(L C h)` as written; nil for gray.
+    public static func cssP3(_ name: String, _ scheme: Scheme) -> String? {
+      name == "gray" ? nil : cssP3(color(name, scheme))
+    }
+
+    /// The sRGB clip of a name in a scheme (user, 2026-10-14), for what
+    /// can't take P3—the CSS fallback, theme-color, the web manifest,
+    /// emails, favicon.ico, social images: its P3 color in linear sRGB, each channel clipped to
+    /// [0, 1] (relative-colorimetric clipping, as Chrome and Safari draw it
+    /// on an sRGB screen), encoded to 8 bits.
+    public static func clipHex(_ name: String, _ scheme: Scheme) -> String {
+      hex(color(name, scheme))
+    }
+
+    /// Any in-sRGB color written as `oklch(L C h)`, so browsers interpolate
+    /// in Oklab: the OKLCH of its 8-bit sRGB color, at the fewest decimals
+    /// (4 to 8) at which the value stays inside sRGB and renders that same
+    /// 8-bit color; on the gamut's edge, its chroma rounded down until it
+    /// does. The neutral ramp and the increased-contrast subtle fills.
     public static func css(_ color: OKLCH) -> String {
       let bytes = rgb(color)
       let exact = oklch(bytes)
@@ -217,17 +259,6 @@
       String(format: "%.\(digits)f", value)
     }
 
-    /// The hex a name is written as in a scheme.
-    public static func hex(_ name: String, _ scheme: Scheme) -> String {
-      hex(color(name, scheme))
-    }
-
-    /// The color of a name in a scheme: at Lc 60 against the page, Lc 75 in
-    /// increased contrast.
-    public static func color(_ name: String, _ scheme: Scheme) -> OKLCH {
-      colors[scheme]![name]!
-    }
-
     // MARK: Display P3
 
     /// Linear Display P3 of an OKLCH color: OKLab to LMS to CIE XYZ (D65) to
@@ -242,9 +273,20 @@
       let z = -0.0763729366746601 * l - 0.4214933324022432 * m + 1.5869240198367816 * s
       return (
         446124 / 178915 * x - 333277 / 357830 * y - 72051 / 178915 * z,
-        -14852 / 17905 * x + 63121 / 35810 * y + 423 / 71620 * z,
+        -14852 / 17905 * x + 63121 / 35810 * y + 423 / 17905 * z,
         11844 / 330415 * x - 50337 / 660830 * y + 316169 / 330415 * z
       )
+    }
+
+    /// Gamma-encoded Display P3 channels (the sRGB curve), for an Apple
+    /// `Color(.displayP3, …)`.
+    public static func displayP3(_ c: OKLCH) -> (r: Double, g: Double, b: Double) {
+      let p = linearDisplayP3(c)
+      func encode(_ v: Double) -> Double {
+        let x = min(1, max(0, v))
+        return x <= 0.0031308 ? 12.92 * x : 1.055 * pow(x, 1 / 2.4) - 0.055
+      }
+      return (encode(p.r), encode(p.g), encode(p.b))
     }
 
     public static func inDisplayP3(_ c: OKLCH, tolerance: Double = 1e-7) -> Bool {
@@ -269,52 +311,18 @@
       APCA.lc(sapc: APCA.sapcP3(c, background: Double(page) / 255))
     }
 
-    /// A name's P3 color (user, 2026-10-14): the sRGB rule in Display P3—its
-    /// hue, the most chroma P3 allows, at the lightness where its APCA
-    /// contrast with the page (measured in P3) is its scheme's level. Not
-    /// the sRGB color's own lightness with more chroma: at a fixed OKLCH
-    /// lightness, luminance moves with chroma, which would put the dark
-    /// scheme's blues, violets and magentas up to Lc 2 under their level.
-    /// Gray has none.
-    public static func p3Color(_ name: String, _ scheme: Scheme) -> OKLCH? {
-      guard name != "gray" else { return nil }
-      return p3Colors[scheme]![name]!
-    }
-
-    static let p3Colors: [Scheme: [String: OKLCH]] = Dictionary(
-      uniqueKeysWithValues: Scheme.allCases.map { scheme in
-        let page = scheme.isDark ? 0 : 255
-        let target = (scheme.isMoreContrast ? namedLcMoreContrast : namedLc) + APCA.loBoWoffset * 100
-        return (scheme, Dictionary(uniqueKeysWithValues: hueNames.map { name in
-          let h = hue(name)
-          func at(_ l: Double) -> OKLCH { OKLCH(l, maxChromaP3(l: l, h: h), h) }
-          var low = 0.0, high = 1.0
-          for _ in 0..<60 {
-            let mid = (low + high) / 2
-            if (abs(APCA.sapcP3(at(mid), background: Double(page) / 255)) > target) != (page == 0) {
-              low = mid
-            } else {
-              high = mid
-            }
-          }
-          return (name, at((low + high) / 2))
-        }))
-      })
-
-    /// A name's P3 color written for CSS as `oklch(L C h)`: lightness and hue
-    /// to 4 decimals, chroma rounded down to 4 decimals until the value is
-    /// inside Display P3. Nil for gray.
-    public static func cssP3(_ name: String, _ scheme: Scheme) -> String? {
-      guard let color = p3Color(name, scheme) else { return nil }
-      return cssP3(color)
-    }
-
-    /// Any color written so (`cssP3(_:_:)`).
-    public static func cssP3(_ color: OKLCH) -> String {
+    /// A P3 color as written: lightness and hue to 4 decimals, chroma
+    /// rounded down to 4 decimals until the value is inside Display P3.
+    static func written(_ color: OKLCH) -> OKLCH {
       let l = (color.l * 1e4).rounded() / 1e4, h = (color.h * 1e4).rounded() / 1e4
       var c = (maxChromaP3(l: l, h: h) * 1e4).rounded(.down) / 1e4
       while c > 0, !inDisplayP3(OKLCH(l, c, h), tolerance: 1e-12) { c -= 1e-4 }
-      return "oklch(\(format(l, 4)) \(format(max(0, c), 4)) \(format(h, 4)))"
+      return OKLCH(l, (max(0, c) * 1e4).rounded() / 1e4, h)
+    }
+
+    /// A P3 color written for CSS as `oklch(L C h)` (`written`).
+    public static func cssP3(_ color: OKLCH) -> String {
+      "oklch(\(format(color.l, 4)) \(format(color.c, 4)) \(format(color.h, 4)))"
     }
 
     // MARK: APCA
@@ -374,7 +382,7 @@
 
       /// SAPC ×100, signed, of an OKLCH color drawn in Display P3 (encoded
       /// with the sRGB curve, as P3 is) on a gray background in [0, 1].
-      static func sapcP3(_ c: OKLCH, background: Double) -> Double {
+      public static func sapcP3(_ c: OKLCH, background: Double) -> Double {
         let p = linearDisplayP3(c)
         func encode(_ v: Double) -> Double {
           let x = min(1, max(0, v))
@@ -460,8 +468,13 @@
       public static let foreground: [Neutral] = [.border, .glyphGrayQuaternary, .glyphGrayTertiary, .glyphGraySecondary, .glyphGray]
     }
 
-    /// `opacity-low`, at which a subtle fill lays its color over the page.
-    public static let opacityLow = 0.2
+    /// A subtle fill is its color at 20% over the page (user, 2026-10-14).
+    /// A build-time constant, not a runtime opacity: it precomputes the
+    /// named subtle fills (`subtle`) and anchors the neutral ramp (the 3:1
+    /// gray at this share over white sets the fill steps). The CSS
+    /// `--opacity-low` stays only for what is genuinely translucent (the
+    /// selection highlight).
+    public static let subtleShare = 0.2
 
     static func rgb(_ v: Int) -> (Int, Int, Int) { (v, v, v) }
 
@@ -510,7 +523,7 @@
       let page: Int = scheme.isDark ? black : white
       // Fills: steps of a third of the neutral subtle fill's APCA in light.
       let gray3 = gray(wcag: 3, on: white, darker: true)
-      let subtle = Int((opacityLow * Double(gray3) + (1 - opacityLow) * 255).rounded())
+      let subtle = Int((subtleShare * Double(gray3) + (1 - subtleShare) * 255).rounded())
       let step = apca(subtle, on: white) / 3
       var ramp: [Neutral: Int] = [:]
       for n in Neutral.allCases { if let k = n.fillStep { ramp[n] = gray(apca: Double(k) * step, on: page) } }
@@ -568,6 +581,42 @@
     /// A neutral step in a scheme (`neutralRamp`).
     public static func neutral(_ step: Neutral, _ scheme: Scheme) -> OKLCH {
       oklch(rgb(neutralRamp(scheme)[step]!))
+    }
+
+    /// A name's subtle fill in a default scheme (user, 2026-10-14): its color
+    /// at 20% over the page (`subtleShare`), mixed in gamma-encoded Display
+    /// P3 (as `color-mix(in display-p3, …)` does), precomputed; written as
+    /// `oklch()` (`cssP3`), its sRGB value its clip (`css(_:)` of
+    /// `rgb`). Gray's is achromatic.
+    public static func subtle(_ name: String, _ scheme: Scheme) -> OKLCH {
+      let c = displayP3(color(name, scheme)), page = scheme.isDark ? 0.0 : 1.0
+      func mix(_ v: Double) -> Double { subtleShare * v + (1 - subtleShare) * page }
+      let mixed = oklch(displayP3: (mix(c.r), mix(c.g), mix(c.b)))
+      if name == "gray" { return OKLCH(mixed.l, 0, 0) }
+      // As written: 4 decimals, chroma down until inside P3.
+      let l = (mixed.l * 1e4).rounded() / 1e4, h = (mixed.h * 1e4).rounded() / 1e4
+      var ch = (mixed.c * 1e4).rounded() / 1e4
+      while ch > 0, !inDisplayP3(OKLCH(l, ch, h), tolerance: 1e-12) { ch -= 1e-4 }
+      return OKLCH(l, (max(0, ch) * 1e4).rounded() / 1e4, h)
+    }
+
+    /// OKLCH of gamma-encoded Display P3 channels: decoded, P3 to CIE XYZ
+    /// (D65) to LMS to OKLab, by CSS Color 4's matrices.
+    public static func oklch(displayP3 e: (Double, Double, Double)) -> OKLCH {
+      func lin(_ v: Double) -> Double { v <= 0.04045 ? v / 12.92 : pow((v + 0.055) / 1.055, 2.4) }
+      let (r, g, b) = (lin(e.0), lin(e.1), lin(e.2))
+      let x = 608311 / 1250200 * r + 189793 / 714400 * g + 198249 / 1000160 * b
+      let y = 35783 / 156275 * r + 247089 / 357200 * g + 198249 / 2500400 * b
+      let z = 0 * r + 32229 / 714400 * g + 5220557 / 5000800 * b
+      let l = cbrt(0.8190224379967030 * x + 0.3619062600528904 * y - 0.1288737815209879 * z)
+      let m = cbrt(0.0329836539323885 * x + 0.9292868615863434 * y + 0.0361446663506424 * z)
+      let s = cbrt(0.0481771893596242 * x + 0.2642395317527308 * y + 0.6335478284694309 * z)
+      let L = 0.2104542683093140 * l + 0.7936177747023054 * m - 0.0040720430116193 * s
+      let A = 1.9779985324311684 * l - 2.4285922420485799 * m + 0.4505937096174110 * s
+      let B = 0.0259040424655478 * l + 0.7827717124575296 * m - 0.8086757549230774 * s
+      var h = atan2(B, A) * 180 / .pi
+      if h < 0 { h += 360 }
+      return OKLCH(L, (A * A + B * B).squareRoot(), h)
     }
 
     /// The subtle fill of the increased-contrast schemes: the color's hue,
