@@ -676,6 +676,9 @@ public let colorLinkRedVisitedHover: CSS.Color = `var`("--color-link-red-visited
 public let colorLinkRedVisitedActive: CSS.Color = `var`("--color-link-red-visited-active")
 
 // MARK: - Applied: Icon Sizes
+// The line height of the text an icon sits beside: x-small 20 (12px text),
+// small 26 (16px body text), medium 30 (20px text). In a control on the 22px
+// line (buttons, inputs, menus) the icon is lineHeightSmall22.
 public let sizeIconXSmall: CSS.Length = `var`("--size-icon-x-small")
 public let sizeIconSmall: CSS.Length = `var`("--size-icon-small")
 public let sizeIconMedium: CSS.Length = `var`("--size-icon-medium")

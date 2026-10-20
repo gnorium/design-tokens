@@ -673,9 +673,13 @@
     customProperty("--color-link-red-visited", glyphPink)
     customProperty("--color-link-red-visited-hover", glyphColor(from: glyphPink, lShift: glyphLHoverOffset))
     customProperty("--color-link-red-visited-active", glyphColor(from: glyphPink, lShift: glyphLActiveOffset))
-    customProperty("--size-icon-x-small", calc(fontSizeMedium16 - px(4)))
-    customProperty("--size-icon-small", fontSizeMedium16)
-    customProperty("--size-icon-medium", calc(fontSizeMedium16 + px(4)))
+    // An icon is as tall as the line of the text it sits beside (user,
+    // 2026-10-21; was its font size): it fills the line box and never grows
+    // it. Each icon size is the line height of its type size—12px text on
+    // a 20px line, 16px on 26, 20px on 30.
+    customProperty("--size-icon-x-small", lineHeightXSmall20)
+    customProperty("--size-icon-small", lineHeightMedium26)
+    customProperty("--size-icon-medium", lineHeightXLarge30)
     customProperty("--size-toggle-switch-grip", calc(fontSizeMedium16 * 1.25))
     customProperty("--size-edge-fade", em(2))
     customProperty("--box-shadow-small", (boxShadowOutsetSmall, boxShadowColorBase))
