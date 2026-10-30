@@ -151,21 +151,6 @@ public let colorGrayHover: CSS.Color = `var`("--color-gray-hover")
 public let colorGrayActive: CSS.Color = `var`("--color-gray-active")
 public let colorGrayFocus: CSS.Color = `var`("--color-gray-focus")
 
-// A named color on the inverted ground (`extreme`): the other polarity's at the same contrast.
-public let colorRedInverted: CSS.Color = `var`("--color-red-inverted")
-public let colorOrangeInverted: CSS.Color = `var`("--color-orange-inverted")
-public let colorYellowInverted: CSS.Color = `var`("--color-yellow-inverted")
-public let colorLimeInverted: CSS.Color = `var`("--color-lime-inverted")
-public let colorGreenInverted: CSS.Color = `var`("--color-green-inverted")
-public let colorMintInverted: CSS.Color = `var`("--color-mint-inverted")
-public let colorCyanInverted: CSS.Color = `var`("--color-cyan-inverted")
-public let colorBlueInverted: CSS.Color = `var`("--color-blue-inverted")
-public let colorIndigoInverted: CSS.Color = `var`("--color-indigo-inverted")
-public let colorVioletInverted: CSS.Color = `var`("--color-violet-inverted")
-public let colorMagentaInverted: CSS.Color = `var`("--color-magenta-inverted")
-public let colorPinkInverted: CSS.Color = `var`("--color-pink-inverted")
-public let colorGrayInverted: CSS.Color = `var`("--color-gray-inverted")
-
 // MARK: - Source: Glyph state offsets
 public let glyphLHoverOffset: CSS.Value = `var`("--glyph-l-hover-offset")
 public let glyphLActiveOffset: CSS.Value = `var`("--glyph-l-active-offset")
