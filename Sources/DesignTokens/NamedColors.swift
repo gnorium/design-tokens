@@ -79,6 +79,17 @@
       /// Base text (`colorBase`, the scheme's `--glyph-gray`): the neutral
       /// ramp's.
       public var baseText: OKLCH { NamedColors.neutral(.glyphGray, self) }
+      /// The scheme of the other polarity at the same contrast: dark for
+      /// light, light for dark. A color drawn on the inverted ground
+      /// (`extreme`: black in light, white in dark) is that scheme's.
+      public var inverted: Scheme {
+        switch self {
+        case .light: return .dark
+        case .lightMoreContrast: return .darkMoreContrast
+        case .dark: return .light
+        case .darkMoreContrast: return .lightMoreContrast
+        }
+      }
     }
 
     /// The minimum contrast of the increased-contrast schemes (WCAG AAA).

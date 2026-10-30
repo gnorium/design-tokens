@@ -134,7 +134,12 @@
   /// `--gray-fill`) and its subtle fill (`--fill-{name}-subtle`,
   /// `--gray-fill-subtle`)—in the default schemes the color at 20% over
   /// the page, precomputed (`NamedColors.subtle`; no runtime color-mix), in
-  /// the increased-contrast ones solved to carry base text at 7:1.
+  /// the increased-contrast ones solved to carry base text at 7:1. And each
+  /// name's color on the inverted ground (`--glyph-{name}-inverted`,
+  /// `--gray-glyph-inverted`: on `extreme`, black in light and white in
+  /// dark), the other polarity's at the same contrast (`Scheme.inverted`):
+  /// a gilt drawn on a black board (user, 2026-10-30) reads on it in every
+  /// scheme, as the scheme's own yellow does on its page.
   @CSSBuilder
   public func NamedColorTokensCSS(_ scheme: NamedColors.Scheme) -> [CSSOM.CSSRule] {
     for name in NamedColors.names {
@@ -143,6 +148,8 @@
       let prefix = name == "gray" ? "--gray" : "--glyph-\(name)"
       let fillName = name == "gray" ? "--gray-fill" : "--fill-\(name)"
       customProperty(prefix == "--gray" ? "--gray-glyph" : prefix, color)
+      customProperty(
+        (prefix == "--gray" ? "--gray-glyph" : prefix) + "-inverted", NamedColors.css(name, scheme.inverted))
       customProperty(fillName, color)
       customProperty(
         "\(fillName)-subtle",
@@ -164,6 +171,7 @@
     for name in NamedColors.hueNames {
       let color = NamedColors.cssP3(name, scheme)!
       customProperty("--glyph-\(name)", color)
+      customProperty("--glyph-\(name)-inverted", NamedColors.cssP3(name, scheme.inverted)!)
       customProperty("--fill-\(name)", color)
       if !scheme.isMoreContrast {
         customProperty("--fill-\(name)-subtle", NamedColors.cssP3(NamedColors.subtle(name, scheme)))
@@ -733,7 +741,7 @@
       calc(
         (spacingStartTypeaheadSearchFigure + minSizeSearchFigure) - (minSizeIconMedium + spacing8)))
 
-    // MARK: Named colors—one 19-token block per name (`NamedColors`)
+    // MARK: Named colors—one 20-token block per name (`NamedColors`)
     // The color and its solid fill are one token; states mix toward `extreme`
     // (black in light, white in dark); the subtle fill is the scheme's.
     for name in NamedColors.names {
@@ -742,6 +750,7 @@
       let subtle = name == "gray" ? "var(--gray-fill-subtle)" : "var(--fill-\(name)-subtle)"
       let mix = { (color: String, share: Int) in "color-mix(in oklab, \(color) \(share)%, var(--extreme))" }
       customProperty("--color-\(name)", glyph)
+      customProperty("--color-\(name)-inverted", name == "gray" ? "var(--gray-glyph-inverted)" : "var(--glyph-\(name)-inverted)")
       customProperty("--color-\(name)-hover", mix(glyph, 80))
       customProperty("--color-\(name)-active", mix(glyph, 65))
       customProperty("--color-\(name)-focus", glyphBlue)
